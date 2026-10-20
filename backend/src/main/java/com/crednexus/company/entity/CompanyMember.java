@@ -3,6 +3,8 @@ package com.crednexus.company.entity;
 import com.crednexus.auth.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -61,15 +63,28 @@ public class CompanyMember {
     @Setter
     private boolean active;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "member_role", nullable = false)
+    @Setter
+    private CompanyMemberRole memberRole;
+
     protected CompanyMember() {
     }
 
-    public CompanyMember(User user, Company company, String position, boolean canApply, boolean active) {
+    public CompanyMember(
+            User user,
+            Company company,
+            String position,
+            boolean canApply,
+            boolean active,
+            CompanyMemberRole memberRole
+    ) {
         this.user = user;
         this.company = company;
         this.position = position;
         this.canApply = canApply;
         this.active = active;
+        this.memberRole = memberRole;
     }
 
 }
