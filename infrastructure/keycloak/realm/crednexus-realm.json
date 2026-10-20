@@ -1,0 +1,45 @@
+{
+  "realm": "crednexus",
+  "enabled": true,
+  "displayName": "CredNexus",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "rememberMe": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "CLIENT",
+        "description": "Entrepreneur or company representative"
+      },
+      {
+        "name": "BANK_EMPLOYEE",
+        "description": "Bank employee"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Platform administrator"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "crednexus-frontend",
+      "name": "CredNexus Frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ]
+}

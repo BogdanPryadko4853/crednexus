@@ -31,9 +31,13 @@ public class User {
     @Setter
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash")
     @Setter
     private String passwordHash;
+
+    @Column(name = "keycloak_id", unique = true, length = 255)
+    @Setter
+    private String keycloakId;
 
     @Column(name = "full_name", nullable = false)
     @Setter

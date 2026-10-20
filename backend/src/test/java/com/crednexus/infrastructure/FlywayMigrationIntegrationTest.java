@@ -30,13 +30,11 @@ class FlywayMigrationIntegrationTest {
     }
 
     @Test
-    void appliesInitialMigrationAndCreatesAllDomainTables() {
-        Integer appliedMigrations = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM flyway_schema_history WHERE success",
-                Integer.class
-        );
-
-        assertThat(appliedMigrations).isEqualTo(1);
+    void appliesAllMigrationsAndCreatesAllDomainTables() {
+        assertThat(jdbcTemplate.queryForList(
+                "SELECT version FROM flyway_schema_history WHERE success AND type = 'SQL' ORDER BY installed_rank",
+                String.class
+        )).containsExactly("1", "2");
 
         for (String table : new String[]{
                 "users", "companies", "company_members", "credit_products", "loan_applications",

@@ -4,11 +4,14 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: crednexus
-      POSTGRES_USER: crednexus
-      POSTGRES_PASSWORD: crednexus
+      POSTGRES_DB: ${POSTGRES_DB:-crednexus}
+      POSTGRES_USER: ${POSTGRES_USER:-crednexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crednexus}
+      POSTGRES_KEYCLOAK_DATABASE: ${KEYCLOAK_DB_NAME:-keycloak}
+      POSTGRES_KEYCLOAK_USERNAME: ${KEYCLOAK_DB_USERNAME:-keycloak}
+      POSTGRES_KEYCLOAK_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U crednexus -d crednexus"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -16,6 +19,27 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init/01-create-keycloak-database.sql:/docker-entrypoint-initdb.d/01-create-keycloak-database.sql:ro
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3
+    command: start-dev --import-realm
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${KEYCLOAK_DB_NAME:-keycloak}
+      KC_DB_USERNAME: ${KEYCLOAK_DB_USERNAME:-keycloak}
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-http://localhost:8081}
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "${KEYCLOAK_PORT:-8081}:8080"
+    volumes:
+      - ./infrastructure/keycloak/realm/crednexus-realm.json:/opt/keycloak/data/import/crednexus-realm.json:ro
 
   backend:
     build:
@@ -24,11 +48,13 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/crednexus
-      SPRING_DATASOURCE_USERNAME: crednexus
-      SPRING_DATASOURCE_PASSWORD: crednexus
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-crednexus}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-crednexus}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-crednexus}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI:-http://localhost:8081/realms/crednexus}
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/crednexus/protocol/openid-connect/certs
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
 
 volumes:
   postgres-data:

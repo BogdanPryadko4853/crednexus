@@ -8,3 +8,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/crednexus}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/crednexus/protocol/openid-connect/certs}
