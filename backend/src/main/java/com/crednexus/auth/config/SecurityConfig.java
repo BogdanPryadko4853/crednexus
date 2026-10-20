@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
                         .requestMatchers(HttpMethod.PATCH, "/api/credit-products/**")
                         .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
+                        .requestMatchers(HttpMethod.POST, "/api/loan-applications/*/verifications/run")
+                        .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

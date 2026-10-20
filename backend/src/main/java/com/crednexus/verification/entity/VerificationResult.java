@@ -60,4 +60,20 @@ public class VerificationResult {
     @Column(name = "checked_at", nullable = false)
     @Setter
     private Instant checkedAt;
+
+    public VerificationResult(
+            LoanApplication application,
+            VerificationType type,
+            VerificationStatus status,
+            String source,
+            Map<String, Object> payload,
+            Instant checkedAt
+    ) {
+        this.application = application;
+        this.type = type;
+        this.status = status;
+        this.source = source;
+        this.payload = payload;
+        this.checkedAt = checkedAt;
+    }
 }
