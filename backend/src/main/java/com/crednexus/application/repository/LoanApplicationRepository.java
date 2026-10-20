@@ -1,6 +1,8 @@
 package com.crednexus.application.repository;
 
 import com.crednexus.application.entity.LoanApplication;
+
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,5 +22,5 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
             )
             order by application.updatedAt desc
             """)
-    java.util.List<LoanApplication> findAllAccessibleByUserId(@Param("userId") UUID userId);
+    List<LoanApplication> findAllAccessibleByUserId(@Param("userId") UUID userId);
 }
