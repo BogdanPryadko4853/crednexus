@@ -22,6 +22,26 @@
       }
     ]
   },
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@crednexus.local",
+      "emailVerified": true,
+      "firstName": "CredNexus",
+      "lastName": "Administrator",
+      "realmRoles": [
+        "ADMIN"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${KEYCLOAK_TEST_ADMIN_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ],
   "clients": [
     {
       "clientId": "crednexus-frontend",

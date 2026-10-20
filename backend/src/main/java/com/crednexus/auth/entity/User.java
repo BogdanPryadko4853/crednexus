@@ -2,8 +2,6 @@ package com.crednexus.auth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -39,22 +37,16 @@ public class User {
     @Setter
     private String fullName;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Setter
-    private UserRole role;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     protected User() {
     }
 
-    public User(String keycloakId, String email, String fullName, UserRole role) {
+    public User(String keycloakId, String email, String fullName) {
         this.keycloakId = keycloakId;
         this.email = email;
         this.fullName = fullName;
-        this.role = role;
     }
 
     @PrePersist
