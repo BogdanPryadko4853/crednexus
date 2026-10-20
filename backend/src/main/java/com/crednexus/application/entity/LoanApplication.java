@@ -82,6 +82,23 @@ public class LoanApplication {
     @Column(nullable = false)
     private Integer version;
 
+    public LoanApplication(
+            Company company,
+            User createdBy,
+            CreditProduct product,
+            BigDecimal requestedAmount,
+            Integer termMonths,
+            String purpose
+    ) {
+        this.company = company;
+        this.createdBy = createdBy;
+        this.product = product;
+        this.requestedAmount = requestedAmount;
+        this.termMonths = termMonths;
+        this.purpose = purpose;
+        this.status = LoanApplicationStatus.DRAFT;
+    }
+
     @PrePersist
     private void initializeTimestamps() {
         Instant now = Instant.now();
