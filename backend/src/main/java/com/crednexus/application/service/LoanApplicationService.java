@@ -5,8 +5,6 @@ import com.crednexus.application.dto.LoanApplicationResponse;
 import com.crednexus.application.dto.UpdateLoanApplicationRequest;
 import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.entity.LoanApplicationStatus;
-import com.crednexus.application.entity.ApplicationStatusHistory;
-import com.crednexus.application.repository.ApplicationStatusHistoryRepository;
 import com.crednexus.application.repository.FinancialSnapshotRepository;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
@@ -15,8 +13,8 @@ import com.crednexus.company.entity.CompanyMember;
 import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
+import com.crednexus.workflow.service.WorkflowService;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -29,25 +27,25 @@ public class LoanApplicationService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final FinancialSnapshotRepository financialSnapshotRepository;
-    private final ApplicationStatusHistoryRepository applicationStatusHistoryRepository;
     private final CompanyMemberRepository companyMemberRepository;
     private final CreditProductRepository creditProductRepository;
     private final CurrentUserProvider currentUserProvider;
+    private final WorkflowService workflowService;
 
     public LoanApplicationService(
             LoanApplicationRepository loanApplicationRepository,
             FinancialSnapshotRepository financialSnapshotRepository,
-            ApplicationStatusHistoryRepository applicationStatusHistoryRepository,
             CompanyMemberRepository companyMemberRepository,
             CreditProductRepository creditProductRepository,
-            CurrentUserProvider currentUserProvider
+            CurrentUserProvider currentUserProvider,
+            WorkflowService workflowService
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.financialSnapshotRepository = financialSnapshotRepository;
-        this.applicationStatusHistoryRepository = applicationStatusHistoryRepository;
         this.companyMemberRepository = companyMemberRepository;
         this.creditProductRepository = creditProductRepository;
         this.currentUserProvider = currentUserProvider;
+        this.workflowService = workflowService;
     }
 
     @Transactional
@@ -104,16 +102,7 @@ public class LoanApplicationService {
         CreditProduct product = getActiveProduct(application.getProduct().getId());
         validateProductLimits(application, product);
 
-        Instant submittedAt = Instant.now();
-        application.setStatus(LoanApplicationStatus.SUBMITTED);
-        application.setSubmittedAt(submittedAt);
-        applicationStatusHistoryRepository.save(new ApplicationStatusHistory(
-                application,
-                LoanApplicationStatus.DRAFT,
-                LoanApplicationStatus.SUBMITTED,
-                currentUser,
-                submittedAt
-        ));
+        workflowService.transition(application, LoanApplicationStatus.SUBMITTED, currentUser);
 
         return toResponse(application);
     }

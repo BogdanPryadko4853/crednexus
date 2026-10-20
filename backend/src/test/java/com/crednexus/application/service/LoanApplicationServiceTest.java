@@ -9,11 +9,9 @@ import static org.mockito.Mockito.when;
 
 import com.crednexus.application.dto.CreateLoanApplicationRequest;
 import com.crednexus.application.dto.UpdateLoanApplicationRequest;
-import com.crednexus.application.entity.ApplicationStatusHistory;
 import com.crednexus.application.entity.FinancialSnapshot;
 import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.entity.LoanApplicationStatus;
-import com.crednexus.application.repository.ApplicationStatusHistoryRepository;
 import com.crednexus.application.repository.FinancialSnapshotRepository;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
@@ -24,6 +22,7 @@ import com.crednexus.company.entity.CompanyMemberRole;
 import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
+import com.crednexus.workflow.service.WorkflowService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,9 +47,6 @@ class LoanApplicationServiceTest {
     private FinancialSnapshotRepository financialSnapshotRepository;
 
     @Mock
-    private ApplicationStatusHistoryRepository applicationStatusHistoryRepository;
-
-    @Mock
     private CompanyMemberRepository companyMemberRepository;
 
     @Mock
@@ -62,8 +58,8 @@ class LoanApplicationServiceTest {
     @Captor
     private ArgumentCaptor<LoanApplication> applicationCaptor;
 
-    @Captor
-    private ArgumentCaptor<ApplicationStatusHistory> statusHistoryCaptor;
+    @Mock
+    private WorkflowService workflowService;
 
     @InjectMocks
     private LoanApplicationService loanApplicationService;
@@ -201,14 +197,7 @@ class LoanApplicationServiceTest {
 
         loanApplicationService.submitApplication(applicationId);
 
-        assertThat(application.getStatus()).isEqualTo(LoanApplicationStatus.SUBMITTED);
-        assertThat(application.getSubmittedAt()).isNotNull();
-        verify(applicationStatusHistoryRepository).save(statusHistoryCaptor.capture());
-        ApplicationStatusHistory history = statusHistoryCaptor.getValue();
-        assertThat(history.getApplication()).isSameAs(application);
-        assertThat(history.getFromStatus()).isEqualTo(LoanApplicationStatus.DRAFT);
-        assertThat(history.getToStatus()).isEqualTo(LoanApplicationStatus.SUBMITTED);
-        assertThat(history.getActor()).isSameAs(creator);
+        verify(workflowService).transition(application, LoanApplicationStatus.SUBMITTED, creator);
     }
 
     @Test

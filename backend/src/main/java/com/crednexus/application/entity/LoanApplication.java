@@ -65,7 +65,6 @@ public class LoanApplication {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Setter
     private LoanApplicationStatus status;
 
     @Column(name = "submitted_at")
@@ -97,6 +96,10 @@ public class LoanApplication {
         this.termMonths = termMonths;
         this.purpose = purpose;
         this.status = LoanApplicationStatus.DRAFT;
+    }
+
+    public void transitionTo(LoanApplicationStatus status) {
+        this.status = status;
     }
 
     @PrePersist

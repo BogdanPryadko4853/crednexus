@@ -147,7 +147,7 @@ class FinancialSnapshotServiceTest {
                 12,
                 "Working capital"
         );
-        application.setStatus(status);
+        ReflectionTestUtils.setField(application, "status", status);
         ReflectionTestUtils.setField(application, "id", applicationId);
         return application;
     }
