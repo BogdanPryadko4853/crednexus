@@ -31,10 +31,6 @@ public class User {
     @Setter
     private String email;
 
-    @Column(name = "password_hash")
-    @Setter
-    private String passwordHash;
-
     @Column(name = "keycloak_id", unique = true, length = 255)
     @Setter
     private String keycloakId;
@@ -54,9 +50,9 @@ public class User {
     protected User() {
     }
 
-    public User(String email, String passwordHash, String fullName, UserRole role) {
+    public User(String keycloakId, String email, String fullName, UserRole role) {
+        this.keycloakId = keycloakId;
         this.email = email;
-        this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.role = role;
     }

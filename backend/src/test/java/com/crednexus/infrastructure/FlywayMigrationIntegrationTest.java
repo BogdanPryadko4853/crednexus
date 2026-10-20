@@ -34,7 +34,18 @@ class FlywayMigrationIntegrationTest {
         assertThat(jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success AND type = 'SQL' ORDER BY installed_rank",
                 String.class
-        )).containsExactly("1", "2");
+        )).containsExactly("1", "2", "3");
+
+        assertThat(jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'users'
+                  AND column_name = 'password_hash'
+                """,
+                Integer.class
+        )).isZero();
 
         for (String table : new String[]{
                 "users", "companies", "company_members", "credit_products", "loan_applications",
