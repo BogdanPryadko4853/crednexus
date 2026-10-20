@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import onnxruntime as ort
-from .common import load_native,predict_native,prepare,score_features,forecast_features,scale_for,json_dump
+from .common import load_native,predict_native,prepare,score_features,forecast_features,scale_for,json_dump,refresh_checksums
 from .data import load_scoring
 from .inference import Predictor
 from .onnx_inference import OnnxPredictor,matrix
@@ -21,7 +21,7 @@ def errors(actual,expected,classification,raw=False):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('dataset',type=Path)
-    p.add_argument('--source',type=Path,default=Path('artifacts/benchmark_v1'));p.add_argument('--onnx',type=Path,default=Path('models/onnx'))
+    p.add_argument('--source',type=Path,default=Path('artifacts/single_models'));p.add_argument('--onnx',type=Path,default=Path('models/onnx'))
     p.add_argument('--components',type=Path,default=Path('artifacts/onnx_components'));a=p.parse_args()
     sx,_=load_scoring(a.dataset);fx=pd.read_parquet(a.source/'panel/forecast_features.parquet');report={}
     options=ort.SessionOptions();options.intra_op_num_threads=4;options.inter_op_num_threads=1
@@ -48,15 +48,16 @@ def main():
             result[algorithm]=errors(actual,expected,classification,True)
             print(target,algorithm,result[algorithm],flush=True);del native,session
         native=Predictor(a.source,target);exported=OnnxPredictor(a.onnx,target)
-        result['ensemble']=errors(exported.predict(data),native.predict(data),classification)
+        result['deployment']=errors(exported.predict(data),native.predict(data),classification)
         if not classification:result['intervals']=errors(exported.predict_interval(data).ravel(),native.predict_interval(data).ravel(),False)
         exported.predict(data.iloc[:1]);dur=[]
         for _ in range(7):
             t=time.perf_counter();exported.predict(data.iloc[:1]);dur.append(1000*(time.perf_counter()-t))
         result['single_row_median_ms']=float(np.median(dur));report[target]=result
         json_dump(a.onnx/'verification.json',report)
-        print(target,'ensemble',result['ensemble'],flush=True)
-    print('All 12 components and 4 ensembles passed parity verification',flush=True)
+        print(target,'deployment',result['deployment'],flush=True)
+    refresh_checksums(a.onnx)
+    print('All selected components and deployed models passed parity verification',flush=True)
 
 
 if __name__=='__main__':main()

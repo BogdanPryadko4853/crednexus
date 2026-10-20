@@ -2,22 +2,6 @@
   "target": "default_90dpd_next12m",
   "task_type": "classification",
   "models": {
-    "catboost": {
-      "algorithm": "catboost",
-      "path": "model.cbm",
-      "normalization": "raw",
-      "validation_objective": 0.7861505538389006,
-      "params": {
-        "learning_rate": 0.1255088406660877,
-        "depth": 7,
-        "l2_leaf_reg": 10.712148776092935,
-        "random_strength": 0.13803317750705288,
-        "bagging_temperature": 0.8083047243055845
-      },
-      "iterations": 56,
-      "fit_seconds": 2.501983547001146,
-      "training_rows": 56741
-    },
     "lightgbm": {
       "algorithm": "lightgbm",
       "path": "model.txt",
@@ -35,38 +19,19 @@
       "iterations": 154,
       "fit_seconds": 1.5806502579944208,
       "training_rows": 56741
-    },
-    "xgboost": {
-      "algorithm": "xgboost",
-      "path": "model.ubj",
-      "normalization": "raw",
-      "validation_objective": 0.790079243506752,
-      "params": {
-        "learning_rate": 0.025217302978116633,
-        "max_depth": 6,
-        "min_child_weight": 4.432828919138443,
-        "reg_lambda": 0.13159928429624648,
-        "reg_alpha": 0.0005218021666566153,
-        "colsample_bytree": 0.8676111845789788,
-        "subsample": 0.7075876662824401
-      },
-      "iterations": 187,
-      "fit_seconds": 3.2697975289993337,
-      "training_rows": 56741
     }
   },
   "weights": [
-    0.0,
-    0.6,
-    0.4
+    1.0
   ],
-  "selected_candidate": "blend",
+  "selected_candidate": "lightgbm",
   "calibration": {
-    "slope": 1.1883509626901674,
-    "intercept": -0.513778660718043,
+    "slope": 1.1459657570660726,
+    "intercept": -0.5768849767312461,
     "method": "Platt on disjoint validation companies"
   },
-  "selection_metric": "average_precision",
-  "selection_split": "validation_tune only",
-  "schema": "schema.json"
+  "selection_metric": "MVP simplicity tradeoff; see deployment_policy.json",
+  "selection_split": "Existing benchmark; no new model selection or test claim",
+  "schema": "schema.json",
+  "selection_reason": "Agreed MVP: XGBoost for primary scoring and both cash flows; validation-leading LightGBM for 90DPD. Prefer maintenance simplicity over small benchmark ensemble gains."
 }

@@ -12,23 +12,15 @@
   },
   "native_model_sha256": {
     "default_next12m": {
-      "catboost": "ef1811ac69bc662a4fefcf35e41501b15cfc52e421700b6fcec1285fa88c6e95",
-      "lightgbm": "9a61ed71fda0f02a1d89f53a7a9b0228a4cfc16142692c174b29cc15afe67f8c",
       "xgboost": "cddea6841effa4920257d920b9ef32e5911e288fe24aad70c87c06e2bca0c610"
     },
     "default_90dpd_next12m": {
-      "catboost": "57195e636342bbb3036e5beeb0b8208af976f0f076b6003904951b62ae71bdc8",
-      "lightgbm": "6ebe3a2a76a405630090332d42dc7bef1646e0630e714982939f01608c407332",
-      "xgboost": "0487cf31de66bb9b800fba470ee195742c6ec0f278088175fb78d2f0ebd43484"
+      "lightgbm": "6ebe3a2a76a405630090332d42dc7bef1646e0630e714982939f01608c407332"
     },
     "cash_inflow_target": {
-      "catboost": "92a7699e9bfc660fe4f36df7d273388843aa3e269fe74044568c05ab5dd905ea",
-      "lightgbm": "1f26f6931914bc254eb37c988450e065b49d089981a44ff01e9701b0dd5a9227",
       "xgboost": "98bcd33da494285637c2c314333d6835f069dbc2a173db9d786bd476ec28d4f1"
     },
     "operating_cash_outflow_target": {
-      "catboost": "4672d12b4431a48a1c1a88af3b85c0911a23ad217e13fc9eed09618429b9aedd",
-      "lightgbm": "fafb4b64107fb4a538e3f391c108f7d3c1af6809ecd3199651d183106bd8ca1f",
       "xgboost": "714f40f1b2ec4ecc546795deb47c2109aad92669c13fde38c70ca5856a0d2a6c"
     }
   }

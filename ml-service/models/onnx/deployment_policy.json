@@ -1,0 +1,13 @@
+{
+  "selection": {
+    "default_next12m": "xgboost",
+    "default_90dpd_next12m": "lightgbm",
+    "cash_inflow_target": "xgboost",
+    "operating_cash_outflow_target": "xgboost"
+  },
+  "reason": "Agreed MVP: XGBoost for primary scoring and both cash flows; validation-leading LightGBM for 90DPD. Prefer maintenance simplicity over small benchmark ensemble gains.",
+  "benchmark_dataset_manifest_sha256": "661848a84844acd010c96b1e09674b05f61f8605df41d25b523964bb57c6d0bc",
+  "benchmark_run_sha256": "06de146c7198206c3f648f187d434da1f77bd69ae561000fc077546c75dc60c0",
+  "uncertainty": "Forecast intervals need fresh held-out-validation residual calibration for these single models.",
+  "evaluation_note": "These test cohorts have already been inspected; they are historical benchmark results, not a new untouched confirmation set."
+}

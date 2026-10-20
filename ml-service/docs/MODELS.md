@@ -2,6 +2,8 @@
 
 Для запуска после clone используйте [ONNX-комплект](ONNX.md): он включён в Git и не требует native-библиотек бустинга. Описанные ниже `artifacts/` относятся к локальному обучению и экспериментам.
 
+Текущий MVP использует одиночные модели: [DEPLOYMENT.md](DEPLOYMENT.md). `artifacts/benchmark_v1` и `artifacts/deployment_cpu.tar.gz` относятся к прежнему эксперименту с ансамблями. Согласованный одиночный native-комплект подготавливается в `artifacts/single_models` и экспортируется в версионируемый `models/onnx`.
+
 Итоговые результаты: [TRAINING_REPORT.md](TRAINING_REPORT.md). Код находится в `crednexus_ml`; сохранённые веса и таблицы экспериментов — в `artifacts/benchmark_v1` и `artifacts/foundation`. Артефакты и данные исключены из Git, но находятся в рабочем каталоге: при переносе приложения их нужно скопировать отдельно.
 
 ## Запуск
@@ -38,18 +40,18 @@ CPU-сборка PyTorch позволяет избежать установки 
 
 Для приложения достаточно `requirements-inference.txt`. Загружайте объекты один раз при старте процесса:
 
-Готовый компактный комплект: `artifacts/deployment_cpu.tar.gz` (только выбранные веса, JSON и checksums). После распаковки используйте `Predictor('artifacts/deployment_cpu', target)`. Код `crednexus_ml` и Python-зависимости нужно перенести вместе с приложением. Экспорт проверен сравнением предсказаний с исходными моделями.
+Для native-проверки текущего MVP используйте `artifacts/single_models`, предварительно выполнив подготовку по [ONNX.md](ONNX.md). Старый `artifacts/deployment_cpu.tar.gz` содержит ансамбли benchmark и не является текущим комплектом приложения.
 
 ```python
 from crednexus_ml.inference import Predictor
 
-credit = Predictor('artifacts/benchmark_v1', 'default_next12m', threads=4)
+credit = Predictor('artifacts/single_models', 'default_next12m', threads=4)
 pd12m = credit.predict(application_features)  # numpy vector, calibrated probabilities
 
-dpd90 = Predictor('artifacts/benchmark_v1', 'default_90dpd_next12m', threads=4)
+dpd90 = Predictor('artifacts/single_models', 'default_90dpd_next12m', threads=4)
 
-inflow = Predictor('artifacts/benchmark_v1', 'cash_inflow_target', threads=4)
-outflow = Predictor('artifacts/benchmark_v1', 'operating_cash_outflow_target', threads=4)
+inflow = Predictor('artifacts/single_models', 'cash_inflow_target', threads=4)
+outflow = Predictor('artifacts/single_models', 'operating_cash_outflow_target', threads=4)
 received = inflow.predict(forecast_features)
 paid = outflow.predict(forecast_features)
 operating_net_cashflow = received - paid

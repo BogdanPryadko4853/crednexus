@@ -2,44 +2,6 @@
   "target": "cash_inflow_target",
   "task_type": "regression",
   "models": {
-    "catboost": {
-      "algorithm": "catboost",
-      "path": "model.cbm",
-      "normalization": "raw",
-      "validation_objective": 0.19216005953295867,
-      "params": {
-        "normalization": "raw",
-        "learning_rate": 0.07074912763729575,
-        "loss": "mae",
-        "depth": 6,
-        "l2_leaf_reg": 5.922275632983183,
-        "random_strength": 0.06662373141338906,
-        "bagging_temperature": 0.026712099329273764
-      },
-      "iterations": 1342,
-      "fit_seconds": 107.81410948099801,
-      "training_rows": 480000
-    },
-    "lightgbm": {
-      "algorithm": "lightgbm",
-      "path": "model.txt",
-      "normalization": "raw",
-      "validation_objective": 0.1922956238739925,
-      "params": {
-        "normalization": "raw",
-        "learning_rate": 0.05785056466085867,
-        "loss": "mae",
-        "num_leaves": 63,
-        "min_child_samples": 176,
-        "reg_lambda": 2.4776062400406054,
-        "reg_alpha": 0.011922242467989664,
-        "colsample_bytree": 0.818404373819894,
-        "subsample": 0.8331529005226442
-      },
-      "iterations": 1118,
-      "fit_seconds": 30.93444583100063,
-      "training_rows": 480000
-    },
     "xgboost": {
       "algorithm": "xgboost",
       "path": "model.ubj",
@@ -62,22 +24,21 @@
     }
   },
   "weights": [
-    0.2,
-    0.3,
-    0.5
+    1.0
   ],
-  "selected_candidate": "blend",
+  "selected_candidate": "xgboost",
   "calibration": null,
-  "selection_metric": "wape",
-  "selection_split": "validation_tune only",
+  "selection_metric": "MVP simplicity tradeoff; see deployment_policy.json",
+  "selection_split": "Existing benchmark; no new model selection or test claim",
   "schema": "schema.json",
+  "selection_reason": "Agreed MVP: XGBoost for primary scoring and both cash flows; validation-leading LightGBM for 90DPD. Prefer maintenance simplicity over small benchmark ensemble gains.",
   "intervals": {
     "nominal_coverage": 0.9,
     "scale": "relative",
     "normalized_absolute_residual_quantiles": {
-      "1": 0.39326298364856915,
-      "2": 0.48372271331869543,
-      "3": 0.5688318207585393
+      "1": 0.39537324044931116,
+      "2": 0.489218936534273,
+      "3": 0.5740521732541812
     },
     "calibration_rows": 24098,
     "method": "Held-out validation companies, empirical marginal intervals by horizon; no temporal coverage guarantee."

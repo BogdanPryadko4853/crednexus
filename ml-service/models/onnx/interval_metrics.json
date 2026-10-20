@@ -1,0 +1,36 @@
+{
+  "cash_inflow_target": {
+    "validation": {
+      "rows": 24098,
+      "coverage": 0.9002821810938667,
+      "mean_width_rub": 3053261.4540182073
+    },
+    "test": {
+      "rows": 434508,
+      "coverage": 0.900637042355952,
+      "mean_width_rub": 3331677.90363645
+    },
+    "stress_test": {
+      "rows": 383532,
+      "coverage": 0.8828728763180126,
+      "mean_width_rub": 3457567.0607237313
+    }
+  },
+  "operating_cash_outflow_target": {
+    "validation": {
+      "rows": 24098,
+      "coverage": 0.9002821810938667,
+      "mean_width_rub": 2057492.9008650538
+    },
+    "test": {
+      "rows": 434508,
+      "coverage": 0.8979075183886143,
+      "mean_width_rub": 2237624.3171387124
+    },
+    "stress_test": {
+      "rows": 383532,
+      "coverage": 0.888303974635754,
+      "mean_width_rub": 2306688.9525957378
+    }
+  }
+}

@@ -15,6 +15,8 @@ def main():
     p.add_argument('--foundation',type=Path,default=Path('artifacts/foundation'));p.add_argument('--output',type=Path,default=Path('docs/TRAINING_REPORT.md'));a=p.parse_args()
     root=a.artifacts;run=read(root/'run.json');registry=read(root/'registry.json')
     lines=['# Обучение и сравнение моделей CredNexus','',
+    'Это исторический benchmark всех семейств и ансамблей. Текущий комплект MVP использует одиночные модели; '
+    'его состав и компромиссы описаны в [DEPLOYMENT.md](DEPLOYMENT.md). Указанный ниже выбор по validation относится к benchmark.','',
     'Обучены CatBoost, LightGBM и XGBoost для двух кредитных таргетов и двух денежных потоков. '
     'Выбор параметров и весов ансамбля сделан по validation; отложенные test и stress_test используются для итогового измерения качества.', '',
     '**Данные полностью синтетические. Эти метрики подтверждают работу прототипа на симуляторе, '

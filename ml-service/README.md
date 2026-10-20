@@ -2,6 +2,8 @@
 
 **Готовые модели в Git:** [ONNX для CPU](docs/ONNX.md). После clone можно выполнить `python -m crednexus_ml.onnx_demo` из `ml-service`, установив `requirements-onnx.txt`; большой датасет и native-веса не нужны.
 
+Текущий MVP: XGBoost для основного риска и денежных потоков, LightGBM для 90DPD. [Состав, метрики и причины выбора](docs/DEPLOYMENT.md). Ансамбли сохранены в истории экспериментов.
+
 Обученные CatBoost / LightGBM / XGBoost и эксперимент Chronos-2: [результаты сравнения](docs/TRAINING_REPORT.md), [запуск и inference](docs/MODELS.md). Веса сохраняются локально в `artifacts/`, модели работают на CPU.
 
 Генератор финансовой истории малого бизнеса для скоринга и прогноза денежных потоков. Текущий набор: `data/sme_100k_v2`. Старые `sme_100k_v1`, `pilot_v1`, `smoke_v1` удалены; их агрегированные отчёты оставлены для сравнения.

@@ -2,40 +2,6 @@
   "target": "default_next12m",
   "task_type": "classification",
   "models": {
-    "catboost": {
-      "algorithm": "catboost",
-      "path": "model.cbm",
-      "normalization": "raw",
-      "validation_objective": 0.8073544507090928,
-      "params": {
-        "learning_rate": 0.034722484566825605,
-        "depth": 7,
-        "l2_leaf_reg": 2.3199466008254106,
-        "random_strength": 0.3690538596085015,
-        "bagging_temperature": 0.30039894148773166
-      },
-      "iterations": 241,
-      "fit_seconds": 6.182803260999208,
-      "training_rows": 56741
-    },
-    "lightgbm": {
-      "algorithm": "lightgbm",
-      "path": "model.txt",
-      "normalization": "raw",
-      "validation_objective": 0.8041354642307028,
-      "params": {
-        "learning_rate": 0.036959631125074666,
-        "num_leaves": 31,
-        "min_child_samples": 31,
-        "reg_lambda": 0.3270367011624514,
-        "reg_alpha": 0.0032603498991824686,
-        "colsample_bytree": 0.9048277631743431,
-        "subsample": 0.9022152376164634
-      },
-      "iterations": 310,
-      "fit_seconds": 2.014515390001179,
-      "training_rows": 56741
-    },
     "xgboost": {
       "algorithm": "xgboost",
       "path": "model.ubj",
@@ -56,17 +22,16 @@
     }
   },
   "weights": [
-    0.6,
-    0.3,
-    0.1
+    1.0
   ],
-  "selected_candidate": "blend",
+  "selected_candidate": "xgboost",
   "calibration": {
-    "slope": 1.2170736372475872,
-    "intercept": -0.3959487028404447,
+    "slope": 1.1632289894127812,
+    "intercept": -0.5006615453175964,
     "method": "Platt on disjoint validation companies"
   },
-  "selection_metric": "average_precision",
-  "selection_split": "validation_tune only",
-  "schema": "schema.json"
+  "selection_metric": "MVP simplicity tradeoff; see deployment_policy.json",
+  "selection_split": "Existing benchmark; no new model selection or test claim",
+  "schema": "schema.json",
+  "selection_reason": "Agreed MVP: XGBoost for primary scoring and both cash flows; validation-leading LightGBM for 90DPD. Prefer maintenance simplicity over small benchmark ensemble gains."
 }

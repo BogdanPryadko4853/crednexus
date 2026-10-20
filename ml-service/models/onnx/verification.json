@@ -1,19 +1,5 @@
 {
   "default_next12m": {
-    "catboost": {
-      "rows": 3200,
-      "max_abs_error": 5.134781488891349e-16,
-      "mean_abs_error": 7.799037227119131e-17,
-      "rtol": 3e-05,
-      "atol": 2e-06
-    },
-    "lightgbm": {
-      "rows": 3200,
-      "max_abs_error": 5.551115123125783e-16,
-      "mean_abs_error": 7.357997335879183e-17,
-      "rtol": 3e-05,
-      "atol": 2e-06
-    },
     "xgboost": {
       "rows": 3200,
       "max_abs_error": 1.8187195593988292e-07,
@@ -21,23 +7,16 @@
       "rtol": 3e-05,
       "atol": 2e-06
     },
-    "ensemble": {
+    "deployment": {
       "rows": 3200,
-      "max_abs_error": 2.1175516562443875e-08,
-      "mean_abs_error": 1.0839831682666044e-09,
+      "max_abs_error": 1.9796740635680266e-07,
+      "mean_abs_error": 1.0827134467972796e-08,
       "rtol": 3e-05,
       "atol": 2e-06
     },
-    "single_row_median_ms": 9.095506997255143
+    "single_row_median_ms": 9.097827001824044
   },
   "default_90dpd_next12m": {
-    "catboost": {
-      "rows": 3200,
-      "max_abs_error": 2.914335439641036e-16,
-      "mean_abs_error": 6.177058918619554e-17,
-      "rtol": 3e-05,
-      "atol": 2e-06
-    },
     "lightgbm": {
       "rows": 3200,
       "max_abs_error": 4.163336342344337e-16,
@@ -45,37 +24,16 @@
       "rtol": 3e-05,
       "atol": 2e-06
     },
-    "xgboost": {
+    "deployment": {
       "rows": 3200,
-      "max_abs_error": 2.7592586560043486e-07,
-      "mean_abs_error": 1.6585065995694535e-08,
+      "max_abs_error": 5.551115123125783e-16,
+      "mean_abs_error": 6.480715148012538e-17,
       "rtol": 3e-05,
       "atol": 2e-06
     },
-    "ensemble": {
-      "rows": 3200,
-      "max_abs_error": 8.845630650178293e-08,
-      "mean_abs_error": 3.794059050807306e-09,
-      "rtol": 3e-05,
-      "atol": 2e-06
-    },
-    "single_row_median_ms": 8.200732001569122
+    "single_row_median_ms": 10.165567000512965
   },
   "cash_inflow_target": {
-    "catboost": {
-      "rows": 3200,
-      "max_abs_error": 4.3072745370409393e-10,
-      "mean_abs_error": 4.3066407322267517e-10,
-      "rtol": 3e-05,
-      "atol": 2e-05
-    },
-    "lightgbm": {
-      "rows": 3200,
-      "max_abs_error": 7.815970093361102e-14,
-      "mean_abs_error": 3.1839862777577333e-15,
-      "rtol": 3e-05,
-      "atol": 2e-05
-    },
     "xgboost": {
       "rows": 3200,
       "max_abs_error": 3.8858861308721515e-06,
@@ -83,37 +41,23 @@
       "rtol": 3e-05,
       "atol": 2e-05
     },
-    "ensemble": {
+    "deployment": {
       "rows": 3200,
-      "max_abs_error": 33.25654797628522,
-      "mean_abs_error": 1.4119506995886564,
+      "max_abs_error": 66.51292366907,
+      "mean_abs_error": 2.823890148291754,
       "rtol": 3e-05,
       "atol": 25.0
     },
     "intervals": {
       "rows": 9600,
-      "max_abs_error": 33.25654797628522,
-      "mean_abs_error": 1.4100217953232208,
+      "max_abs_error": 66.51292366907,
+      "mean_abs_error": 2.819883298312882,
       "rtol": 3e-05,
       "atol": 25.0
     },
-    "single_row_median_ms": 9.810913994442672
+    "single_row_median_ms": 6.954059994313866
   },
   "operating_cash_outflow_target": {
-    "catboost": {
-      "rows": 3200,
-      "max_abs_error": 7.325695605686633e-11,
-      "mean_abs_error": 7.318215096419056e-11,
-      "rtol": 3e-05,
-      "atol": 2e-05
-    },
-    "lightgbm": {
-      "rows": 3200,
-      "max_abs_error": 5.3290705182007514e-14,
-      "mean_abs_error": 3.601632474247232e-15,
-      "rtol": 3e-05,
-      "atol": 2e-05
-    },
     "xgboost": {
       "rows": 3200,
       "max_abs_error": 5.461495637071323e-06,
@@ -121,20 +65,20 @@
       "rtol": 3e-05,
       "atol": 2e-05
     },
-    "ensemble": {
+    "deployment": {
       "rows": 3200,
-      "max_abs_error": 27.647567078471184,
-      "mean_abs_error": 1.3897898741707884,
+      "max_abs_error": 45.41262400522828,
+      "mean_abs_error": 2.302569325393527,
       "rtol": 3e-05,
       "atol": 25.0
     },
     "intervals": {
       "rows": 9600,
-      "max_abs_error": 27.647567078471184,
-      "mean_abs_error": 1.389524388198511,
+      "max_abs_error": 45.41262400895357,
+      "mean_abs_error": 2.302119558244645,
       "rtol": 3e-05,
       "atol": 25.0
     },
-    "single_row_median_ms": 7.556209995527752
+    "single_row_median_ms": 7.449528995493893
   }
 }

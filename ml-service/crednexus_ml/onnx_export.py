@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import onnx
 from onnx import helper as H,numpy_helper as NH,TensorProto as T
-from .common import json_dump,load_native
+from .common import json_dump,load_native,refresh_checksums
 
 
 def signed(v):return (int(v)+(1<<63))%(1<<64)-(1<<63)
@@ -180,7 +180,7 @@ def scale(g,target,normalization):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,default=Path('artifacts/benchmark_v1'))
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source',type=Path,default=Path('artifacts/single_models'))
     p.add_argument('--output',type=Path,default=Path('models/onnx'));p.add_argument('--components',type=Path,default=Path('artifacts/onnx_components'));a=p.parse_args()
     a.output.mkdir(parents=True,exist_ok=True);a.components.mkdir(parents=True,exist_ok=True)
     index=json.loads((a.source/'registry.json').read_text())
@@ -210,11 +210,23 @@ def main():
             print('Exported',target,(dst/'model.onnx').stat().st_size,flush=True)
     json_dump(a.output/'registry.json',{target:target+'/model.onnx' for target in index})
     json_dump(a.output/'training_run.json',json.loads((a.source/'run.json').read_text()))
+    for name in ['deployment_policy.json','selected_model_metrics.json','interval_metrics.json']:
+        if (a.source/name).exists():json_dump(a.output/name,json.loads((a.source/name).read_text()))
+        elif (a.output/name).exists():(a.output/name).unlink()
     json_dump(a.output/'export_manifest.json',{'opset':18,'ai.onnx.ml':5,'ir_version':10,'device':'CPU',
         'versions':{p:importlib.metadata.version(p) for p in ['onnx','onnxruntime','catboost','lightgbm','xgboost']},
         'native_model_sha256':{target:{name:hashlib.sha256((a.source/target/name/info['path']).read_bytes()).hexdigest()
             for name,info in json.loads((a.source/target/'registry.json').read_text())['models'].items()} for target in index}})
-    json_dump(a.output/'checksums.json',{str(p.relative_to(a.output)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(a.output.rglob('*')) if p.is_file() and p.name!='checksums.json'})
+    # Verification belongs to the exported bytes and must be rerun after export.
+    if (a.output/'verification.json').exists():(a.output/'verification.json').unlink()
+    if (a.output/'examples.json').exists():
+        from .onnx_inference import OnnxPredictor
+        examples=json.loads((a.output/'examples.json').read_text())
+        for target in index:
+            case=examples['scoring' if target.startswith('default') else 'forecast']
+            case['expected'][target]=OnnxPredictor(a.output,target).predict(pd.DataFrame(case['rows'])).tolist()
+        json_dump(a.output/'examples.json',examples)
+    refresh_checksums(a.output)
 
 
 if __name__=='__main__':main()

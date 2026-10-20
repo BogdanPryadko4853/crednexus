@@ -1,6 +1,7 @@
 """Shared, serializable feature processing and native CPU models."""
 from __future__ import annotations
 import json
+import hashlib
 from pathlib import Path
 import time
 import zlib
@@ -124,6 +125,12 @@ def load_native(algorithm,path,classification,threads=4):
 
 def json_dump(path,value):
     Path(path).write_text(json.dumps(value,ensure_ascii=False,indent=2,allow_nan=False)+'\n')
+
+
+def refresh_checksums(root):
+    root=Path(root)
+    json_dump(root/'checksums.json',{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in sorted(root.rglob('*')) if p.is_file() and p.name!='checksums.json'})
 
 
 def latency(predict,frame,repeats=5):
