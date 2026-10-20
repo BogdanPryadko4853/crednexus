@@ -114,6 +114,25 @@ public class LoanApplicationController {
         return loanApplicationService.updateDraft(applicationId, request);
     }
 
+    @PostMapping("/loan-applications/{applicationId}/submit")
+    @Operation(
+            summary = "Отправить кредитную заявку",
+            description = "Переводит собственный черновик из DRAFT в SUBMITTED. Требуются финансовый снимок, активный кредитный продукт и соответствие суммы и срока его лимитам. Переход и история статуса сохраняются в одной транзакции."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Заявка отправлена"),
+            @ApiResponse(responseCode = "400", description = "Сумма или срок не соответствуют лимитам продукта"),
+            @ApiResponse(responseCode = "401", description = "JWT отсутствует, недействителен или истёк"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к компании или текущий пользователь не является автором"),
+            @ApiResponse(responseCode = "404", description = "Заявка не найдена"),
+            @ApiResponse(responseCode = "409", description = "Заявка уже не является черновиком, не заполнен финансовый снимок или продукт неактивен")
+    })
+    public LoanApplicationResponse submitApplication(
+            @Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId
+    ) {
+        return loanApplicationService.submitApplication(applicationId);
+    }
+
     @PutMapping("/loan-applications/{applicationId}/financial-snapshot")
     @Operation(
             summary = "Создать или заменить финансовый снимок",

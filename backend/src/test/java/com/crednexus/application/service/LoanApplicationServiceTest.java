@@ -9,8 +9,12 @@ import static org.mockito.Mockito.when;
 
 import com.crednexus.application.dto.CreateLoanApplicationRequest;
 import com.crednexus.application.dto.UpdateLoanApplicationRequest;
+import com.crednexus.application.entity.ApplicationStatusHistory;
+import com.crednexus.application.entity.FinancialSnapshot;
 import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.entity.LoanApplicationStatus;
+import com.crednexus.application.repository.ApplicationStatusHistoryRepository;
+import com.crednexus.application.repository.FinancialSnapshotRepository;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
 import com.crednexus.auth.service.CurrentUserProvider;
@@ -41,6 +45,12 @@ class LoanApplicationServiceTest {
     private LoanApplicationRepository loanApplicationRepository;
 
     @Mock
+    private FinancialSnapshotRepository financialSnapshotRepository;
+
+    @Mock
+    private ApplicationStatusHistoryRepository applicationStatusHistoryRepository;
+
+    @Mock
     private CompanyMemberRepository companyMemberRepository;
 
     @Mock
@@ -51,6 +61,9 @@ class LoanApplicationServiceTest {
 
     @Captor
     private ArgumentCaptor<LoanApplication> applicationCaptor;
+
+    @Captor
+    private ArgumentCaptor<ApplicationStatusHistory> statusHistoryCaptor;
 
     @InjectMocks
     private LoanApplicationService loanApplicationService;
@@ -154,6 +167,70 @@ class LoanApplicationServiceTest {
         ))
                 .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
                         assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN)
+                );
+    }
+
+    @Test
+    void submitsDraftAndRecordsStatusHistory() {
+        UUID companyId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        UUID productId = UUID.randomUUID();
+        User creator = user("creator");
+        Company company = company(companyId);
+        CreditProduct product = product(productId, true);
+        LoanApplication application = new LoanApplication(
+                company, creator, product, new BigDecimal("100000.00"), 12, "Working capital"
+        );
+        ReflectionTestUtils.setField(application, "id", applicationId);
+        FinancialSnapshot snapshot = new FinancialSnapshot(
+                application,
+                new BigDecimal("1000000.00"),
+                new BigDecimal("700000.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                10,
+                "2025"
+        );
+
+        when(currentUserProvider.getCurrentUser()).thenReturn(creator);
+        when(loanApplicationRepository.findById(applicationId)).thenReturn(Optional.of(application));
+        when(companyMemberRepository.findByUser_IdAndCompany_Id(creator.getId(), companyId))
+                .thenReturn(Optional.of(membership(creator, company, true)));
+        when(financialSnapshotRepository.findByApplication_Id(applicationId)).thenReturn(Optional.of(snapshot));
+        when(creditProductRepository.findByIdAndActiveTrue(productId)).thenReturn(Optional.of(product));
+
+        loanApplicationService.submitApplication(applicationId);
+
+        assertThat(application.getStatus()).isEqualTo(LoanApplicationStatus.SUBMITTED);
+        assertThat(application.getSubmittedAt()).isNotNull();
+        verify(applicationStatusHistoryRepository).save(statusHistoryCaptor.capture());
+        ApplicationStatusHistory history = statusHistoryCaptor.getValue();
+        assertThat(history.getApplication()).isSameAs(application);
+        assertThat(history.getFromStatus()).isEqualTo(LoanApplicationStatus.DRAFT);
+        assertThat(history.getToStatus()).isEqualTo(LoanApplicationStatus.SUBMITTED);
+        assertThat(history.getActor()).isSameAs(creator);
+    }
+
+    @Test
+    void rejectsSubmissionWithoutFinancialSnapshot() {
+        UUID companyId = UUID.randomUUID();
+        UUID applicationId = UUID.randomUUID();
+        User creator = user("creator");
+        Company company = company(companyId);
+        LoanApplication application = new LoanApplication(
+                company, creator, product(UUID.randomUUID(), true), new BigDecimal("100000.00"), 12, "Working capital"
+        );
+        ReflectionTestUtils.setField(application, "id", applicationId);
+
+        when(currentUserProvider.getCurrentUser()).thenReturn(creator);
+        when(loanApplicationRepository.findById(applicationId)).thenReturn(Optional.of(application));
+        when(companyMemberRepository.findByUser_IdAndCompany_Id(creator.getId(), companyId))
+                .thenReturn(Optional.of(membership(creator, company, true)));
+        when(financialSnapshotRepository.findByApplication_Id(applicationId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> loanApplicationService.submitApplication(applicationId))
+                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
+                        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT)
                 );
     }
 

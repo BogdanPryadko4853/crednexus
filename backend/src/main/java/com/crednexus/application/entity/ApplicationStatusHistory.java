@@ -57,4 +57,18 @@ public class ApplicationStatusHistory {
     @Column(name = "occurred_at", nullable = false)
     @Setter
     private Instant occurredAt;
+
+    public ApplicationStatusHistory(
+            LoanApplication application,
+            LoanApplicationStatus fromStatus,
+            LoanApplicationStatus toStatus,
+            User actor,
+            Instant occurredAt
+    ) {
+        this.application = application;
+        this.fromStatus = fromStatus;
+        this.toStatus = toStatus;
+        this.actor = actor;
+        this.occurredAt = occurredAt;
+    }
 }
