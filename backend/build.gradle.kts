@@ -8,6 +8,7 @@ version = "0.0.1-SNAPSHOT"
 description = "crednexus-backend"
 
 val lombokVersion = "1.18.48"
+val springdocVersion = "3.1.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_25
@@ -26,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
