@@ -1,0 +1,26 @@
+{
+  "dataset_manifest_sha256": "661848a84844acd010c96b1e09674b05f61f8605df41d25b523964bb57c6d0bc",
+  "dataset_generator_version": "0.2.1",
+  "seed": 20261021,
+  "device": "cpu",
+  "threads": 4,
+  "score_trials_per_family": 12,
+  "forecast_trials_per_family": 8,
+  "versions": {
+    "numpy": "2.4.1",
+    "pandas": "2.3.3",
+    "catboost": "1.2.10",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.1",
+    "optuna": "4.9.0",
+    "scikit-learn": "1.8.0"
+  },
+  "validation_rule": "CRC32(company_id)%10 <7 for tuning/selection; >=7 for calibration; test and OOD never used for selection.",
+  "source_sha256": {
+    "train.py": "cf72b9540b914f7ca1ea7fd0f7f0d5c8614593d0f9c55c33424c2d3a9ecf67bc",
+    "__init__.py": "b1b6e3c17a79b6ab0a817356b73ff11bbe45a09bac9ecdebe04aea5dc6134fa3",
+    "data.py": "439a7995dd4589a95be23ae8414c9084b4264b82f854a81e9448fae4f8274440",
+    "common.py": "b695cf434a63e141bafa1f52f7df4a4eedb8a8104a9d08da295e8f9b1c2db7d2",
+    "inference.py": "0f3bb3fca33e9f5b490a655e78917fdc516b7e6f6d085867aaec08ed343e9050"
+  }
+}

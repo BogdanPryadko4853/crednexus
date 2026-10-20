@@ -1,0 +1,12 @@
+{
+  "companies": 100000,
+  "operating_months": 6445380,
+  "operating_zero_cash_months": 1581720,
+  "closed_months": 2213460,
+  "closed_zero_cash_months": 1602980,
+  "zero_cash_runs_6m_operating_companies": 56654,
+  "zero_cash_runs_12m_operating_companies": 33270,
+  "positive_constant_runs_12m_operating_companies": 0,
+  "max_zero_run_operating": 96,
+  "cash_frozen_with_positive_net_flow_pairs": 0
+}

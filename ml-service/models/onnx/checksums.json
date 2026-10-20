@@ -1,0 +1,19 @@
+{
+  "cash_inflow_target/model.onnx": "85552ce477a3464d73cc8a9ec96f93c4058847b033a04508ba30a90c0989c5c0",
+  "cash_inflow_target/registry.json": "539898c3996fe82f1018dddd940cf7518745b1b6b2ca4ee1b9d0bfddf5fe52ca",
+  "cash_inflow_target/schema.json": "da7dfd6820d787adb79facc985ef21ca1428284c989fb212b6f11811c4d870a8",
+  "default_90dpd_next12m/model.onnx": "e4e4426268227fc1a84f4f4d2fa86fb70b60a3310448d293193c92c57aadfc25",
+  "default_90dpd_next12m/registry.json": "1b0179d2db2267627d1f3df0c60f4dc4bb25a9e95ce07aed6128d5df76c22971",
+  "default_90dpd_next12m/schema.json": "0a5df19f16334efc5592f21d64108aef8ff8f8c75af3763d435f8b1d8ddcb4f6",
+  "default_next12m/model.onnx": "a4bc45b4aea1a94ba760031944d4f881e36f5b2aa2eab973bd3a32151764be85",
+  "default_next12m/registry.json": "36b9b055c008dcd300eb738dc367a83333d5bfb8ad2296e4670814d7858ad863",
+  "default_next12m/schema.json": "0a5df19f16334efc5592f21d64108aef8ff8f8c75af3763d435f8b1d8ddcb4f6",
+  "examples.json": "2e167ef0d76044242ef5fba806ea913f7a17352ba88639de209e5d5786ae44cf",
+  "export_manifest.json": "303321fbfe7b190f6aea20e0a566cdcbc8adab3216b759bd8ad6dd94bcfaaa25",
+  "operating_cash_outflow_target/model.onnx": "0ac32de4062cdabc83d675225e6a25607836c043068d5a3f6d282a936795b596",
+  "operating_cash_outflow_target/registry.json": "fe95111d2257e8d9612516bbf302fdd64f4babcd931d9bfb51f5e34588a4c6bc",
+  "operating_cash_outflow_target/schema.json": "da7dfd6820d787adb79facc985ef21ca1428284c989fb212b6f11811c4d870a8",
+  "registry.json": "27fc384d36132268e4bc1befcc441c0ae9ce00c9d59f74f51fcd11f8ad2854e7",
+  "training_run.json": "06de146c7198206c3f648f187d434da1f77bd69ae561000fc077546c75dc60c0",
+  "verification.json": "7fe949d5b205ac476b11bcb69e422063f3af68211d279df3f6f512e6070d9ffc"
+}

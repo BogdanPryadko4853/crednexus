@@ -1,0 +1,665 @@
+{
+  "version": 2,
+  "target_note": "Composite adverse credit event = 90DPD or distressed restructuring or uncovered-debt closure; 90DPD retained separately.",
+  "origin_quantiles": {
+    "monthly_sales": {
+      "0": 9395.478510775443,
+      "0.01": 114376.8302606911,
+      "0.1": 432575.02943974384,
+      "0.5": 1707161.0458276728,
+      "0.9": 6330049.942064433,
+      "0.99": 16957962.181733202,
+      "1": 37764242.55243761
+    },
+    "dso_proxy": {
+      "0": 0.0,
+      "0.01": 0.0,
+      "0.1": 0.7504850374954548,
+      "0.5": 25.53617076836441,
+      "0.9": 71.48577201937583,
+      "0.99": 107.0534974052955,
+      "1": 182.41392773875464
+    },
+    "dpo_proxy": {
+      "0": 0.7933631094722714,
+      "0.01": 5.032493929843619,
+      "0.1": 11.146176686810094,
+      "0.5": 27.439387823780745,
+      "0.9": 80.70651949735013,
+      "0.99": 4456.850835233324,
+      "1": 45040.65520953149
+    },
+    "cash_months_expense": {
+      "0": 0.0,
+      "0.01": 0.0,
+      "0.1": 0.0,
+      "0.5": 0.5673600137408569,
+      "0.9": 1.4181211736612591,
+      "0.99": 2.416951263973937,
+      "1": 4.3038231858090485
+    },
+    "operating_margin": {
+      "0": -9.788179470699736,
+      "0.01": -2.407366121565284,
+      "0.1": -0.03031491146166596,
+      "0.5": 0.10778265545680957,
+      "0.9": 0.22276218095200975,
+      "0.99": 0.33555703367344364,
+      "1": 0.5235850576256503
+    },
+    "normal_inflow_mean_ratio": {
+      "0": 0.7172010481978917,
+      "0.01": 0.9939040536199244,
+      "0.1": 1.0,
+      "0.5": 1.0,
+      "0.9": 1.0,
+      "0.99": 1.0104098369029826,
+      "1": 1.2921450360402713
+    }
+  },
+  "sector_profiles": {
+    "construction": {
+      "companies": 7492,
+      "dso_median": 53.07364563643485,
+      "dpo_median": 28.517448392624686,
+      "cash_months_median": 0.5232323855417761,
+      "operating_margin_median": 0.11434958138524616,
+      "default_rate": 0.0698077949813134
+    },
+    "food_service": {
+      "companies": 10840,
+      "dso_median": 1.806621710401054,
+      "dpo_median": 26.841569711312488,
+      "cash_months_median": 0.6027554652206566,
+      "operating_margin_median": 0.10986136703281588,
+      "default_rate": 0.11577490774907749
+    },
+    "hospitality": {
+      "companies": 4962,
+      "dso_median": 13.112720146446893,
+      "dpo_median": 26.6993508302805,
+      "cash_months_median": 0.667830448964857,
+      "operating_margin_median": 0.13551093604536718,
+      "default_rate": 0.11164852881902458
+    },
+    "manufacturing": {
+      "companies": 7811,
+      "dso_median": 52.1527452403562,
+      "dpo_median": 27.58709916574626,
+      "cash_months_median": 0.5515327671359057,
+      "operating_margin_median": 0.11737962934994067,
+      "default_rate": 0.04224811163743439
+    },
+    "professional_services": {
+      "companies": 10534,
+      "dso_median": 45.379179236867245,
+      "dpo_median": 29.784339660900162,
+      "cash_months_median": 0.7782313101399305,
+      "operating_margin_median": 0.1512362423109906,
+      "default_rate": 0.13878868426048985
+    },
+    "retail": {
+      "companies": 21177,
+      "dso_median": 4.861586675645834,
+      "dpo_median": 25.715829412231862,
+      "cash_months_median": 0.5355390161538359,
+      "operating_margin_median": 0.09512680973063606,
+      "default_rate": 0.06502337441563961
+    },
+    "transport": {
+      "companies": 6020,
+      "dso_median": 44.786432324694765,
+      "dpo_median": 28.71565990903011,
+      "cash_months_median": 0.5681670792896611,
+      "operating_margin_median": 0.10695587131776452,
+      "default_rate": 0.10215946843853821
+    },
+    "wholesale": {
+      "companies": 10593,
+      "dso_median": 54.13574634691529,
+      "dpo_median": 28.765918008329706,
+      "cash_months_median": 0.45821080887758897,
+      "operating_margin_median": 0.09250940849321912,
+      "default_rate": 0.05031624657792882
+    }
+  },
+  "annual_sales_quantiles": {
+    "0": 73316.24880884177,
+    "0.01": 1185726.3624235978,
+    "0.1": 5226474.7013919465,
+    "0.5": 21863875.2036956,
+    "0.9": 83058208.18515025,
+    "0.99": 222815864.8931127,
+    "1": 479022370.98206437
+  },
+  "annual_negative_operating_margin_share": 0.14477480767455767,
+  "annual_sales_over_800m_share": 0.0,
+  "historical_dpd_positive_share": 0.049364841556610306,
+  "cash_coverage_quantiles": {
+    "0": -34.27645762009153,
+    "0.01": -2.47475261637155,
+    "0.1": -0.23828788724295172,
+    "0.5": 1.0218877158856374,
+    "0.9": 4.701514717491025,
+    "0.99": 12.690900057926072,
+    "1": 62.795025617562445
+  },
+  "loan_amount_quantiles": {
+    "0": 50000.0,
+    "0.01": 95849.68218001141,
+    "0.1": 405597.94884658133,
+    "0.5": 1970479.7525840106,
+    "0.9": 7394617.831927626,
+    "0.99": 18465865.117881395,
+    "1": 29997377.32991139
+  },
+  "default_by_purpose": {
+    "equipment": {
+      "size": 21474,
+      "mean": 0.11064543168482817
+    },
+    "refinance": {
+      "size": 8698,
+      "mean": 0.07001609565417337
+    },
+    "working_capital": {
+      "size": 49257,
+      "mean": 0.07438536654688674
+    }
+  },
+  "diagnostic_scoring": {
+    "default_next12m": {
+      "coverage_and_dpd": {
+        "validation": {
+          "rows": 7632,
+          "positives": 427,
+          "observed_rate": 0.05594863731656184,
+          "predicted_rate": 0.08145824883378647,
+          "roc_auc": 0.8371390216591067,
+          "average_precision": 0.2821455315665856,
+          "brier": 0.04540120626212563
+        },
+        "test": {
+          "rows": 7048,
+          "positives": 517,
+          "observed_rate": 0.07335414301929626,
+          "predicted_rate": 0.08299665534384887,
+          "roc_auc": 0.8170263409710627,
+          "average_precision": 0.3046394558849572,
+          "brier": 0.0579723413746311
+        },
+        "stress_test": {
+          "rows": 6392,
+          "positives": 487,
+          "observed_rate": 0.076188986232791,
+          "predicted_rate": 0.08358281086583072,
+          "roc_auc": 0.8264866199423799,
+          "average_precision": 0.30949715708829617,
+          "brier": 0.05950336494866238
+        }
+      },
+      "all_features": {
+        "validation": {
+          "rows": 7632,
+          "positives": 427,
+          "observed_rate": 0.05594863731656184,
+          "predicted_rate": 0.08092276352849749,
+          "roc_auc": 0.9418875455666845,
+          "average_precision": 0.6264932728117517,
+          "brier": 0.032795751725806614
+        },
+        "test": {
+          "rows": 7048,
+          "positives": 517,
+          "observed_rate": 0.07335414301929626,
+          "predicted_rate": 0.08766538021624186,
+          "roc_auc": 0.937745796198283,
+          "average_precision": 0.6582651119519946,
+          "brier": 0.039647237513521894
+        },
+        "stress_test": {
+          "rows": 6392,
+          "positives": 487,
+          "observed_rate": 0.076188986232791,
+          "predicted_rate": 0.09250895274844721,
+          "roc_auc": 0.9410950591761759,
+          "average_precision": 0.6619644607888612,
+          "brier": 0.04019107219020438
+        },
+        "corrupted_test": {
+          "rows": 7048,
+          "positives": 517,
+          "observed_rate": 0.07335414301929626,
+          "predicted_rate": 0.08717904473086723,
+          "roc_auc": 0.937478657804306,
+          "average_precision": 0.6577312521404944,
+          "brier": 0.03965901505365086
+        },
+        "feature_importance": {
+          "proposed_monthly_payment": 12.437847474309846,
+          "accounts_receivable": 12.410837490242137,
+          "cash_flow_coverage": 8.99641040774274,
+          "overdue_payables": 5.877123246202917,
+          "debt_outstanding": 5.0451157768357575,
+          "cash_balance_mean_12": 4.773006605920648,
+          "purpose": 3.8089721428611965,
+          "term_months": 3.6824680413785553,
+          "business_state": 3.3935122045100683,
+          "cash_balance_lag_0": 3.392868483659022,
+          "inventory": 3.217440833099378,
+          "cash_balance_mean_3": 3.2075172508705942
+        }
+      }
+    },
+    "default_90dpd_next12m": {
+      "coverage_and_dpd": {
+        "validation": {
+          "rows": 7632,
+          "positives": 307,
+          "observed_rate": 0.04022536687631027,
+          "predicted_rate": 0.05661827519840431,
+          "roc_auc": 0.8511849784882881,
+          "average_precision": 0.24422819303791882,
+          "brier": 0.03329578626238067
+        },
+        "test": {
+          "rows": 7048,
+          "positives": 354,
+          "observed_rate": 0.050227014755959136,
+          "predicted_rate": 0.05773533395926142,
+          "roc_auc": 0.8211698561322308,
+          "average_precision": 0.25711880665895276,
+          "brier": 0.04154323901182679
+        },
+        "stress_test": {
+          "rows": 6392,
+          "positives": 354,
+          "observed_rate": 0.055381727158948686,
+          "predicted_rate": 0.05820381058989692,
+          "roc_auc": 0.8393727672013219,
+          "average_precision": 0.2618478034652939,
+          "brier": 0.04513934291142103
+        }
+      },
+      "all_features": {
+        "validation": {
+          "rows": 7632,
+          "positives": 307,
+          "observed_rate": 0.04022536687631027,
+          "predicted_rate": 0.05606157961765652,
+          "roc_auc": 0.95944947804916,
+          "average_precision": 0.589656942078849,
+          "brier": 0.024649401559854588
+        },
+        "test": {
+          "rows": 7048,
+          "positives": 354,
+          "observed_rate": 0.050227014755959136,
+          "predicted_rate": 0.061132892636571776,
+          "roc_auc": 0.953331172700403,
+          "average_precision": 0.6000676928206272,
+          "brier": 0.029683163805508977
+        },
+        "stress_test": {
+          "rows": 6392,
+          "positives": 354,
+          "observed_rate": 0.055381727158948686,
+          "predicted_rate": 0.06478258976565913,
+          "roc_auc": 0.9563363294240058,
+          "average_precision": 0.6303828804646132,
+          "brier": 0.03108162818263297
+        },
+        "corrupted_test": {
+          "rows": 7048,
+          "positives": 354,
+          "observed_rate": 0.050227014755959136,
+          "predicted_rate": 0.06059544418438487,
+          "roc_auc": 0.9529944178022649,
+          "average_precision": 0.5990910815481043,
+          "brier": 0.02968248980994321
+        },
+        "feature_importance": {
+          "proposed_monthly_payment": 13.739335155887007,
+          "accounts_receivable": 11.854283312807615,
+          "cash_flow_coverage": 7.488342286011638,
+          "overdue_payables": 7.221449880176517,
+          "term_months": 6.685181476121036,
+          "debt_outstanding": 4.931761677530819,
+          "cash_balance_lag_6": 3.9341500133185527,
+          "cash_balance_mean_3": 3.430428510837393,
+          "inventory": 3.3905147722535065,
+          "cash_balance_mean_12": 3.0971804171026314,
+          "cash_balance_lag_3": 2.7989749430736515,
+          "cash_balance_mean_6": 2.537656253704961
+        }
+      }
+    }
+  },
+  "diagnostic_forecast": {
+    "note": "Fixed diagnostic model, sampled rows per shard. Baseline uses known same month last year; fallback mean3, then zero. Not population-weighted deployment validation.",
+    "train_rows": 120000,
+    "results": {
+      "validation": {
+        "cash_inflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 713293.1238247385,
+            "wape": 0.20830610140549766
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 1042917.525537532,
+            "wape": 0.30456775282972
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16750,
+                "mae": 631462.5495068309,
+                "wape": 0.18330830867457582
+              },
+              "seasonal_naive": {
+                "rows": 16750,
+                "mae": 1039384.9193572529,
+                "wape": 0.30172476859956265
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 15921,
+                "mae": 706265.9130180834,
+                "wape": 0.20689850282965563
+              },
+              "seasonal_naive": {
+                "rows": 15921,
+                "mae": 1042274.619402511,
+                "wape": 0.3053312559999016
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15329,
+                "mae": 810008.0004036222,
+                "wape": 0.23733908309413437
+              },
+              "seasonal_naive": {
+                "rows": 15329,
+                "mae": 1047445.339621644,
+                "wape": 0.3069101988784671
+              }
+            }
+          }
+        },
+        "operating_cash_outflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 503021.8207051512,
+            "wape": 0.1685589989027669
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 712149.8624547608,
+            "wape": 0.2386363035222666
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16750,
+                "mae": 421229.40157812217,
+                "wape": 0.13991327147531138
+              },
+              "seasonal_naive": {
+                "rows": 16750,
+                "mae": 703201.0011631367,
+                "wape": 0.23357142737150935
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 15921,
+                "mae": 495086.4191961315,
+                "wape": 0.16654812261589075
+              },
+              "seasonal_naive": {
+                "rows": 15921,
+                "mae": 709396.0949611906,
+                "wape": 0.23864235257890434
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15329,
+                "mae": 600638.2697757256,
+                "wape": 0.20240784003503492
+              },
+              "seasonal_naive": {
+                "rows": 15329,
+                "mae": 724788.401100454,
+                "wape": 0.2442449343162355
+              }
+            }
+          }
+        }
+      },
+      "test": {
+        "cash_inflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 787420.8057220364,
+            "wape": 0.22300919429339983
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 1093718.2228609,
+            "wape": 0.3097571436921361
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16057,
+                "mae": 676547.0421885537,
+                "wape": 0.19456305394484205
+              },
+              "seasonal_naive": {
+                "rows": 16057,
+                "mae": 1063732.931037728,
+                "wape": 0.3059109193277912
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 15970,
+                "mae": 776825.14262369,
+                "wape": 0.22037096817416527
+              },
+              "seasonal_naive": {
+                "rows": 15970,
+                "mae": 1096748.978740969,
+                "wape": 0.31112746103051236
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15973,
+                "mae": 909471.3135000196,
+                "wape": 0.2532918582681396
+              },
+              "seasonal_naive": {
+                "rows": 15973,
+                "mae": 1120831.0169133616,
+                "wape": 0.31215648791164197
+              }
+            }
+          }
+        },
+        "operating_cash_outflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 542295.459294091,
+            "wape": 0.17621135489482131
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 737530.4251908233,
+            "wape": 0.23965023728614634
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16057,
+                "mae": 433211.30784737197,
+                "wape": 0.1425596248151651
+              },
+              "seasonal_naive": {
+                "rows": 16057,
+                "mae": 714901.4118998135,
+                "wape": 0.23525719484722238
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 15970,
+                "mae": 544597.1065241487,
+                "wape": 0.17629335811287097
+              },
+              "seasonal_naive": {
+                "rows": 15970,
+                "mae": 739065.7276212678,
+                "wape": 0.23924544847486853
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15973,
+                "mae": 649652.05564518,
+                "wape": 0.2092391300830743
+              },
+              "seasonal_naive": {
+                "rows": 15973,
+                "mae": 758743.427544767,
+                "wape": 0.24437514413473407
+              }
+            }
+          }
+        }
+      },
+      "stress_test": {
+        "cash_inflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 851066.1986759196,
+            "wape": 0.2371600283198318
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 1214504.6950463152,
+            "wape": 0.33843662022986004
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16034,
+                "mae": 769684.5374111967,
+                "wape": 0.2152069622723606
+              },
+              "seasonal_naive": {
+                "rows": 16034,
+                "mae": 1198637.8659916988,
+                "wape": 0.3351440771726043
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 16064,
+                "mae": 837874.7285938691,
+                "wape": 0.2325301757055485
+              },
+              "seasonal_naive": {
+                "rows": 16064,
+                "mae": 1217614.9599409779,
+                "wape": 0.33791712640854515
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15902,
+                "mae": 946449.2531418118,
+                "wape": 0.2639369807594851
+              },
+              "seasonal_naive": {
+                "rows": 15902,
+                "mae": 1227361.2817520034,
+                "wape": 0.3422751192748596
+              }
+            }
+          }
+        },
+        "operating_cash_outflow": {
+          "catboost": {
+            "rows": 48000,
+            "mae": 584777.4036433389,
+            "wape": 0.18757563786440962
+          },
+          "seasonal_naive": {
+            "rows": 48000,
+            "mae": 820567.0454242862,
+            "wape": 0.2632085063427838
+          },
+          "by_horizon": {
+            "1": {
+              "catboost": {
+                "rows": 16034,
+                "mae": 491186.2724157733,
+                "wape": 0.15771586085048697
+              },
+              "seasonal_naive": {
+                "rows": 16034,
+                "mae": 797556.9471339599,
+                "wape": 0.25608895760841593
+              }
+            },
+            "2": {
+              "catboost": {
+                "rows": 16064,
+                "mae": 579264.9888079484,
+                "wape": 0.1856395620267707
+              },
+              "seasonal_naive": {
+                "rows": 16064,
+                "mae": 826634.6591472051,
+                "wape": 0.2649151926064591
+              }
+            },
+            "3": {
+              "catboost": {
+                "rows": 15902,
+                "mae": 684713.9921239391,
+                "wape": 0.21960644192227916
+              },
+              "seasonal_naive": {
+                "rows": 15902,
+                "mae": 837638.7200024605,
+                "wape": 0.26865357073464907
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "dataset_config": {
+    "companies": 100000,
+    "months": 96,
+    "batch_size": 250,
+    "seed": 20261021,
+    "forecast_stride": 1,
+    "missing_rate": 0.0015,
+    "error_rate": 0.002,
+    "stress_share": 0.1
+  },
+  "source_sha256": {
+    "generate.py": "228c07ce06e32899f180ec3b3b76404418521581ff70a63ce144d2d03b598fe9",
+    "config.py": "3b61383e2c88d56d9eb6061521688a3bab0fd9fa2889996aeddbfd39e7ff923d",
+    "simulation.py": "9294aff033e4283d9f8b1ec190e2536c55c3e8833519ad5e124bdd850dae3cd8"
+  }
+}

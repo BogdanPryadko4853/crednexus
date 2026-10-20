@@ -1,0 +1,730 @@
+{
+  "note": "Synthetic data adequacy audit. Margin is a cash-obligation proxy after synthetic tax, not accounting net profit.",
+  "totals": {
+    "active_months": 5856642,
+    "dpd_360_months_still_active": 10752,
+    "dpd_90_months": 35842,
+    "all_active_months_zero_cash": 67325,
+    "missing_active_cells": 187953,
+    "active_measure_cells": 23426568,
+    "quality_error_months": 269716,
+    "scale_error_cells": 69129,
+    "positive_cash_without_debt_payment_during_arrears": 0
+  },
+  "origin_quantiles": {
+    "requested_amount": {
+      "0": 100000.0,
+      "0.01": 206645.9061449146,
+      "0.1": 711542.5702546436,
+      "0.5": 3404102.582427143,
+      "0.9": 16263597.198578397,
+      "0.99": 30000000.0,
+      "1": 30000000.0
+    },
+    "annual_rate": {
+      "0": 0.15282265319092017,
+      "0.01": 0.15516379506842512,
+      "0.1": 0.16277034280479938,
+      "0.5": 0.1815581552740551,
+      "0.9": 0.19982186003693164,
+      "0.99": 0.21486788657053196,
+      "1": 0.21947681490436952
+    },
+    "business_age_months": {
+      "0": 18.0,
+      "0.01": 23.0,
+      "0.1": 35.0,
+      "0.5": 119.0,
+      "0.9": 201.0,
+      "0.99": 221.0,
+      "1": 227.0
+    },
+    "true_sales_monthly": {
+      "0": 53418.89994396391,
+      "0.01": 224163.3685341938,
+      "0.1": 639201.7957465376,
+      "0.5": 2383360.598907114,
+      "0.9": 9153715.743751898,
+      "0.99": 27733359.71837048,
+      "1": 143587787.9194909
+    },
+    "true_cash_months_expenses": {
+      "0": 0.0,
+      "0.01": 0.35535105214255386,
+      "0.1": 1.218233141253219,
+      "0.5": 1.9410425218325067,
+      "0.9": 3.1689181891547227,
+      "0.99": 5.011614362552387,
+      "1": 10.933544404945732
+    },
+    "dso_days_proxy": {
+      "0": 0.0,
+      "0.01": 0.0,
+      "0.1": 0.6215385871600801,
+      "0.5": 9.035921343430159,
+      "0.9": 18.23555469297931,
+      "0.99": 30.301755173169546,
+      "1": 89.38189741247395
+    },
+    "true_operating_due_margin": {
+      "0": -2.4180480332685446,
+      "0.01": -0.026133964419285217,
+      "0.1": 0.0922716112081472,
+      "0.5": 0.18631991765876704,
+      "0.9": 0.30260474468438764,
+      "0.99": 0.4291341054033746,
+      "1": 0.6204774995564318
+    },
+    "payables_months_expenses": {
+      "0": -1.6519782174087957e-16,
+      "0.01": 0.0,
+      "0.1": 0.0,
+      "0.5": 0.0,
+      "0.9": 0.0,
+      "0.99": 0.0,
+      "1": 17.48355254487747
+    },
+    "true_cash_coverage": {
+      "0": -10.760745889654903,
+      "0.01": -0.21314456230921128,
+      "0.1": 0.6272798951323043,
+      "0.5": 2.011234518998983,
+      "0.9": 5.624404140962494,
+      "0.99": 12.660104945172595,
+      "1": 63.62469935790062
+    },
+    "observed_inflow_mean_error_ratio": {
+      "0": 0.7269016876405112,
+      "0.01": 0.9233063304475753,
+      "0.1": 1.0,
+      "0.5": 1.0,
+      "0.9": 1.0,
+      "0.99": 8.848414206767533,
+      "1": 28.586663631848232
+    }
+  },
+  "sector_profiles": {
+    "construction": {
+      "companies": 10006,
+      "monthly_sales_median": 3617338.0777585646,
+      "dso_days_median": 18.990358201605538,
+      "operating_due_margin_median": 0.22148975827853679,
+      "default_rate": 0.0058964621227263645
+    },
+    "food_service": {
+      "companies": 12893,
+      "monthly_sales_median": 1549827.301174557,
+      "dso_days_median": 0.6926688882769483,
+      "operating_due_margin_median": 0.1822401409183768,
+      "default_rate": 0.02799968975413015
+    },
+    "hospitality": {
+      "companies": 6007,
+      "monthly_sales_median": 1448032.0012858603,
+      "dso_days_median": 3.776291003245052,
+      "operating_due_margin_median": 0.2320261852277066,
+      "default_rate": 0.019310804061927752
+    },
+    "manufacturing": {
+      "companies": 9930,
+      "monthly_sales_median": 4065445.2518295604,
+      "dso_days_median": 13.649039317013806,
+      "operating_due_margin_median": 0.1970364481731277,
+      "default_rate": 0.009264853977844914
+    },
+    "professional_services": {
+      "companies": 14589,
+      "monthly_sales_median": 1111165.7581159987,
+      "dso_days_median": 10.8138966307961,
+      "operating_due_margin_median": 0.2844499913225785,
+      "default_rate": 0.016039481801357187
+    },
+    "retail": {
+      "companies": 23891,
+      "monthly_sales_median": 2356550.4428540166,
+      "dso_days_median": 2.461964189309222,
+      "operating_due_margin_median": 0.16094692600915453,
+      "default_rate": 0.00699007994642334
+    },
+    "transport": {
+      "companies": 8071,
+      "monthly_sales_median": 2072617.4656284943,
+      "dso_days_median": 9.59192190509258,
+      "operating_due_margin_median": 0.19458468980698407,
+      "default_rate": 0.009788130343204063
+    },
+    "wholesale": {
+      "companies": 14007,
+      "monthly_sales_median": 5842015.416800741,
+      "dso_days_median": 15.248068826812379,
+      "operating_due_margin_median": 0.15617862962079404,
+      "default_rate": 0.0044263582494467055
+    }
+  },
+  "annual_sales_quantiles": {
+    "0": 471426.32547308295,
+    "0.01": 2594251.295886749,
+    "0.1": 7438883.931475951,
+    "0.5": 27926903.349829093,
+    "0.9": 108383544.29472315,
+    "0.99": 331116919.78200185,
+    "1": 2722756922.3469334
+  },
+  "annual_negative_operating_due_margin_share": 0.01793461273988873,
+  "annual_sales_over_120m_share": 0.08439082327936488,
+  "annual_sales_over_800m_share": 0.0008251547165093455,
+  "loan_at_30m_cap_share": 0.0375676600197195,
+  "loan_requested_mean": 6234840.710604765,
+  "historical_dpd_zero_share": 0.9969414652795944,
+  "year_end_stock": [
+    {
+      "year_idx": 0,
+      "arrears_to_debt_stock": 0.0007641243153164332,
+      "active_companies_with_90dpd_share": 0.00054198814002423
+    },
+    {
+      "year_idx": 1,
+      "arrears_to_debt_stock": 0.0028728829311605616,
+      "active_companies_with_90dpd_share": 0.0016
+    },
+    {
+      "year_idx": 2,
+      "arrears_to_debt_stock": 0.009054060404656707,
+      "active_companies_with_90dpd_share": 0.00473
+    },
+    {
+      "year_idx": 3,
+      "arrears_to_debt_stock": 0.0030910345429052423,
+      "active_companies_with_90dpd_share": 0.00679
+    },
+    {
+      "year_idx": 4,
+      "arrears_to_debt_stock": 0.03943461436892655,
+      "active_companies_with_90dpd_share": 0.03151
+    }
+  ],
+  "default_groups": {
+    "purpose": {
+      "equipment": {
+        "count": 30006,
+        "sum": 625,
+        "mean": 0.02082916749983337
+      },
+      "refinance": {
+        "count": 9831,
+        "sum": 72,
+        "mean": 0.00732377174244736
+      },
+      "working_capital": {
+        "count": 59557,
+        "sum": 473,
+        "mean": 0.007941971556660007
+      }
+    },
+    "term_months": {
+      "12": {
+        "count": 21843,
+        "sum": 441,
+        "mean": 0.02018953440461475
+      },
+      "18": {
+        "count": 19936,
+        "sum": 227,
+        "mean": 0.011386436597110755
+      },
+      "24": {
+        "count": 37577,
+        "sum": 349,
+        "mean": 0.009287596135934216
+      },
+      "36": {
+        "count": 20038,
+        "sum": 153,
+        "mean": 0.007635492564128156
+      }
+    },
+    "orig_dpd_true": {
+      "0.0": {
+        "count": 99301,
+        "sum": 1101,
+        "mean": 0.011087501636438707
+      },
+      "30.0": {
+        "count": 52,
+        "sum": 38,
+        "mean": 0.7307692307692307
+      },
+      "60.0": {
+        "count": 41,
+        "sum": 31,
+        "mean": 0.7560975609756098
+      }
+    }
+  },
+  "series_correlations": {
+    "detrended_log_sales_corr_lag1": {
+      "0": -0.2695980747150597,
+      "0.01": 0.0977501375256905,
+      "0.1": 0.3211781451919103,
+      "0.5": 0.626418699494293,
+      "0.9": 0.801593059315389,
+      "0.99": 0.8504342955921317,
+      "1": 0.920524906964719
+    },
+    "detrended_log_sales_corr_lag12": {
+      "0": -0.5765731356590212,
+      "0.01": -0.25848455202054976,
+      "0.1": -0.03161224964539708,
+      "0.5": 0.33879581978333556,
+      "0.9": 0.7501162982417907,
+      "0.99": 0.9180171317020602,
+      "1": 0.9831489687246375
+    }
+  },
+  "forecast_origin_calendar_months": [
+    3,
+    6,
+    9,
+    12
+  ],
+  "forecast_target_months_by_horizon": {
+    "1": [
+      1,
+      4,
+      7,
+      10
+    ],
+    "2": [
+      2,
+      5,
+      8,
+      11
+    ],
+    "3": [
+      3,
+      6,
+      9,
+      12
+    ]
+  },
+  "forecast_distinct_windows": [
+    {
+      "as_of_month_idx": 23,
+      "horizon": 1,
+      "target_month_of_year": 1,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 23,
+      "horizon": 2,
+      "target_month_of_year": 2,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 23,
+      "horizon": 3,
+      "target_month_of_year": 3,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 26,
+      "horizon": 1,
+      "target_month_of_year": 4,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 26,
+      "horizon": 2,
+      "target_month_of_year": 5,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 26,
+      "horizon": 3,
+      "target_month_of_year": 6,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 29,
+      "horizon": 1,
+      "target_month_of_year": 7,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 29,
+      "horizon": 2,
+      "target_month_of_year": 8,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 29,
+      "horizon": 3,
+      "target_month_of_year": 9,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 32,
+      "horizon": 1,
+      "target_month_of_year": 10,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 32,
+      "horizon": 2,
+      "target_month_of_year": 11,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 32,
+      "horizon": 3,
+      "target_month_of_year": 12,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 35,
+      "horizon": 1,
+      "target_month_of_year": 1,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 35,
+      "horizon": 2,
+      "target_month_of_year": 2,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 35,
+      "horizon": 3,
+      "target_month_of_year": 3,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 38,
+      "horizon": 1,
+      "target_month_of_year": 4,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 38,
+      "horizon": 2,
+      "target_month_of_year": 5,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 38,
+      "horizon": 3,
+      "target_month_of_year": 6,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 41,
+      "horizon": 1,
+      "target_month_of_year": 7,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 41,
+      "horizon": 2,
+      "target_month_of_year": 8,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 41,
+      "horizon": 3,
+      "target_month_of_year": 9,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 44,
+      "horizon": 1,
+      "target_month_of_year": 10,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 44,
+      "horizon": 2,
+      "target_month_of_year": 11,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 44,
+      "horizon": 3,
+      "target_month_of_year": 12,
+      "time_split": "train"
+    },
+    {
+      "as_of_month_idx": 47,
+      "horizon": 1,
+      "target_month_of_year": 1,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 47,
+      "horizon": 2,
+      "target_month_of_year": 2,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 47,
+      "horizon": 3,
+      "target_month_of_year": 3,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 50,
+      "horizon": 1,
+      "target_month_of_year": 4,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 50,
+      "horizon": 2,
+      "target_month_of_year": 5,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 50,
+      "horizon": 3,
+      "target_month_of_year": 6,
+      "time_split": "validation"
+    },
+    {
+      "as_of_month_idx": 53,
+      "horizon": 1,
+      "target_month_of_year": 7,
+      "time_split": "test"
+    },
+    {
+      "as_of_month_idx": 53,
+      "horizon": 2,
+      "target_month_of_year": 8,
+      "time_split": "test"
+    },
+    {
+      "as_of_month_idx": 53,
+      "horizon": 3,
+      "target_month_of_year": 9,
+      "time_split": "test"
+    },
+    {
+      "as_of_month_idx": 56,
+      "horizon": 1,
+      "target_month_of_year": 10,
+      "time_split": "test"
+    },
+    {
+      "as_of_month_idx": 56,
+      "horizon": 2,
+      "target_month_of_year": 11,
+      "time_split": "test"
+    },
+    {
+      "as_of_month_idx": 56,
+      "horizon": 3,
+      "target_month_of_year": 12,
+      "time_split": "test"
+    }
+  ],
+  "diagnostic_scoring": {
+    "note": "Fixed small diagnostic models, not tuned production models; tests synthetic mechanisms only.",
+    "training_default_prior": 0.011328231561113584,
+    "models": {
+      "purpose_only": {
+        "validation": {
+          "rows": 9989,
+          "positives": 125,
+          "roc_auc": 0.6385117599351176,
+          "average_precision": 0.01958374029447321,
+          "brier": 0.012304134724556296,
+          "constant_prior_brier": 0.012358576313505894,
+          "mean_prediction": 0.011359587662498312,
+          "observed_default_rate": 0.012513765141655822,
+          "recall_in_top_5pct": 0.104
+        },
+        "test": {
+          "rows": 9852,
+          "positives": 108,
+          "roc_auc": 0.586064358693669,
+          "average_precision": 0.01473193756933401,
+          "brier": 0.010821314649912045,
+          "constant_prior_brier": 0.0108422043868186,
+          "mean_prediction": 0.011302942717750127,
+          "observed_default_rate": 0.010962241169305725,
+          "recall_in_top_5pct": 0.046296296296296294
+        },
+        "stress_test": {
+          "rows": 9904,
+          "positives": 148,
+          "roc_auc": 0.5765526827565574,
+          "average_precision": 0.01924640291077184,
+          "brier": 0.014701799311220818,
+          "constant_prior_brier": 0.014733220132595263,
+          "mean_prediction": 0.011367768479299087,
+          "observed_default_rate": 0.01494345718901454,
+          "recall_in_top_5pct": 0.08108108108108109
+        },
+        "training_feature_importance": {
+          "purpose": 99.99999999999999
+        }
+      },
+      "coverage_and_current_dpd": {
+        "validation": {
+          "rows": 9989,
+          "positives": 125,
+          "roc_auc": 0.9458410381184104,
+          "average_precision": 0.2348102734652722,
+          "brier": 0.01042962265067975,
+          "constant_prior_brier": 0.012358576313505894,
+          "mean_prediction": 0.011854735509703437,
+          "observed_default_rate": 0.012513765141655822,
+          "recall_in_top_5pct": 0.704
+        },
+        "test": {
+          "rows": 9852,
+          "positives": 108,
+          "roc_auc": 0.9466143457702366,
+          "average_precision": 0.2651086989506229,
+          "brier": 0.00884635931994093,
+          "constant_prior_brier": 0.0108422043868186,
+          "mean_prediction": 0.01210719263324574,
+          "observed_default_rate": 0.010962241169305725,
+          "recall_in_top_5pct": 0.7592592592592593
+        },
+        "stress_test": {
+          "rows": 9904,
+          "positives": 148,
+          "roc_auc": 0.9337067695001275,
+          "average_precision": 0.2561589748700619,
+          "brier": 0.012156158176599203,
+          "constant_prior_brier": 0.014733220132595263,
+          "mean_prediction": 0.014090097831175558,
+          "observed_default_rate": 0.01494345718901454,
+          "recall_in_top_5pct": 0.6486486486486487
+        },
+        "training_feature_importance": {
+          "cash_flow_coverage": 99.39748284113492,
+          "bureau_dpd_current": 0.6025171588650872
+        }
+      },
+      "all_features": {
+        "validation": {
+          "rows": 9989,
+          "positives": 125,
+          "roc_auc": 0.9794647201946473,
+          "average_precision": 0.5933673812970486,
+          "brier": 0.007508487313828207,
+          "constant_prior_brier": 0.012358576313505894,
+          "mean_prediction": 0.011538260333185925,
+          "observed_default_rate": 0.012513765141655822,
+          "recall_in_top_5pct": 0.864
+        },
+        "test": {
+          "rows": 9852,
+          "positives": 108,
+          "roc_auc": 0.9865776850331447,
+          "average_precision": 0.6984524268597663,
+          "brier": 0.005451595960501747,
+          "constant_prior_brier": 0.0108422043868186,
+          "mean_prediction": 0.012333629853975205,
+          "observed_default_rate": 0.010962241169305725,
+          "recall_in_top_5pct": 0.9351851851851852
+        },
+        "stress_test": {
+          "rows": 9904,
+          "positives": 148,
+          "roc_auc": 0.9719576587657768,
+          "average_precision": 0.6061169614815222,
+          "brier": 0.0087992648029667,
+          "constant_prior_brier": 0.014733220132595263,
+          "mean_prediction": 0.014001746435872552,
+          "observed_default_rate": 0.01494345718901454,
+          "recall_in_top_5pct": 0.8108108108108109
+        },
+        "training_feature_importance": {
+          "cash_flow_coverage": 18.80168437523025,
+          "purpose": 9.618678484059979,
+          "proposed_monthly_payment": 6.965785569395108,
+          "cash_balance_lag_3": 5.136818276470356,
+          "cash_balance_mean_6": 4.546659663919976,
+          "sales_yoy": 4.414340834592475,
+          "cash_balance_mean_3": 4.235680648305087,
+          "operating_cash_outflow_yoy": 3.1536679858748013,
+          "term_months": 2.9737423803486704,
+          "cash_balance_yoy": 2.511842232947485,
+          "cash_balance_lag_2": 2.4464470280904598,
+          "cash_balance_lag_0": 2.000028676495532
+        }
+      }
+    }
+  },
+  "loan_amount_sensitivity": {
+    "note": "Loan scale intervention; same seed, company trajectories and noise; loan amount capped at 100k..30m RUB.",
+    "by_purpose": {
+      "0.5": {
+        "equipment": {
+          "count": 2962,
+          "sum": 34,
+          "mean": 0.011478730587440918
+        },
+        "refinance": {
+          "count": 994,
+          "sum": 5,
+          "mean": 0.005030181086519115
+        },
+        "working_capital": {
+          "count": 5978,
+          "sum": 49,
+          "mean": 0.00819672131147541
+        }
+      },
+      "1.0": {
+        "equipment": {
+          "count": 2962,
+          "sum": 55,
+          "mean": 0.018568534773801486
+        },
+        "refinance": {
+          "count": 994,
+          "sum": 3,
+          "mean": 0.0030181086519114686
+        },
+        "working_capital": {
+          "count": 5978,
+          "sum": 46,
+          "mean": 0.007694881231180997
+        }
+      },
+      "2.0": {
+        "equipment": {
+          "count": 2962,
+          "sum": 181,
+          "mean": 0.06110735989196489
+        },
+        "refinance": {
+          "count": 994,
+          "sum": 6,
+          "mean": 0.006036217303822937
+        },
+        "working_capital": {
+          "count": 5978,
+          "sum": 62,
+          "mean": 0.010371361659417865
+        }
+      }
+    },
+    "paired_vs_original": {
+      "0.5": {
+        "companies": 9934,
+        "default_rate_delta": -0.0016106301590497283,
+        "became_default": 7,
+        "avoided_default": 23
+      },
+      "2.0": {
+        "companies": 9934,
+        "default_rate_delta": 0.014596335816388162,
+        "became_default": 149,
+        "avoided_default": 4
+      }
+    }
+  }
+}

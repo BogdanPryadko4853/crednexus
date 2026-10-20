@@ -1,0 +1,3 @@
+-r requirements-audit.txt
+lightgbm==4.7.0
+xgboost==3.4.1

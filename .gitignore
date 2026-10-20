@@ -31,3 +31,6 @@ env/
 
 # macOS
 .DS_Store
+
+# Windows download metadata
+*:Zone.Identifier

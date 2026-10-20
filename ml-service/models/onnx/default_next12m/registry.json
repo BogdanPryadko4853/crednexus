@@ -1,0 +1,72 @@
+{
+  "target": "default_next12m",
+  "task_type": "classification",
+  "models": {
+    "catboost": {
+      "algorithm": "catboost",
+      "path": "model.cbm",
+      "normalization": "raw",
+      "validation_objective": 0.8073544507090928,
+      "params": {
+        "learning_rate": 0.034722484566825605,
+        "depth": 7,
+        "l2_leaf_reg": 2.3199466008254106,
+        "random_strength": 0.3690538596085015,
+        "bagging_temperature": 0.30039894148773166
+      },
+      "iterations": 241,
+      "fit_seconds": 6.182803260999208,
+      "training_rows": 56741
+    },
+    "lightgbm": {
+      "algorithm": "lightgbm",
+      "path": "model.txt",
+      "normalization": "raw",
+      "validation_objective": 0.8041354642307028,
+      "params": {
+        "learning_rate": 0.036959631125074666,
+        "num_leaves": 31,
+        "min_child_samples": 31,
+        "reg_lambda": 0.3270367011624514,
+        "reg_alpha": 0.0032603498991824686,
+        "colsample_bytree": 0.9048277631743431,
+        "subsample": 0.9022152376164634
+      },
+      "iterations": 310,
+      "fit_seconds": 2.014515390001179,
+      "training_rows": 56741
+    },
+    "xgboost": {
+      "algorithm": "xgboost",
+      "path": "model.ubj",
+      "normalization": "raw",
+      "validation_objective": 0.8032549105374373,
+      "params": {
+        "learning_rate": 0.06925199026114329,
+        "max_depth": 6,
+        "min_child_weight": 4.432828919138443,
+        "reg_lambda": 4.198452684871162,
+        "reg_alpha": 0.007876968604187148,
+        "colsample_bytree": 0.7242826851688406,
+        "subsample": 0.8650681560412657
+      },
+      "iterations": 114,
+      "fit_seconds": 1.569451380004466,
+      "training_rows": 56741
+    }
+  },
+  "weights": [
+    0.6,
+    0.3,
+    0.1
+  ],
+  "selected_candidate": "blend",
+  "calibration": {
+    "slope": 1.2170736372475872,
+    "intercept": -0.3959487028404447,
+    "method": "Platt on disjoint validation companies"
+  },
+  "selection_metric": "average_precision",
+  "selection_split": "validation_tune only",
+  "schema": "schema.json"
+}

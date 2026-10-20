@@ -1,0 +1,6 @@
+{
+  "default_next12m": "default_next12m/model.onnx",
+  "default_90dpd_next12m": "default_90dpd_next12m/model.onnx",
+  "cash_inflow_target": "cash_inflow_target/model.onnx",
+  "operating_cash_outflow_target": "operating_cash_outflow_target/model.onnx"
+}

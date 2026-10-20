@@ -1,0 +1,3 @@
+# Preserve protobuf model bytes across platforms and display them as binary.
+*.onnx binary
+*.png binary

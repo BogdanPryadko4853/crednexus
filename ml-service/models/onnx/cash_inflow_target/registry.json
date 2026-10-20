@@ -1,0 +1,85 @@
+{
+  "target": "cash_inflow_target",
+  "task_type": "regression",
+  "models": {
+    "catboost": {
+      "algorithm": "catboost",
+      "path": "model.cbm",
+      "normalization": "raw",
+      "validation_objective": 0.19216005953295867,
+      "params": {
+        "normalization": "raw",
+        "learning_rate": 0.07074912763729575,
+        "loss": "mae",
+        "depth": 6,
+        "l2_leaf_reg": 5.922275632983183,
+        "random_strength": 0.06662373141338906,
+        "bagging_temperature": 0.026712099329273764
+      },
+      "iterations": 1342,
+      "fit_seconds": 107.81410948099801,
+      "training_rows": 480000
+    },
+    "lightgbm": {
+      "algorithm": "lightgbm",
+      "path": "model.txt",
+      "normalization": "raw",
+      "validation_objective": 0.1922956238739925,
+      "params": {
+        "normalization": "raw",
+        "learning_rate": 0.05785056466085867,
+        "loss": "mae",
+        "num_leaves": 63,
+        "min_child_samples": 176,
+        "reg_lambda": 2.4776062400406054,
+        "reg_alpha": 0.011922242467989664,
+        "colsample_bytree": 0.818404373819894,
+        "subsample": 0.8331529005226442
+      },
+      "iterations": 1118,
+      "fit_seconds": 30.93444583100063,
+      "training_rows": 480000
+    },
+    "xgboost": {
+      "algorithm": "xgboost",
+      "path": "model.ubj",
+      "normalization": "relative",
+      "validation_objective": 0.19094706537998646,
+      "params": {
+        "normalization": "relative",
+        "learning_rate": 0.027917266464696874,
+        "loss": "mae",
+        "max_depth": 8,
+        "min_child_weight": 9.418713658634948,
+        "reg_lambda": 0.16049742358444632,
+        "reg_alpha": 0.0020630573701725047,
+        "colsample_bytree": 0.8806686074669304,
+        "subsample": 0.7428375440102075
+      },
+      "iterations": 1348,
+      "fit_seconds": 95.35220748400025,
+      "training_rows": 480000
+    }
+  },
+  "weights": [
+    0.2,
+    0.3,
+    0.5
+  ],
+  "selected_candidate": "blend",
+  "calibration": null,
+  "selection_metric": "wape",
+  "selection_split": "validation_tune only",
+  "schema": "schema.json",
+  "intervals": {
+    "nominal_coverage": 0.9,
+    "scale": "relative",
+    "normalized_absolute_residual_quantiles": {
+      "1": 0.39326298364856915,
+      "2": 0.48372271331869543,
+      "3": 0.5688318207585393
+    },
+    "calibration_rows": 24098,
+    "method": "Held-out validation companies, empirical marginal intervals by horizon; no temporal coverage guarantee."
+  }
+}
