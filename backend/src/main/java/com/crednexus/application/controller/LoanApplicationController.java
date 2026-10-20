@@ -1,8 +1,11 @@
 package com.crednexus.application.controller;
 
 import com.crednexus.application.dto.CreateLoanApplicationRequest;
+import com.crednexus.application.dto.FinancialSnapshotResponse;
 import com.crednexus.application.dto.LoanApplicationResponse;
+import com.crednexus.application.dto.UpsertFinancialSnapshotRequest;
 import com.crednexus.application.dto.UpdateLoanApplicationRequest;
+import com.crednexus.application.service.FinancialSnapshotService;
 import com.crednexus.application.service.LoanApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api")
@@ -30,9 +34,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoanApplicationController {
 
     private final LoanApplicationService loanApplicationService;
+    private final FinancialSnapshotService financialSnapshotService;
 
-    public LoanApplicationController(LoanApplicationService loanApplicationService) {
+    public LoanApplicationController(
+            LoanApplicationService loanApplicationService,
+            FinancialSnapshotService financialSnapshotService
+    ) {
         this.loanApplicationService = loanApplicationService;
+        this.financialSnapshotService = financialSnapshotService;
     }
 
     @PostMapping("/companies/{companyId}/loan-applications")
@@ -103,5 +112,42 @@ public class LoanApplicationController {
             @Valid @RequestBody UpdateLoanApplicationRequest request
     ) {
         return loanApplicationService.updateDraft(applicationId, request);
+    }
+
+    @PutMapping("/loan-applications/{applicationId}/financial-snapshot")
+    @Operation(
+            summary = "Создать или заменить финансовый снимок",
+            description = "Полностью создаёт или заменяет финансовые показатели заявки. Доступно только автору заявки в статусе DRAFT при активном доступе к компании."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Финансовый снимок сохранён"),
+            @ApiResponse(responseCode = "400", description = "Некорректные или отсутствующие финансовые показатели"),
+            @ApiResponse(responseCode = "401", description = "JWT отсутствует, недействителен или истёк"),
+            @ApiResponse(responseCode = "403", description = "Нет доступа к компании или текущий пользователь не является автором"),
+            @ApiResponse(responseCode = "404", description = "Заявка не найдена"),
+            @ApiResponse(responseCode = "409", description = "Заявка уже не является черновиком")
+    })
+    public FinancialSnapshotResponse upsertFinancialSnapshot(
+            @Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId,
+            @Valid @RequestBody UpsertFinancialSnapshotRequest request
+    ) {
+        return financialSnapshotService.upsertFinancialSnapshot(applicationId, request);
+    }
+
+    @GetMapping("/loan-applications/{applicationId}/financial-snapshot")
+    @Operation(
+            summary = "Получить финансовый снимок",
+            description = "Возвращает финансовые показатели заявки. Доступно активным представителям компании-заёмщика."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Финансовый снимок получен"),
+            @ApiResponse(responseCode = "401", description = "JWT отсутствует, недействителен или истёк"),
+            @ApiResponse(responseCode = "403", description = "Нет активного доступа к компании заявки"),
+            @ApiResponse(responseCode = "404", description = "Заявка или финансовый снимок не найдены")
+    })
+    public FinancialSnapshotResponse getFinancialSnapshot(
+            @Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId
+    ) {
+        return financialSnapshotService.getFinancialSnapshot(applicationId);
     }
 }

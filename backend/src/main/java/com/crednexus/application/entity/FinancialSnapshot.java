@@ -60,4 +60,22 @@ public class FinancialSnapshot {
     @Column(nullable = false)
     @Setter
     private String period;
+
+    public FinancialSnapshot(
+            LoanApplication application,
+            BigDecimal annualRevenue,
+            BigDecimal annualExpenses,
+            BigDecimal existingDebt,
+            BigDecimal monthlyPayments,
+            Integer employeeCount,
+            String period
+    ) {
+        this.application = application;
+        this.annualRevenue = annualRevenue;
+        this.annualExpenses = annualExpenses;
+        this.existingDebt = existingDebt;
+        this.monthlyPayments = monthlyPayments;
+        this.employeeCount = employeeCount;
+        this.period = period;
+    }
 }
