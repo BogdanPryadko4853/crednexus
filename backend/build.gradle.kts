@@ -33,6 +33,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     testImplementation(platform("org.springframework.boot:spring-boot-dependencies:4.1.1"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
