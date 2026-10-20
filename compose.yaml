@@ -1,0 +1,34 @@
+name: crednexus
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: crednexus
+      POSTGRES_USER: crednexus
+      POSTGRES_PASSWORD: crednexus
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crednexus -d crednexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/crednexus
+      SPRING_DATASOURCE_USERNAME: crednexus
+      SPRING_DATASOURCE_PASSWORD: crednexus
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:

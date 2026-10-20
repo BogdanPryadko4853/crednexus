@@ -1,4 +1,10 @@
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/crednexus}
+    username: ${SPRING_DATASOURCE_USERNAME:crednexus}
+    password: ${SPRING_DATASOURCE_PASSWORD:crednexus}
+  flyway:
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
