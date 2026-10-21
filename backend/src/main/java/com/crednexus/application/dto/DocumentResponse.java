@@ -6,4 +6,4 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record DocumentResponse(UUID id, DocumentType documentType, String fileName, String contentType,
-                               long sizeBytes, DocumentStatus status, Instant createdAt) { }
+                               long sizeBytes, DocumentStatus status, Instant createdAt, UUID informationRequestId) { }

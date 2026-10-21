@@ -3,12 +3,18 @@ package com.crednexus.application.service;
 import com.crednexus.application.dto.DocumentResponse;
 import com.crednexus.application.entity.Document;
 import com.crednexus.application.entity.DocumentType;
+import com.crednexus.application.entity.InformationRequest;
+import com.crednexus.application.entity.InformationRequestStatus;
 import com.crednexus.application.entity.LoanApplication;
+import com.crednexus.application.entity.LoanApplicationStatus;
 import com.crednexus.application.repository.DocumentRepository;
+import com.crednexus.application.repository.InformationRequestRepository;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
 import com.crednexus.auth.service.CurrentUserProvider;
 import com.crednexus.company.repository.CompanyMemberRepository;
+import com.crednexus.workflow.service.WorkflowJobService;
+import com.crednexus.workflow.service.WorkflowService;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -37,10 +43,12 @@ public class DocumentService {
     private final MinioClient minio;
     private final String bucket;
     private final long maxSize;
+    private final InformationRequestRepository informationRequests; private final WorkflowService workflowService; private final WorkflowJobService jobService;
 
     public DocumentService(DocumentRepository documents, LoanApplicationRepository applications, CurrentUserProvider users,
                            CompanyMemberRepository members, MinioClient minio, @Value("${storage.s3.bucket}") String bucket,
-                           @Value("${document.max-size-bytes}") long maxSize) {
+                           @Value("${document.max-size-bytes}") long maxSize, InformationRequestRepository informationRequests,
+                           WorkflowService workflowService, WorkflowJobService jobService) {
         this.documents = documents;
         this.applications = applications;
         this.users = users;
@@ -48,18 +56,24 @@ public class DocumentService {
         this.minio = minio;
         this.bucket = bucket;
         this.maxSize = maxSize;
+        this.informationRequests=informationRequests; this.workflowService=workflowService; this.jobService=jobService;
     }
 
     @Transactional
-    public DocumentResponse upload(UUID applicationId, DocumentType type, MultipartFile file) {
+    public DocumentResponse upload(UUID applicationId, DocumentType type, MultipartFile file, UUID informationRequestId) {
         LoanApplication application = application(applicationId);
         requireAccess(application, true);
+        InformationRequest request = informationRequestId == null ? null : informationRequests.findByIdAndApplication_Id(informationRequestId, applicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Information request not found"));
+        if (request != null && (application.getStatus() != LoanApplicationStatus.NEEDS_INFO || request.getStatus() != InformationRequestStatus.OPEN)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Information request is not open");
         validate(file);
         String key = "applications/" + applicationId + "/" + UUID.randomUUID() + "-" + safeName(file.getOriginalFilename());
         try (InputStream input = file.getInputStream()) {
             minio.putObject(PutObjectArgs.builder().bucket(bucket).object(key).stream(input, file.getSize(), -1).contentType(file.getContentType()).build());
             try {
-                return response(documents.saveAndFlush(new Document(application, type, safeName(file.getOriginalFilename()), key, file.getContentType(), file.getSize())));
+                Document saved=documents.saveAndFlush(new Document(application, type, safeName(file.getOriginalFilename()), key, file.getContentType(), file.getSize(), request));
+                if(request!=null){ request.answer("Приложен документ: " + saved.getFileName(), java.time.Instant.now()); if(!informationRequests.existsByApplication_IdAndStatus(applicationId, InformationRequestStatus.OPEN)){ workflowService.transition(application, LoanApplicationStatus.SUBMITTED, users.getCurrentUser(), "Клиент приложил документы по всем запросам уточнений"); jobService.enqueueVerification(application); } }
+                return response(saved);
             } catch (RuntimeException exception) {
                 minio.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(key).build());
                 throw exception;
@@ -109,7 +123,7 @@ public class DocumentService {
     }
 
     private DocumentResponse response(Document d) {
-        return new DocumentResponse(d.getId(), d.getDocumentType(), d.getFileName(), d.getContentType(), d.getSizeBytes(), d.getStatus(), d.getCreatedAt());
+        return new DocumentResponse(d.getId(), d.getDocumentType(), d.getFileName(), d.getContentType(), d.getSizeBytes(), d.getStatus(), d.getCreatedAt(), d.getInformationRequest() == null ? null : d.getInformationRequest().getId());
     }
 
     public record Download(String fileName, String contentType, long size, InputStream stream) {

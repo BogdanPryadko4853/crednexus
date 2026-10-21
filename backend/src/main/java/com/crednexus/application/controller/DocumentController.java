@@ -34,8 +34,8 @@ public class DocumentController {
     @PostMapping(value = "/loan-applications/{applicationId}/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить документ", description = "Загружает PDF, PNG или JPEG в защищённое S3-совместимое хранилище. Требуется активное членство и canApply.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "Документ загружен"), @ApiResponse(responseCode = "400", description = "Недопустимый формат или размер файла"), @ApiResponse(responseCode = "403", description = "Нет доступа к компании"), @ApiResponse(responseCode = "502", description = "Хранилище недоступно")})
-    public DocumentResponse upload(@PathVariable UUID applicationId, @RequestParam DocumentType type, @RequestParam MultipartFile file) {
-        return service.upload(applicationId, type, file);
+    public DocumentResponse upload(@PathVariable UUID applicationId, @RequestParam DocumentType type, @RequestParam MultipartFile file, @RequestParam(required = false) UUID informationRequestId) {
+        return service.upload(applicationId, type, file, informationRequestId);
     }
 
     @GetMapping("/loan-applications/{applicationId}/documents")

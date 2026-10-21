@@ -63,8 +63,13 @@ public class Document {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "information_request_id", foreignKey = @ForeignKey(name = "fk_documents_information_request"))
+    @Setter
+    private InformationRequest informationRequest;
+
     public Document(LoanApplication application, DocumentType documentType, String fileName, String storageKey,
-                    String contentType, long sizeBytes) {
+                    String contentType, long sizeBytes, InformationRequest informationRequest) {
         this.application = application;
         this.documentType = documentType;
         this.fileName = fileName;
@@ -73,5 +78,6 @@ public class Document {
         this.sizeBytes = sizeBytes;
         this.status = DocumentStatus.AVAILABLE;
         this.createdAt = Instant.now();
+        this.informationRequest = informationRequest;
     }
 }
