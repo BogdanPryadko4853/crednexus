@@ -56,4 +56,11 @@ public class InformationRequest {
     @Column(name = "answered_at")
     @Setter
     private Instant answeredAt;
+
+    public InformationRequest(LoanApplication application, String question, User requestedBy) {
+        this.application = application;
+        this.question = question;
+        this.requestedBy = requestedBy;
+        this.status = InformationRequestStatus.OPEN;
+    }
 }

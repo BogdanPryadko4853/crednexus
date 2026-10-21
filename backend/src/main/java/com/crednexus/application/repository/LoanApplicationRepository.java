@@ -1,6 +1,7 @@
 package com.crednexus.application.repository;
 
 import com.crednexus.application.entity.LoanApplication;
+import com.crednexus.application.entity.LoanApplicationStatus;
 import jakarta.persistence.LockModeType;
 
 import java.util.List;
@@ -30,4 +31,6 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
             order by application.updatedAt desc
             """)
     List<LoanApplication> findAllAccessibleByUserId(@Param("userId") UUID userId);
+
+    List<LoanApplication> findAllByStatusOrderByUpdatedAtAsc(LoanApplicationStatus status);
 }
