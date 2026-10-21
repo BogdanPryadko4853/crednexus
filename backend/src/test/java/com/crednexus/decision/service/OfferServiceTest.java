@@ -21,6 +21,7 @@ import com.crednexus.decision.entity.DecisionType;
 import com.crednexus.decision.repository.CreditOfferRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
@@ -41,6 +42,7 @@ class OfferServiceTest {
     @Mock private CurrentUserProvider currentUserProvider;
     @Mock private CompanyMemberRepository companyMemberRepository;
     @Mock private WorkflowService workflowService;
+    @Mock private WorkflowJobService workflowJobService;
 
     @Test
     void acceptsOfferAndRepeatsSafely() {
@@ -91,7 +93,8 @@ class OfferServiceTest {
     }
 
     private OfferService service() {
-        return new OfferService(applicationRepository, offerRepository, currentUserProvider, companyMemberRepository, workflowService);
+        return new OfferService(applicationRepository, offerRepository, currentUserProvider, companyMemberRepository,
+                workflowService, workflowJobService);
     }
 
     private void stubAccess(UUID applicationId, LoanApplication application, CreditOffer offer, User user, boolean canApply) {

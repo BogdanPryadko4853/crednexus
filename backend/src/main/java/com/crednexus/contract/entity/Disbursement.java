@@ -52,4 +52,15 @@ public class Disbursement {
     @Column(name = "executed_at")
     @Setter
     private Instant executedAt;
+
+    public Disbursement(LoanAgreement agreement, BigDecimal amount) {
+        this.agreement = agreement;
+        this.amount = amount;
+        this.status = DisbursementStatus.PENDING;
+    }
+
+    public void complete(Instant executedAt) {
+        this.status = DisbursementStatus.COMPLETED;
+        this.executedAt = executedAt;
+    }
 }

@@ -52,4 +52,15 @@ public class LoanAgreement {
     @Column(name = "signed_at")
     @Setter
     private Instant signedAt;
+
+    public LoanAgreement(CreditOffer offer, String contractNumber) {
+        this.offer = offer;
+        this.contractNumber = contractNumber;
+        this.status = LoanAgreementStatus.PENDING;
+    }
+
+    public void sign(Instant signedAt) {
+        this.status = LoanAgreementStatus.SIGNED;
+        this.signedAt = signedAt;
+    }
 }

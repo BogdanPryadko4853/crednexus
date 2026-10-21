@@ -15,6 +15,8 @@ import com.crednexus.company.entity.CompanyMember;
 import com.crednexus.company.entity.CompanyMemberRole;
 import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.company.repository.CompanyRepository;
+import com.crednexus.contract.service.AgreementSigningJobWorker;
+import com.crednexus.contract.service.DisbursementJobWorker;
 import com.crednexus.decision.entity.CreditOfferStatus;
 import com.crednexus.decision.repository.CreditDecisionRepository;
 import com.crednexus.decision.repository.CreditOfferRepository;
@@ -76,6 +78,8 @@ class WorkflowPipelineIntegrationTest {
     @Autowired private DecisionJobWorker decisionJobWorker;
     @Autowired private OfferExpirationJobWorker offerExpirationJobWorker;
     @Autowired private OfferService offerService;
+    @Autowired private AgreementSigningJobWorker agreementSigningJobWorker;
+    @Autowired private DisbursementJobWorker disbursementJobWorker;
     @Autowired private EntityManager entityManager;
 
     @DynamicPropertySource
@@ -144,6 +148,23 @@ class WorkflowPipelineIntegrationTest {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT status FROM workflow_jobs WHERE job_type = 'OFFER_EXPIRATION'", String.class))
                 .isEqualTo("COMPLETED");
+    }
+
+    @Test
+    void automaticallySignsAgreementAndDisbursesAcceptedOffer() {
+        LoanApplication application = createSubmittedApplication("7701234500", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+        runPipeline();
+
+        assertThat(invokeAs(application.getCreatedBy().getKeycloakId(), () -> offerService.accept(application.getId())))
+                .isEqualTo("OK");
+        agreementSigningJobWorker.poll();
+        disbursementJobWorker.poll();
+
+        assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.DISBURSED);
+        assertThat(jdbcTemplate.queryForObject("SELECT status FROM loan_agreements", String.class)).isEqualTo("SIGNED");
+        assertThat(jdbcTemplate.queryForObject("SELECT status FROM disbursements", String.class)).isEqualTo("COMPLETED");
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM workflow_jobs WHERE job_type IN ('AGREEMENT_SIGNING', 'DISBURSEMENT') AND status = 'COMPLETED'", Integer.class)).isEqualTo(2);
     }
 
     @Test

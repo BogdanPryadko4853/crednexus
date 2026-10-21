@@ -4,5 +4,7 @@ public enum WorkflowJobType {
     VERIFICATION,
     SCORING,
     DECISION,
-    OFFER_EXPIRATION
+    OFFER_EXPIRATION,
+    AGREEMENT_SIGNING,
+    DISBURSEMENT
 }

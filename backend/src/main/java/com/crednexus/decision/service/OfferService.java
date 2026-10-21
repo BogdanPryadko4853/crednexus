@@ -13,6 +13,7 @@ import com.crednexus.decision.entity.CreditOffer;
 import com.crednexus.decision.entity.CreditOfferStatus;
 import com.crednexus.decision.repository.CreditOfferRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -28,15 +29,17 @@ public class OfferService {
     private final CurrentUserProvider currentUserProvider;
     private final CompanyMemberRepository companyMemberRepository;
     private final WorkflowService workflowService;
+    private final WorkflowJobService workflowJobService;
 
     public OfferService(LoanApplicationRepository loanApplicationRepository, CreditOfferRepository creditOfferRepository,
                         CurrentUserProvider currentUserProvider, CompanyMemberRepository companyMemberRepository,
-                        WorkflowService workflowService) {
+                        WorkflowService workflowService, WorkflowJobService workflowJobService) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.creditOfferRepository = creditOfferRepository;
         this.currentUserProvider = currentUserProvider;
         this.companyMemberRepository = companyMemberRepository;
         this.workflowService = workflowService;
+        this.workflowJobService = workflowJobService;
     }
 
     @Transactional(noRollbackFor = ResponseStatusException.class)
@@ -85,6 +88,7 @@ public class OfferService {
         if (targetStatus == CreditOfferStatus.ACCEPTED) {
             offer.accept();
             workflowService.transition(application, LoanApplicationStatus.ACCEPTED, currentUserProvider.getCurrentUser());
+            workflowJobService.enqueueAgreementSigning(application);
         } else {
             offer.decline();
             workflowService.transition(application, LoanApplicationStatus.DECLINED, currentUserProvider.getCurrentUser());
