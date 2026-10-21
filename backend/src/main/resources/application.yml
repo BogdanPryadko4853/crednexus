@@ -14,3 +14,7 @@ spring:
         jwt:
           issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/crednexus}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/crednexus/protocol/openid-connect/certs}
+workflow:
+  jobs:
+    poll-delay-ms: ${WORKFLOW_JOBS_POLL_DELAY_MS:5000}
+    lock-duration: ${WORKFLOW_JOBS_LOCK_DURATION:PT1M}

@@ -34,7 +34,7 @@ class FlywayMigrationIntegrationTest {
         assertThat(jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success AND type = 'SQL' ORDER BY installed_rank",
                 String.class
-        )).containsExactly("1", "2", "3", "4", "5");
+        )).containsExactly("1", "2", "3", "4", "5", "6");
 
         assertThat(jdbcTemplate.queryForObject(
                 """
@@ -51,7 +51,7 @@ class FlywayMigrationIntegrationTest {
                 "users", "companies", "company_members", "credit_products", "loan_applications",
                 "financial_snapshots", "verification_results", "scoring_results", "information_requests",
                 "application_status_history", "credit_decisions", "credit_offers", "documents",
-                "loan_agreements", "disbursements"
+                "loan_agreements", "disbursements", "workflow_jobs"
         }) {
             assertThat(jdbcTemplate.queryForObject("SELECT to_regclass(?)", String.class, table))
                     .as("table %s must exist", table)

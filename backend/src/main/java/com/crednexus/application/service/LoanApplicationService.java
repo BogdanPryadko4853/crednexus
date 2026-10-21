@@ -14,6 +14,7 @@ import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +32,7 @@ public class LoanApplicationService {
     private final CreditProductRepository creditProductRepository;
     private final CurrentUserProvider currentUserProvider;
     private final WorkflowService workflowService;
+    private final WorkflowJobService workflowJobService;
 
     public LoanApplicationService(
             LoanApplicationRepository loanApplicationRepository,
@@ -38,7 +40,7 @@ public class LoanApplicationService {
             CompanyMemberRepository companyMemberRepository,
             CreditProductRepository creditProductRepository,
             CurrentUserProvider currentUserProvider,
-            WorkflowService workflowService
+            WorkflowService workflowService, WorkflowJobService workflowJobService
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.financialSnapshotRepository = financialSnapshotRepository;
@@ -46,6 +48,7 @@ public class LoanApplicationService {
         this.creditProductRepository = creditProductRepository;
         this.currentUserProvider = currentUserProvider;
         this.workflowService = workflowService;
+        this.workflowJobService = workflowJobService;
     }
 
     @Transactional
@@ -103,6 +106,7 @@ public class LoanApplicationService {
         validateProductLimits(application, product);
 
         workflowService.transition(application, LoanApplicationStatus.SUBMITTED, currentUser);
+        workflowJobService.enqueueVerification(application);
 
         return toResponse(application);
     }

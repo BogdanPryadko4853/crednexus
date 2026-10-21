@@ -23,6 +23,7 @@ import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,6 +61,9 @@ class LoanApplicationServiceTest {
 
     @Mock
     private WorkflowService workflowService;
+
+    @Mock
+    private WorkflowJobService workflowJobService;
 
     @InjectMocks
     private LoanApplicationService loanApplicationService;

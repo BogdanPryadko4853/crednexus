@@ -26,6 +26,7 @@ import com.crednexus.verification.mock.MockVerificationOutcome;
 import com.crednexus.verification.mock.TaxServiceMock;
 import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -54,6 +55,9 @@ class VerificationServiceTest {
 
     @Mock
     private WorkflowService workflowService;
+
+    @Mock
+    private WorkflowJobService workflowJobService;
 
     @Mock
     private CurrentUserProvider currentUserProvider;

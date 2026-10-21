@@ -5,6 +5,8 @@ import com.crednexus.application.entity.LoanApplicationStatus;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
 import com.crednexus.auth.service.CurrentUserProvider;
+import com.crednexus.company.entity.CompanyMember;
+import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.verification.dto.VerificationResultResponse;
 import com.crednexus.verification.dto.VerificationRunResponse;
 import com.crednexus.verification.entity.VerificationResult;
@@ -15,6 +17,7 @@ import com.crednexus.verification.mock.MockVerificationOutcome;
 import com.crednexus.verification.mock.TaxServiceMock;
 import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,6 +40,8 @@ public class VerificationService {
     private final CurrentUserProvider currentUserProvider;
     private final TaxServiceMock taxServiceMock;
     private final CreditBureauMock creditBureauMock;
+    private final WorkflowJobService workflowJobService;
+    private final CompanyMemberRepository companyMemberRepository;
 
     public VerificationService(
             LoanApplicationRepository loanApplicationRepository,
@@ -44,7 +49,7 @@ public class VerificationService {
             WorkflowService workflowService,
             CurrentUserProvider currentUserProvider,
             TaxServiceMock taxServiceMock,
-            CreditBureauMock creditBureauMock
+            CreditBureauMock creditBureauMock, WorkflowJobService workflowJobService, CompanyMemberRepository companyMemberRepository
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.verificationResultRepository = verificationResultRepository;
@@ -52,11 +57,43 @@ public class VerificationService {
         this.currentUserProvider = currentUserProvider;
         this.taxServiceMock = taxServiceMock;
         this.creditBureauMock = creditBureauMock;
+        this.workflowJobService = workflowJobService;
+        this.companyMemberRepository = companyMemberRepository;
     }
 
     @Transactional
     public VerificationRunResponse runVerifications(UUID applicationId) {
-        User currentUser = currentUserProvider.getCurrentUser();
+        return runVerifications(applicationId, currentUserProvider.getCurrentUser());
+    }
+
+    @Transactional
+    public void requestVerification(UUID applicationId) {
+        LoanApplication application = loanApplicationRepository.findByIdForUpdate(applicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan application not found"));
+        if (application.getStatus() != LoanApplicationStatus.SUBMITTED
+                && application.getStatus() != LoanApplicationStatus.VERIFYING) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Verifications cannot run for this application status");
+        }
+        workflowJobService.enqueueVerification(application);
+    }
+
+    @Transactional(readOnly = true)
+    public List<VerificationResultResponse> getVerificationResults(UUID applicationId) {
+        LoanApplication application = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan application not found"));
+        User user = currentUserProvider.getCurrentUser();
+        companyMemberRepository.findByUser_IdAndCompany_Id(user.getId(), application.getCompany().getId())
+                .filter(CompanyMember::isActive)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Company access is denied"));
+        return verificationResultRepository.findAllByApplication_IdOrderByCheckedAtAsc(applicationId).stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public VerificationRunResponse runAutomatedVerifications(UUID applicationId) {
+        return runVerifications(applicationId, null);
+    }
+
+    private VerificationRunResponse runVerifications(UUID applicationId, User currentUser) {
         LoanApplication application = loanApplicationRepository.findByIdForUpdate(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan application not found"));
         boolean initialRun = startVerificationIfSubmitted(application, currentUser);

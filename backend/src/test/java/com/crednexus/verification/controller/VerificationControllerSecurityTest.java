@@ -9,9 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.crednexus.auth.config.SecurityConfig;
 import com.crednexus.auth.service.KeycloakUserSynchronizationService;
-import com.crednexus.verification.dto.VerificationRunResponse;
 import com.crednexus.verification.service.VerificationService;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,14 +53,11 @@ class VerificationControllerSecurityTest {
     @Test
     void allowsBankEmployeeToRunVerifications() throws Exception {
         UUID applicationId = UUID.randomUUID();
-        when(verificationService.runVerifications(applicationId))
-                .thenReturn(new VerificationRunResponse(applicationId, null, List.of()));
-
         mockMvc.perform(post(endpoint(applicationId))
                         .with(user("employee").roles("BANK_EMPLOYEE")))
-                .andExpect(status().isOk());
+                .andExpect(status().isAccepted());
 
-        verify(verificationService).runVerifications(eq(applicationId));
+        verify(verificationService).requestVerification(eq(applicationId));
     }
 
     private String endpoint(UUID applicationId) {
