@@ -63,4 +63,10 @@ public class InformationRequest {
         this.requestedBy = requestedBy;
         this.status = InformationRequestStatus.OPEN;
     }
+
+    public void answer(String answer, Instant answeredAt) {
+        this.answer = answer;
+        this.answeredAt = answeredAt;
+        this.status = InformationRequestStatus.ANSWERED;
+    }
 }
