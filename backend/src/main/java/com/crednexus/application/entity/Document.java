@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.UUID;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,4 +51,27 @@ public class Document {
     @Column(nullable = false)
     @Setter
     private DocumentStatus status;
+
+    @Column(name = "content_type", nullable = false)
+    @Setter
+    private String contentType;
+
+    @Column(name = "size_bytes", nullable = false)
+    @Setter
+    private long sizeBytes;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    public Document(LoanApplication application, DocumentType documentType, String fileName, String storageKey,
+                    String contentType, long sizeBytes) {
+        this.application = application;
+        this.documentType = documentType;
+        this.fileName = fileName;
+        this.storageKey = storageKey;
+        this.contentType = contentType;
+        this.sizeBytes = sizeBytes;
+        this.status = DocumentStatus.AVAILABLE;
+        this.createdAt = Instant.now();
+    }
 }
