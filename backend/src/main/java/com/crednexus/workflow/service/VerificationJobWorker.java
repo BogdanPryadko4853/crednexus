@@ -1,12 +1,42 @@
 package com.crednexus.workflow.service;
-import com.crednexus.application.entity.*; import com.crednexus.application.repository.LoanApplicationRepository;
-import com.crednexus.verification.dto.*; import com.crednexus.verification.entity.VerificationStatus; import com.crednexus.verification.service.VerificationService;
-import com.crednexus.workflow.entity.WorkflowJob; import com.crednexus.workflow.entity.WorkflowJobType; import com.crednexus.workflow.repository.WorkflowJobRepository;
-import java.time.*; import java.util.*;
-import org.springframework.scheduling.annotation.Scheduled; import org.springframework.stereotype.Component; import org.springframework.transaction.annotation.Transactional;
-@Component public class VerificationJobWorker {
- private final WorkflowJobService jobs; private final WorkflowJobRepository jobRepository; private final LoanApplicationRepository applications; private final VerificationService verifications; private final WorkflowService workflow; private final Duration lease;
- public VerificationJobWorker(WorkflowJobService jobs,WorkflowJobRepository jobRepository,LoanApplicationRepository applications,VerificationService verifications,WorkflowService workflow,@org.springframework.beans.factory.annotation.Value("${workflow.jobs.lock-duration:PT1M}") Duration lease){this.jobs=jobs;this.jobRepository=jobRepository;this.applications=applications;this.verifications=verifications;this.workflow=workflow;this.lease=lease;}
- @Scheduled(fixedDelayString="${workflow.jobs.poll-delay-ms:5000}") @Transactional public void poll(){jobs.claimReadyJobs(WorkflowJobType.VERIFICATION,lease).forEach(this::process);}
- @Transactional public void process(UUID jobId){ WorkflowJob job=jobRepository.findByIdForUpdate(jobId).orElseThrow(); try { VerificationRunResponse run=verifications.runAutomatedVerifications(job.getApplication().getId()); boolean error=run.results().stream().anyMatch(r->r.status()==VerificationStatus.ERROR); if(error){ if(job.getAttempts()>=job.getMaxAttempts()) job.complete(); else jobs.retry(jobId,Duration.ofSeconds(5),"Техническая ошибка проверки"); return; } LoanApplication app=applications.findByIdForUpdate(job.getApplication().getId()).orElseThrow(); boolean needs=run.results().stream().anyMatch(r->"NEEDS_INFO".equals(r.payload().get("outcome"))); workflow.transition(app,needs?LoanApplicationStatus.NEEDS_INFO:LoanApplicationStatus.SCORING,null); job.complete(); if (!needs) jobs.enqueueScoring(app); } catch(RuntimeException exception){ if(job.getAttempts()>=job.getMaxAttempts()) jobs.fail(jobId,exception.getMessage()); else jobs.retry(jobId,Duration.ofSeconds(5),exception.getMessage()); } }
+
+import com.crednexus.workflow.entity.WorkflowJobType;
+import java.time.Duration;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+public class VerificationJobWorker {
+
+    private final WorkflowJobService workflowJobService;
+    private final VerificationJobProcessor verificationJobProcessor;
+    private final WorkflowJobRecoveryService workflowJobRecoveryService;
+    private final Duration lease;
+
+    public VerificationJobWorker(
+            WorkflowJobService workflowJobService,
+            VerificationJobProcessor verificationJobProcessor,
+            WorkflowJobRecoveryService workflowJobRecoveryService,
+            @Value("${workflow.jobs.lock-duration:PT1M}") Duration lease
+    ) {
+        this.workflowJobService = workflowJobService;
+        this.verificationJobProcessor = verificationJobProcessor;
+        this.workflowJobRecoveryService = workflowJobRecoveryService;
+        this.lease = lease;
+    }
+
+    @Scheduled(fixedDelayString = "${workflow.jobs.poll-delay-ms:5000}")
+    public void poll() {
+        workflowJobService.claimReadyJobs(WorkflowJobType.VERIFICATION, lease).forEach(this::process);
+    }
+
+    private void process(UUID jobId) {
+        try {
+            verificationJobProcessor.process(jobId);
+        } catch (RuntimeException exception) {
+            workflowJobRecoveryService.recover(jobId, "Ошибка обработки проверок: " + exception.getMessage());
+        }
+    }
 }

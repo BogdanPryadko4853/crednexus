@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service; import org.springframework.transa
  @Transactional public void enqueueVerification(LoanApplication application){ enqueue(application,WorkflowJobType.VERIFICATION); }
  @Transactional public void enqueueScoring(LoanApplication application){ enqueue(application,WorkflowJobType.SCORING); }
  @Transactional public void enqueueDecision(LoanApplication application){ enqueue(application,WorkflowJobType.DECISION); }
- @Transactional public List<UUID> claimReadyJobs(WorkflowJobType type, Duration lease){ List<UUID> ids=repository.findReadyIdsForUpdate(type.name(),10); Instant until=Instant.now().plus(lease); ids.forEach(id->repository.findByIdForUpdate(id).orElseThrow().claim(until)); return ids; }
+ @Transactional public List<UUID> claimReadyJobs(WorkflowJobType type, Duration lease){ List<UUID> ids=repository.findReadyIdsForUpdate(type.name(),1); Instant until=Instant.now().plus(lease); ids.forEach(id->repository.findByIdForUpdate(id).orElseThrow().claim(until)); return ids; }
  @Transactional public void retry(UUID id,Duration delay,String error){ repository.findByIdForUpdate(id).orElseThrow().retryAt(Instant.now().plus(delay),error); }
  @Transactional public void complete(UUID id){repository.findByIdForUpdate(id).orElseThrow().complete();}
  @Transactional public void fail(UUID id,String error){repository.findByIdForUpdate(id).orElseThrow().fail(error);}

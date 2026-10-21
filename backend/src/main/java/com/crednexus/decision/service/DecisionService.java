@@ -20,6 +20,9 @@ import com.crednexus.decision.repository.CreditDecisionRepository;
 import com.crednexus.decision.repository.CreditOfferRepository;
 import com.crednexus.scoring.entity.ScoringResult;
 import com.crednexus.scoring.repository.ScoringResultRepository;
+import com.crednexus.verification.entity.VerificationStatus;
+import com.crednexus.verification.entity.VerificationType;
+import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
 import java.time.Duration;
 import java.time.Instant;
@@ -35,6 +38,7 @@ public class DecisionService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final ScoringResultRepository scoringResultRepository;
+    private final VerificationResultRepository verificationResultRepository;
     private final CreditDecisionRepository creditDecisionRepository;
     private final CreditOfferRepository creditOfferRepository;
     private final DecisionPolicy decisionPolicy;
@@ -46,6 +50,7 @@ public class DecisionService {
     public DecisionService(
             LoanApplicationRepository loanApplicationRepository,
             ScoringResultRepository scoringResultRepository,
+            VerificationResultRepository verificationResultRepository,
             CreditDecisionRepository creditDecisionRepository,
             CreditOfferRepository creditOfferRepository,
             DecisionPolicy decisionPolicy,
@@ -56,6 +61,7 @@ public class DecisionService {
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.scoringResultRepository = scoringResultRepository;
+        this.verificationResultRepository = verificationResultRepository;
         this.creditDecisionRepository = creditDecisionRepository;
         this.creditOfferRepository = creditOfferRepository;
         this.decisionPolicy = decisionPolicy;
@@ -74,6 +80,11 @@ public class DecisionService {
         }
         ScoringResult scoringResult = scoringResultRepository.findTopByApplication_IdOrderByCalculatedAtDesc(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "Scoring result is required"));
+        if (hasFailedBusinessVerification(applicationId)) {
+            workflowService.transition(application, LoanApplicationStatus.MANUAL_REVIEW, null,
+                    "Отрицательный бизнес-результат проверки не допускает автоматического решения");
+            return;
+        }
         DecisionOutput output = decisionPolicy.evaluate(new DecisionInput(
                 application.getId(),
                 application.getRequestedAmount(),
@@ -83,6 +94,17 @@ public class DecisionService {
                 scoringResult.getRiskLevel()
         ));
         applyDecision(application, output);
+    }
+
+    private boolean hasFailedBusinessVerification(UUID applicationId) {
+        for (VerificationType type : VerificationType.values()) {
+            if (verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(applicationId, type)
+                    .map(result -> result.getStatus() == VerificationStatus.FAILED)
+                    .orElse(false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Transactional(readOnly = true)

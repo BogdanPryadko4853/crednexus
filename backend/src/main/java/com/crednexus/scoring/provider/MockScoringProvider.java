@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(name = "scoring.provider", havingValue = "mock", matchIfMissing = true)
+@ConditionalOnProperty(name = "scoring.provider", havingValue = "mock")
 public class MockScoringProvider implements ScoringProvider {
 
     @Override

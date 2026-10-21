@@ -63,12 +63,14 @@ public class ApplicationStatusHistory {
             LoanApplicationStatus fromStatus,
             LoanApplicationStatus toStatus,
             User actor,
+            String reason,
             Instant occurredAt
     ) {
         this.application = application;
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
         this.actor = actor;
+        this.reason = reason;
         this.occurredAt = occurredAt;
     }
 }

@@ -23,6 +23,7 @@ import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.scoring.entity.RiskLevel;
 import com.crednexus.scoring.entity.ScoringResult;
 import com.crednexus.scoring.repository.ScoringResultRepository;
+import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -47,6 +48,9 @@ class DecisionServiceTest {
 
     @Mock
     private ScoringResultRepository scoringResultRepository;
+
+    @Mock
+    private VerificationResultRepository verificationResultRepository;
 
     @Mock
     private CreditDecisionRepository creditDecisionRepository;
@@ -79,6 +83,7 @@ class DecisionServiceTest {
         decisionService = new DecisionService(
                 loanApplicationRepository,
                 scoringResultRepository,
+                verificationResultRepository,
                 creditDecisionRepository,
                 creditOfferRepository,
                 decisionPolicy,

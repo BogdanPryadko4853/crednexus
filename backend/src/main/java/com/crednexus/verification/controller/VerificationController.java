@@ -35,7 +35,7 @@ public class VerificationController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(
             summary = "Запустить проверки ФНС и БКИ",
-            description = "Технический endpoint для демо, доступный только ADMIN и BANK_EMPLOYEE. При первом запуске переводит заявку из SUBMITTED в VERIFYING, выполняет независимые mock-проверки и сохраняет новую попытку каждой доступной проверки. При повторе запускаются только источники с последним статусом ERROR; максимум три попытки на источник. Автоматического перехода к скорингу или запросу сведений не выполняется."
+            description = "Технический endpoint для демо, доступный только ADMIN и BANK_EMPLOYEE. Ставит durable-задачу проверок в PostgreSQL-очередь и немедленно возвращает 202. Конвейер сам переводит заявку из SUBMITTED в VERIFYING, выполняет независимые проверки ФНС и БКИ, повторяет только технически ошибочные источники и затем направляет заявку в NEEDS_INFO, SCORING или MANUAL_REVIEW."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "202", description = "Задача проверки принята в обработку"),

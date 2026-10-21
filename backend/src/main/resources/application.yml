@@ -19,7 +19,7 @@ workflow:
     poll-delay-ms: ${WORKFLOW_JOBS_POLL_DELAY_MS:5000}
     lock-duration: ${WORKFLOW_JOBS_LOCK_DURATION:PT1M}
 scoring:
-  provider: ${SCORING_PROVIDER:mock}
+  provider: ${SCORING_PROVIDER:rule-based}
 decision:
   policy: ${DECISION_POLICY:mock}
   offer-validity: ${CREDIT_OFFER_VALIDITY:P7D}

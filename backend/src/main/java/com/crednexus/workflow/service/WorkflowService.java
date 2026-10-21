@@ -52,6 +52,16 @@ public class WorkflowService {
 
     @Transactional
     public void transition(LoanApplication application, LoanApplicationStatus targetStatus, User actor) {
+        transition(application, targetStatus, actor, null);
+    }
+
+    @Transactional
+    public void transition(
+            LoanApplication application,
+            LoanApplicationStatus targetStatus,
+            User actor,
+            String reason
+    ) {
         LoanApplicationStatus currentStatus = application.getStatus();
         if (!isAllowed(currentStatus, targetStatus)) {
             throw new ResponseStatusException(
@@ -70,6 +80,7 @@ public class WorkflowService {
                 currentStatus,
                 targetStatus,
                 actor,
+                reason,
                 occurredAt
         ));
     }

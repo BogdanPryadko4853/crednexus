@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Supplier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -91,6 +93,16 @@ public class VerificationService {
     @Transactional
     public VerificationRunResponse runAutomatedVerifications(UUID applicationId) {
         return runVerifications(applicationId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<VerificationType, VerificationResult> getLatestResults(UUID applicationId) {
+        Map<VerificationType, VerificationResult> results = new EnumMap<>(VerificationType.class);
+        for (VerificationType type : VerificationType.values()) {
+            verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(applicationId, type)
+                    .ifPresent(result -> results.put(type, result));
+        }
+        return results;
     }
 
     private VerificationRunResponse runVerifications(UUID applicationId, User currentUser) {
