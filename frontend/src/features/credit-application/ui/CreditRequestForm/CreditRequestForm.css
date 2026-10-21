@@ -1,0 +1,46 @@
+@reference "../../../../styles/index.css";
+.credit-form {
+  @apply grid gap-6;
+}
+
+.credit-form__row {
+  @apply grid items-start gap-5;
+  grid-template-columns: 1fr 1fr;
+}
+
+.credit-form__footer {
+  @apply flex justify-end;
+  padding-top: 8px;
+}
+
+.credit-summary {
+  @apply grid m-0 gap-4;
+}
+
+.credit-summary > div {
+  @apply flex justify-between flex-wrap;
+  gap: 8px 20px;
+}
+
+.credit-summary dt {
+  @apply text-muted;
+  font-size: var(--text-sm);
+}
+
+.credit-summary dd {
+  @apply max-w-full font-semibold m-0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .credit-form__row {
+    @apply gap-6;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .credit-form__footer .ui-button {
+    @apply w-full;
+  }
+}

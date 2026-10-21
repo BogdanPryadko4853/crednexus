@@ -1,0 +1,33 @@
+@reference "../../../styles/index.css";
+
+.ui-page-state {
+  @apply flex items-center justify-center flex-col text-center p-6;
+  min-height: 240px;
+}
+
+.ui-page-state__icon {
+  @apply inline-flex items-center justify-center bg-canvas text-muted mb-4;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-control);
+}
+
+.ui-page-state--error .ui-page-state__icon {
+  color: var(--color-negative);
+  background: var(--color-negative-soft);
+}
+
+.ui-page-state h3 {
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.ui-page-state p {
+  @apply text-muted mt-2;
+  max-width: 32ch;
+  font-size: var(--text-sm);
+}
+
+.ui-page-state__action {
+  @apply mt-6;
+}

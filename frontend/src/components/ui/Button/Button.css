@@ -1,0 +1,59 @@
+@reference "../../../styles/index.css";
+
+.ui-button {
+  @apply inline-flex items-center justify-center font-semibold text-center gap-2;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font-size: var(--text-base);
+  line-height: 1.25;
+  transition:
+    background var(--transition),
+    border-color var(--transition);
+}
+
+.ui-button--primary {
+  background: var(--color-action);
+  color: white;
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--color-action-hover);
+}
+
+.ui-button--primary:active:not(:disabled) {
+  background: var(--color-action-pressed);
+}
+
+.ui-button--secondary {
+  @apply bg-canvas text-ink;
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--color-neutral-hover);
+}
+
+.ui-button--ghost {
+  @apply text-ink;
+  background: transparent;
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  @apply bg-canvas;
+}
+
+.ui-button--sm {
+  min-height: 40px;
+  padding: 9px 14px;
+  font-size: var(--text-sm);
+}
+
+.ui-button:disabled:not([aria-busy="true"]) {
+  background: var(--color-neutral-hover);
+  color: var(--color-disabled-text);
+}
+
+.ui-button[aria-busy="true"] {
+  cursor: wait;
+}

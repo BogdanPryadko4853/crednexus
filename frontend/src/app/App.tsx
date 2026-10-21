@@ -1,5 +1,5 @@
-import { CreditApplicationPage } from "./application/CreditApplicationPage";
+import { AppRoutes } from "./router";
 
 export function App() {
-  return <CreditApplicationPage />;
+  return <AppRoutes />;
 }

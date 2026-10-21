@@ -1,0 +1,40 @@
+@reference "../../../styles/index.css";
+
+.ui-alert--info {
+  color: var(--color-info);
+  background: var(--color-info-soft);
+}
+
+.ui-alert--positive {
+  color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.ui-alert--attention {
+  color: var(--color-attention);
+  background: var(--color-attention-soft);
+}
+
+.ui-alert--negative {
+  color: var(--color-negative);
+  background: var(--color-negative-soft);
+}
+
+.ui-alert {
+  @apply flex items-start gap-3 p-4;
+  border-radius: var(--radius-control);
+}
+
+.ui-alert > svg {
+  margin-top: 2px;
+}
+
+.ui-alert__title {
+  @apply font-semibold;
+}
+
+.ui-alert__body {
+  @apply mt-1;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}

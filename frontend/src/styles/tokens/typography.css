@@ -1,0 +1,9 @@
+:root {
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --heading-sm: 1.5rem;
+  --heading-lg: 2rem;
+  --heading-xl: clamp(2rem, 4.2vw, 3.5rem);
+}

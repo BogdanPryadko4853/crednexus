@@ -1,0 +1,17 @@
+export const common = {
+  "common.notFoundTitle": "Страница не найдена",
+  "common.notFoundDescription": "Проверьте адрес или вернитесь к заявке.",
+  "common.goHome": "К заявке",
+  "app.title": "CredNexus — кредитный кабинет",
+  "app.description": "CredNexus — кредитный кабинет предпринимателя",
+  "common.brand": "CredNexus",
+  "common.brandMark": "C",
+  "common.brandHome": "CredNexus, к началу",
+  "common.portal": "Кредитный кабинет",
+  "common.footer": "Кредитный кабинет предпринимателя",
+  "common.skipContent": "Перейти к содержимому",
+  "common.loading": "Загрузка",
+  "common.closeDialog": "Закрыть окно",
+  "common.emptyData": "Пока нет данных",
+  "common.requiredMark": " *",
+} as const;
