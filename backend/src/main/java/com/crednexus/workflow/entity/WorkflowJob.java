@@ -19,7 +19,8 @@ public class WorkflowJob {
  @Column(name="updated_at",nullable=false) private Instant updatedAt;
  @Column(name="completed_at") private Instant completedAt;
  @Version @Column(nullable=false) private Integer version;
- public WorkflowJob(LoanApplication application, WorkflowJobType type, int maxAttempts) { this.application=application; jobType=type; status=WorkflowJobStatus.PENDING; this.maxAttempts=maxAttempts; availableAt=Instant.now(); createdAt=Instant.now(); updatedAt=createdAt; }
+ public WorkflowJob(LoanApplication application, WorkflowJobType type, int maxAttempts) { Instant now=Instant.now(); this.application=application; jobType=type; status=WorkflowJobStatus.PENDING; this.maxAttempts=maxAttempts; availableAt=now.minusSeconds(1); createdAt=now; updatedAt=now; }
+ public WorkflowJob(LoanApplication application, WorkflowJobType type, int maxAttempts, Instant availableAt) { this(application,type,maxAttempts); this.availableAt=availableAt; }
  public void claim(Instant until) { status=WorkflowJobStatus.PROCESSING; lockedUntil=until; attempts++; updatedAt=Instant.now(); }
  public void retryAt(Instant at,String error) { status=WorkflowJobStatus.RETRY_SCHEDULED; availableAt=at; lockedUntil=null; lastError=error; updatedAt=Instant.now(); }
  public void complete() { status=WorkflowJobStatus.COMPLETED; lockedUntil=null; completedAt=Instant.now(); updatedAt=completedAt; }

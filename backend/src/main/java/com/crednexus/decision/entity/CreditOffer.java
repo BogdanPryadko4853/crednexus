@@ -76,4 +76,10 @@ public class CreditOffer {
         this.status = status;
         this.expiresAt = expiresAt;
     }
+
+    public void accept() { this.status = CreditOfferStatus.ACCEPTED; }
+
+    public void decline() { this.status = CreditOfferStatus.DECLINED; }
+
+    public void expire() { this.status = CreditOfferStatus.EXPIRED; }
 }

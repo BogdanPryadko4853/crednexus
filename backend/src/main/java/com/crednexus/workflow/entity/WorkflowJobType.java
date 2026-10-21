@@ -3,5 +3,6 @@ package com.crednexus.workflow.entity;
 public enum WorkflowJobType {
     VERIFICATION,
     SCORING,
-    DECISION
+    DECISION,
+    OFFER_EXPIRATION
 }

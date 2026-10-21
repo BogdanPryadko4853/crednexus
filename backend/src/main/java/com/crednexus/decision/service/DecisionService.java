@@ -24,6 +24,7 @@ import com.crednexus.verification.entity.VerificationStatus;
 import com.crednexus.verification.entity.VerificationType;
 import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -46,6 +47,7 @@ public class DecisionService {
     private final CurrentUserProvider currentUserProvider;
     private final CompanyMemberRepository companyMemberRepository;
     private final Duration offerValidity;
+    private final WorkflowJobService workflowJobService;
 
     public DecisionService(
             LoanApplicationRepository loanApplicationRepository,
@@ -57,6 +59,7 @@ public class DecisionService {
             WorkflowService workflowService,
             CurrentUserProvider currentUserProvider,
             CompanyMemberRepository companyMemberRepository,
+            WorkflowJobService workflowJobService,
             @Value("${decision.offer-validity:P7D}") Duration offerValidity
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
@@ -68,6 +71,7 @@ public class DecisionService {
         this.workflowService = workflowService;
         this.currentUserProvider = currentUserProvider;
         this.companyMemberRepository = companyMemberRepository;
+        this.workflowJobService = workflowJobService;
         this.offerValidity = offerValidity;
     }
 
@@ -139,7 +143,7 @@ public class DecisionService {
             if (output.offerTerms() == null) {
                 throw new IllegalStateException("Offer terms are required");
             }
-            creditOfferRepository.save(new CreditOffer(
+            CreditOffer offer = creditOfferRepository.save(new CreditOffer(
                     decision,
                     output.offerTerms().amount(),
                     output.offerTerms().termMonths(),
@@ -148,6 +152,7 @@ public class DecisionService {
                     decidedAt.plus(offerValidity)
             ));
             workflowService.transition(application, LoanApplicationStatus.OFFERED, null);
+            workflowJobService.enqueueOfferExpiration(application, offer.getExpiresAt());
             return;
         }
         if (output.action() == DecisionAction.REJECT) {

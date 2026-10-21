@@ -11,10 +11,16 @@ import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
 import com.crednexus.auth.repository.UserRepository;
 import com.crednexus.company.entity.Company;
+import com.crednexus.company.entity.CompanyMember;
+import com.crednexus.company.entity.CompanyMemberRole;
+import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.company.repository.CompanyRepository;
+import com.crednexus.decision.entity.CreditOfferStatus;
 import com.crednexus.decision.repository.CreditDecisionRepository;
 import com.crednexus.decision.repository.CreditOfferRepository;
 import com.crednexus.decision.service.DecisionJobWorker;
+import com.crednexus.decision.service.OfferExpirationJobWorker;
+import com.crednexus.decision.service.OfferService;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
 import com.crednexus.scoring.service.ScoringJobWorker;
@@ -37,6 +43,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.server.ResponseStatusException;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -52,6 +62,7 @@ class WorkflowPipelineIntegrationTest {
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private UserRepository userRepository;
     @Autowired private CompanyRepository companyRepository;
+    @Autowired private CompanyMemberRepository companyMemberRepository;
     @Autowired private CreditProductRepository creditProductRepository;
     @Autowired private LoanApplicationRepository loanApplicationRepository;
     @Autowired private FinancialSnapshotRepository financialSnapshotRepository;
@@ -63,6 +74,8 @@ class WorkflowPipelineIntegrationTest {
     @Autowired private VerificationJobWorker verificationJobWorker;
     @Autowired private ScoringJobWorker scoringJobWorker;
     @Autowired private DecisionJobWorker decisionJobWorker;
+    @Autowired private OfferExpirationJobWorker offerExpirationJobWorker;
+    @Autowired private OfferService offerService;
     @Autowired private EntityManager entityManager;
 
     @DynamicPropertySource
@@ -74,6 +87,7 @@ class WorkflowPipelineIntegrationTest {
 
     @BeforeEach
     void cleanDatabase() {
+        entityManager.clear();
         jdbcTemplate.execute("TRUNCATE TABLE users, companies, credit_products RESTART IDENTITY CASCADE");
     }
 
@@ -113,6 +127,49 @@ class WorkflowPipelineIntegrationTest {
 
         assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.MANUAL_REVIEW);
         assertThat(creditDecisionRepository.count()).isZero();
+    }
+
+    @Test
+    void expiresOfferedApplicationThroughPersistentWorkflowQueue() {
+        LoanApplication application = createSubmittedApplication("7701234500", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+        runPipeline();
+        jdbcTemplate.update("UPDATE credit_offers SET expires_at = now() - interval '1 second'");
+        jdbcTemplate.update("UPDATE workflow_jobs SET available_at = now() WHERE job_type = 'OFFER_EXPIRATION'");
+
+        offerExpirationJobWorker.poll();
+
+        assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.EXPIRED);
+        assertThat(jdbcTemplate.queryForObject("SELECT status FROM credit_offers", String.class)).isEqualTo("EXPIRED");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT status FROM workflow_jobs WHERE job_type = 'OFFER_EXPIRATION'", String.class))
+                .isEqualTo("COMPLETED");
+    }
+
+    @Test
+    void concurrentAcceptAndDeclineLeaveOneConsistentTerminalOutcome() throws Exception {
+        LoanApplication application = createSubmittedApplication("7701234500", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+        runPipeline();
+        assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.OFFERED);
+        assertThat(creditOfferRepository.count()).isEqualTo(1);
+        String keycloakId = application.getCreatedBy().getKeycloakId();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<String> accepted = executor.submit(() -> invokeAs(keycloakId, () -> offerService.accept(application.getId())));
+            Future<String> declined = executor.submit(() -> invokeAs(keycloakId, () -> offerService.decline(application.getId())));
+
+            assertThat(List.of(accepted.get(), declined.get())).containsExactlyInAnyOrder("OK", "CONFLICT");
+        } finally {
+            executor.shutdownNow();
+        }
+
+        entityManager.clear();
+        LoanApplicationStatus finalStatus = status(application.getId());
+        String offerStatus = jdbcTemplate.queryForObject("SELECT status FROM credit_offers", String.class);
+        assertThat(finalStatus).isIn(LoanApplicationStatus.ACCEPTED, LoanApplicationStatus.DECLINED);
+        assertThat(offerStatus).isEqualTo(finalStatus == LoanApplicationStatus.ACCEPTED
+                ? CreditOfferStatus.ACCEPTED.name() : CreditOfferStatus.DECLINED.name());
     }
 
     @Test
@@ -177,6 +234,7 @@ class WorkflowPipelineIntegrationTest {
                                                         BigDecimal debt, BigDecimal payments, BigDecimal requestedAmount) {
         User user = userRepository.save(new User(UUID.randomUUID().toString(), "user" + inn + "@test.local", "Test User"));
         Company company = companyRepository.save(new Company(inn, "1027700132195", "Test Company", "OOO", "ACTIVE"));
+        companyMemberRepository.save(new CompanyMember(user, company, "Owner", true, true, CompanyMemberRole.OWNER));
         CreditProduct product = creditProductRepository.save(new CreditProduct("Business loan", new BigDecimal("10000"),
                 new BigDecimal("5000000"), 6, 60, new BigDecimal("15.00"), true));
         LoanApplication application = loanApplicationRepository.save(new LoanApplication(
@@ -191,5 +249,18 @@ class WorkflowPipelineIntegrationTest {
     private LoanApplicationStatus status(UUID applicationId) {
         entityManager.clear();
         return loanApplicationRepository.findById(applicationId).orElseThrow().getStatus();
+    }
+
+    private String invokeAs(String keycloakId, Runnable action) {
+        Jwt jwt = Jwt.withTokenValue("test-token").header("alg", "none").subject(keycloakId).build();
+        SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+        try {
+            action.run();
+            return "OK";
+        } catch (ResponseStatusException exception) {
+            return exception.getStatusCode().value() == 409 ? "CONFLICT" : "ERROR_" + exception.getStatusCode().value();
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 }

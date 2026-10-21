@@ -25,6 +25,7 @@ import com.crednexus.scoring.entity.ScoringResult;
 import com.crednexus.scoring.repository.ScoringResultRepository;
 import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowService;
+import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
@@ -65,6 +66,9 @@ class DecisionServiceTest {
     private WorkflowService workflowService;
 
     @Mock
+    private WorkflowJobService workflowJobService;
+
+    @Mock
     private CurrentUserProvider currentUserProvider;
 
     @Mock
@@ -90,6 +94,7 @@ class DecisionServiceTest {
                 workflowService,
                 currentUserProvider,
                 companyMemberRepository,
+                workflowJobService,
                 Duration.ofDays(7)
         );
     }
@@ -109,6 +114,8 @@ class DecisionServiceTest {
                 "mock-policy-v1"
         ));
         when(creditDecisionRepository.save(any(CreditDecision.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(creditOfferRepository.save(any(CreditOffer.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         decisionService.decide(applicationId);
