@@ -20,3 +20,6 @@ workflow:
     lock-duration: ${WORKFLOW_JOBS_LOCK_DURATION:PT1M}
 scoring:
   provider: ${SCORING_PROVIDER:mock}
+decision:
+  policy: ${DECISION_POLICY:mock}
+  offer-validity: ${CREDIT_OFFER_VALIDITY:P7D}

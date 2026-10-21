@@ -43,6 +43,7 @@ public class ScoringJobWorker {
         try {
             scoringService.calculate(job.getApplication().getId());
             job.complete();
+            workflowJobService.enqueueDecision(job.getApplication());
         } catch (RuntimeException exception) {
             if (job.getAttempts() >= job.getMaxAttempts()) {
                 workflowJobService.fail(jobId, exception.getMessage());

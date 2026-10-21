@@ -57,4 +57,20 @@ public class CreditDecision {
     @Column(name = "policy_version", nullable = false)
     @Setter
     private String policyVersion;
+
+    public CreditDecision(
+            LoanApplication application,
+            DecisionType decisionType,
+            String reason,
+            User decidedBy,
+            Instant decidedAt,
+            String policyVersion
+    ) {
+        this.application = application;
+        this.decisionType = decisionType;
+        this.reason = reason;
+        this.decidedBy = decidedBy;
+        this.decidedAt = decidedAt;
+        this.policyVersion = policyVersion;
+    }
 }

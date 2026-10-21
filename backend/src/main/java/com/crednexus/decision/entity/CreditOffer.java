@@ -60,4 +60,20 @@ public class CreditOffer {
     @Column(name = "expires_at", nullable = false)
     @Setter
     private Instant expiresAt;
+
+    public CreditOffer(
+            CreditDecision decision,
+            BigDecimal amount,
+            Integer termMonths,
+            BigDecimal interestRate,
+            CreditOfferStatus status,
+            Instant expiresAt
+    ) {
+        this.decision = decision;
+        this.amount = amount;
+        this.termMonths = termMonths;
+        this.interestRate = interestRate;
+        this.status = status;
+        this.expiresAt = expiresAt;
+    }
 }
