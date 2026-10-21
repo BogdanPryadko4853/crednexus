@@ -1,0 +1,8 @@
+:root {
+  --radius-sm: 8px;
+  --radius-control: 12px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+  --shadow-overlay: 0 24px 80px rgb(18 18 19 / 18%);
+  --shadow-card: 0 16px 40px rgb(18 18 19 / 3%);
+}

@@ -1,14 +1,16 @@
-name: Backend CI
+name: Project CI
 
 on:
   push:
     paths:
       - "backend/**"
+      - "frontend/**"
       - "compose.yaml"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     paths:
       - "backend/**"
+      - "frontend/**"
       - "compose.yaml"
       - ".github/workflows/backend-ci.yml"
 
@@ -36,3 +38,32 @@ jobs:
       - name: Build and run migration integration test
         working-directory: backend
         run: ./gradlew --no-daemon clean build
+
+  frontend:
+    name: Build and test frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.19.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install npm 11
+        run: npm install --global npm@11.21.1
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Build frontend
+        run: npm run build

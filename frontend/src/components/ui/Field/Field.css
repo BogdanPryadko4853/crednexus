@@ -1,0 +1,69 @@
+@reference "../../../styles/index.css";
+
+.ui-field {
+  @apply grid min-w-0 gap-2;
+}
+
+.ui-field__label {
+  @apply font-semibold;
+  font-size: var(--text-sm);
+}
+
+.ui-field__hint,
+.ui-field__error {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ui-field__hint {
+  @apply text-muted;
+}
+
+.ui-field__error {
+  color: var(--color-negative);
+}
+
+.ui-control {
+  @apply min-w-0 w-full bg-canvas text-ink;
+  min-height: 52px;
+  padding: 13px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  transition:
+    border-color var(--transition),
+    background var(--transition);
+}
+
+.ui-control::placeholder {
+  @apply text-muted;
+  opacity: 1;
+}
+
+.ui-control:hover:not(:disabled) {
+  border-color: var(--color-border);
+}
+
+.ui-control:focus-visible {
+  border-color: var(--color-focus);
+  background: var(--color-surface);
+}
+
+.ui-control[aria-invalid="true"] {
+  border-color: var(--color-negative);
+  background: var(--color-error-field);
+}
+
+.ui-control:disabled {
+  color: var(--color-disabled-text);
+  background: var(--color-disabled-surface);
+  cursor: not-allowed;
+}
+
+.ui-control--select {
+  padding-right: 32px;
+}
+
+.ui-control--textarea {
+  resize: vertical;
+}

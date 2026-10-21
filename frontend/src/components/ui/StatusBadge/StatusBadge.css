@@ -1,0 +1,33 @@
+@reference "../../../styles/index.css";
+
+.ui-status {
+  @apply inline-flex items-center w-fit font-semibold whitespace-nowrap gap-1.5;
+  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.ui-status--neutral {
+  @apply bg-canvas text-muted;
+}
+
+.ui-status--info {
+  color: var(--color-info);
+  background: var(--color-info-soft);
+}
+
+.ui-status--positive {
+  color: var(--color-positive);
+  background: var(--color-positive-soft);
+}
+
+.ui-status--attention {
+  color: var(--color-attention);
+  background: var(--color-attention-soft);
+}
+
+.ui-status--negative {
+  color: var(--color-negative);
+  background: var(--color-negative-soft);
+}

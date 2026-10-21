@@ -1,0 +1,20 @@
+@reference "../../../styles/index.css";
+
+.ui-skeleton {
+  @apply block max-w-full;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    100deg,
+    var(--color-disabled-surface) 30%,
+    #f7f7f8 50%,
+    var(--color-disabled-surface) 70%
+  );
+  background-size: 200% 100%;
+  animation: ui-shimmer 1.5s ease infinite;
+}
+
+@keyframes ui-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
