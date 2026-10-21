@@ -59,4 +59,20 @@ public class ScoringResult {
     @Column(name = "calculated_at", nullable = false)
     @Setter
     private Instant calculatedAt;
+
+    public ScoringResult(
+            LoanApplication application,
+            Integer score,
+            RiskLevel riskLevel,
+            Map<String, Object> factors,
+            String modelVersion,
+            Instant calculatedAt
+    ) {
+        this.application = application;
+        this.score = score;
+        this.riskLevel = riskLevel;
+        this.factors = factors;
+        this.modelVersion = modelVersion;
+        this.calculatedAt = calculatedAt;
+    }
 }

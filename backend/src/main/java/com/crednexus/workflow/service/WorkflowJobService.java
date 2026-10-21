@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service; import org.springframework.transa
 @Service public class WorkflowJobService {
  private static final int MAX_ATTEMPTS=3; private final WorkflowJobRepository repository;
  public WorkflowJobService(WorkflowJobRepository repository){this.repository=repository;}
- @Transactional public void enqueueVerification(LoanApplication application){ if(!repository.existsByApplication_IdAndJobTypeAndStatusIn(application.getId(),WorkflowJobType.VERIFICATION,List.of(WorkflowJobStatus.PENDING,WorkflowJobStatus.PROCESSING,WorkflowJobStatus.RETRY_SCHEDULED))) repository.save(new WorkflowJob(application,WorkflowJobType.VERIFICATION,MAX_ATTEMPTS)); }
- @Transactional public List<UUID> claimReadyJobs(Duration lease){ List<UUID> ids=repository.findReadyIdsForUpdate(10); Instant until=Instant.now().plus(lease); ids.forEach(id->repository.findByIdForUpdate(id).orElseThrow().claim(until)); return ids; }
+ @Transactional public void enqueueVerification(LoanApplication application){ enqueue(application,WorkflowJobType.VERIFICATION); }
+ @Transactional public void enqueueScoring(LoanApplication application){ enqueue(application,WorkflowJobType.SCORING); }
+ @Transactional public List<UUID> claimReadyJobs(WorkflowJobType type, Duration lease){ List<UUID> ids=repository.findReadyIdsForUpdate(type.name(),10); Instant until=Instant.now().plus(lease); ids.forEach(id->repository.findByIdForUpdate(id).orElseThrow().claim(until)); return ids; }
  @Transactional public void retry(UUID id,Duration delay,String error){ repository.findByIdForUpdate(id).orElseThrow().retryAt(Instant.now().plus(delay),error); }
  @Transactional public void complete(UUID id){repository.findByIdForUpdate(id).orElseThrow().complete();}
  @Transactional public void fail(UUID id,String error){repository.findByIdForUpdate(id).orElseThrow().fail(error);}
+ private void enqueue(LoanApplication application, WorkflowJobType type){ if(!repository.existsByApplication_IdAndJobTypeAndStatusIn(application.getId(),type,List.of(WorkflowJobStatus.PENDING,WorkflowJobStatus.PROCESSING,WorkflowJobStatus.RETRY_SCHEDULED))) repository.save(new WorkflowJob(application,type,MAX_ATTEMPTS)); }
 }

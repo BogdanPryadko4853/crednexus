@@ -1,2 +1,6 @@
 package com.crednexus.workflow.entity;
-public enum WorkflowJobType { VERIFICATION }
+
+public enum WorkflowJobType {
+    VERIFICATION,
+    SCORING
+}
