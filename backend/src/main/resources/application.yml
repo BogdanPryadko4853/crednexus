@@ -24,6 +24,9 @@ workflow:
     lock-duration: ${WORKFLOW_JOBS_LOCK_DURATION:PT1M}
 scoring:
   provider: ${SCORING_PROVIDER:rule-based}
+crednexus:
+  ml:
+    base-url: ${CREDNEXUS_ML_BASE_URL:http://localhost:8001}
 decision:
   policy: ${DECISION_POLICY:mock}
   offer-validity: ${CREDIT_OFFER_VALIDITY:P7D}

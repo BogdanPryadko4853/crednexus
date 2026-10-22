@@ -13,12 +13,14 @@ import com.crednexus.company.entity.CompanyMember;
 import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
+import com.crednexus.scoring.repository.MlScoringProfileRepository;
 import com.crednexus.workflow.service.WorkflowService;
 import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +35,8 @@ public class LoanApplicationService {
     private final CurrentUserProvider currentUserProvider;
     private final WorkflowService workflowService;
     private final WorkflowJobService workflowJobService;
+    private final MlScoringProfileRepository mlProfiles;
+    private final String scoringProvider;
 
     public LoanApplicationService(
             LoanApplicationRepository loanApplicationRepository,
@@ -40,7 +44,8 @@ public class LoanApplicationService {
             CompanyMemberRepository companyMemberRepository,
             CreditProductRepository creditProductRepository,
             CurrentUserProvider currentUserProvider,
-            WorkflowService workflowService, WorkflowJobService workflowJobService
+            WorkflowService workflowService, WorkflowJobService workflowJobService, MlScoringProfileRepository mlProfiles,
+            @Value("${scoring.provider:rule-based}") String scoringProvider
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.financialSnapshotRepository = financialSnapshotRepository;
@@ -49,6 +54,8 @@ public class LoanApplicationService {
         this.currentUserProvider = currentUserProvider;
         this.workflowService = workflowService;
         this.workflowJobService = workflowJobService;
+        this.mlProfiles = mlProfiles;
+        this.scoringProvider = scoringProvider;
     }
 
     @Transactional
@@ -102,6 +109,7 @@ public class LoanApplicationService {
         LoanApplication application = getAccessibleApplication(currentUser, applicationId);
         requireDraftCreatedByCurrentUser(application, currentUser);
         requireFinancialSnapshot(applicationId);
+        if ("ml".equals(scoringProvider)) requireMlScoringProfile(applicationId);
         CreditProduct product = getActiveProduct(application.getProduct().getId());
         validateProductLimits(application, product);
 
@@ -133,6 +141,13 @@ public class LoanApplicationService {
     private void requireFinancialSnapshot(UUID applicationId) {
         if (financialSnapshotRepository.findByApplication_Id(applicationId).isEmpty()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Financial snapshot is required before submission");
+        }
+    }
+
+    private void requireMlScoringProfile(UUID applicationId) {
+        if (mlProfiles.findByApplication_Id(applicationId).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "ML scoring profile is required before submission");
         }
     }
 

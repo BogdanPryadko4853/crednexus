@@ -34,7 +34,7 @@ class FlywayMigrationIntegrationTest {
         assertThat(jdbcTemplate.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success AND type = 'SQL' ORDER BY installed_rank",
                 String.class
-        )).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9");
+        )).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
 
         assertThat(jdbcTemplate.queryForObject(
                 """
