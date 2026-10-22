@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ public class HttpMlScoringProvider implements ScoringProvider {
     private final URI endpoint;
 
     public HttpMlScoringProvider(MlScoringProfileRepository profiles, LoanApplicationRepository applications,
-                                 VerificationResultRepository verifications, ObjectMapper json,
+                                 VerificationResultRepository verifications, @Qualifier("mlObjectMapper") ObjectMapper json,
                                  @Value("${crednexus.ml.base-url:http://localhost:8001}") String baseUrl) {
         this.profiles = profiles;
         this.applications = applications;
