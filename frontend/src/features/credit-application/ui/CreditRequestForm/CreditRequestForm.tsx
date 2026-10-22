@@ -5,6 +5,7 @@ import {
   Button,
   Icon,
   Modal,
+  SelectField,
   TextareaField,
   TextField,
 } from "../../../../components";
@@ -18,16 +19,17 @@ import type {
   CreditRequest,
   CreditRequestErrors,
 } from "../../model/creditRequest";
-import type { CompanyOption } from "../../api/creditApplicationApi";
+import type { CompanyOption, CreditProductOption } from "../../api/creditApplicationApi";
 import "./CreditRequestForm.css";
 
 type CreditRequestFormProps = {
   availableCompanies?: CompanyOption[];
+  availableProducts?: CreditProductOption[];
   hasCreditProducts?: boolean;
-  onConfirm?: (values: CreditRequest) => Promise<void>;
+  onConfirm?: (values: CreditRequest, productId?: string) => Promise<void>;
 };
 
-export function CreditRequestForm({ availableCompanies, hasCreditProducts, onConfirm }: CreditRequestFormProps = {}) {
+export function CreditRequestForm({ availableCompanies, availableProducts, hasCreditProducts, onConfirm }: CreditRequestFormProps = {}) {
   const { t } = useLocale();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState(createEmptyCreditRequest);
@@ -36,6 +38,7 @@ export function CreditRequestForm({ availableCompanies, hasCreditProducts, onCon
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState(availableProducts?.[0]?.id ?? "");
   const messageValues = {
     legalDigits: CREDIT_INPUT_LIMITS.legalInnDigits,
     soleDigits: CREDIT_INPUT_LIMITS.soleInnDigits,
@@ -129,6 +132,21 @@ export function CreditRequestForm({ availableCompanies, hasCreditProducts, onCon
             autoComplete="off"
           />
         </div>
+        {availableProducts && availableProducts.length > 0 && (
+          <SelectField
+            name="product"
+            label={t("application.fields.product")}
+            value={selectedProductId}
+            onChange={(event) => setSelectedProductId(event.target.value)}
+            required
+          >
+            {availableProducts.map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.name}
+              </option>
+            ))}
+          </SelectField>
+        )}
         <TextField
           name="purpose"
           label={t("application.fields.purpose")}
@@ -172,7 +190,7 @@ export function CreditRequestForm({ availableCompanies, hasCreditProducts, onCon
                 if (!confirmation) return;
                 setSubmitting(true);
                 setSubmitError(false);
-                void (onConfirm ? onConfirm(confirmation) : Promise.resolve()).then(() => {
+                void (onConfirm ? onConfirm(confirmation, selectedProductId || undefined) : Promise.resolve()).then(() => {
                   setConfirmation(null);
                   setConfirmed(true);
                 }).catch(() => setSubmitError(true)).finally(() => setSubmitting(false));

@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { CreditApplicationPage } from "../features/credit-application";
@@ -24,9 +25,11 @@ describe("Localization", () => {
   it("switches labels, hints, errors, metadata and dialog text without resetting input", async () => {
     const user = userEvent.setup();
     const { rerender } = render(
-      <LocaleProvider locale="ru">
-        <CreditApplicationPage />
-      </LocaleProvider>,
+      <MemoryRouter>
+        <LocaleProvider locale="ru">
+          <CreditApplicationPage />
+        </LocaleProvider>
+      </MemoryRouter>,
     );
     await user.type(
       screen.getByRole("textbox", { name: "Название компании" }),
@@ -34,9 +37,11 @@ describe("Localization", () => {
     );
     await user.click(screen.getByRole("button", { name: "Проверить данные" }));
     rerender(
-      <LocaleProvider locale="en">
-        <CreditApplicationPage />
-      </LocaleProvider>,
+      <MemoryRouter>
+        <LocaleProvider locale="en">
+          <CreditApplicationPage />
+        </LocaleProvider>
+      </MemoryRouter>,
     );
     expect(document.documentElement.lang).toBe("en");
     expect(document.title).toBe("CredNexus — lending portal");

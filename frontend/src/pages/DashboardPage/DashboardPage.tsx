@@ -46,10 +46,10 @@ export function DashboardPage() {
         {!error && !applications && <PageState kind="loading" title={t("dashboard.applicationsLoading")} />}
         {!error && applications?.length === 0 && <PageState kind="empty" title={t("dashboard.applicationsEmptyTitle")} description={t("dashboard.applicationsEmptyDescription")} />}
         {applications && applications.length > 0 && <div className="dashboard-applications" aria-label={t("dashboard.applicationsTitle")}>
-          {applications.map((application) => <article className="dashboard-application" key={application.id}>
+          {applications.map((application) => <Link className="dashboard-application" to={routes.applicationDetails(application.id)} key={application.id}>
             <div><strong>{application.purpose}</strong><Text size="sm" muted>{application.requestedAmount.toLocaleString("ru-RU")} ₽ · {application.termMonths} {t("dashboard.months")}</Text></div>
             <StatusBadge tone={application.status === "REJECTED" || application.status === "DECLINED" ? "negative" : application.status === "OFFERED" || application.status === "ACCEPTED" || application.status === "DISBURSED" ? "positive" : "info"}>{t(`dashboard.status.${application.status}` as MessageKey)}</StatusBadge>
-          </article>)}
+          </Link>)}
         </div>}
       </Card>
     </section>
