@@ -1,0 +1,83 @@
+@reference "../../../../styles/index.css";
+.credit-page {
+  @apply m-auto;
+  max-width: 1184px;
+  padding: 48px 40px 64px;
+}
+
+.credit-page__heading {
+  margin-bottom: 32px;
+}
+
+.credit-eyebrow {
+  @apply font-semibold uppercase text-muted;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+
+.credit-page__heading .ui-heading {
+  max-width: 18ch;
+}
+
+.credit-page__heading .ui-text {
+  margin-top: 20px;
+}
+
+.credit-page__columns {
+  @apply grid items-start gap-6;
+  grid-template-columns: 1.5fr 1fr;
+}
+
+.credit-page__aside {
+  @apply min-w-0;
+}
+
+.credit-requirements {
+  @apply grid list-none m-0 p-0 gap-6;
+}
+
+.credit-requirements li {
+  @apply flex gap-4;
+}
+
+.credit-requirements svg {
+  @apply text-muted;
+  margin-top: 3px;
+}
+
+.credit-requirements strong {
+  @apply block font-semibold;
+  margin-bottom: 4px;
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 900px) {
+  .credit-page {
+    padding: 32px 24px 48px;
+  }
+}
+
+@media (max-width: 900px) {
+  .credit-page__columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .credit-page {
+    padding: 28px 16px 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .credit-page__heading {
+    padding: 0 4px;
+  }
+}
+
+@media (max-width: 600px) {
+  .credit-page__heading .ui-text {
+    font-size: var(--text-base);
+  }
+}

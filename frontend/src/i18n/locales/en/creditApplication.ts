@@ -1,0 +1,49 @@
+import type { creditApplication as ru } from "../ru/creditApplication.ts";
+
+export const creditApplication = {
+  "application.eyebrow": "Business lending",
+  "application.title": "Financing application",
+  "application.intro": "Enter your company details and loan requirements.",
+  "application.formTitle": "Company and loan details",
+  "application.requiredHint": "Required fields are marked with *",
+  "application.formLabel": "Financing details",
+  "application.infoLabel": "Application information",
+  "application.infoTitle": "Application requirements",
+  "application.companyHeading": "Company",
+  "application.companyInfo":
+    "Name and tax ID of the legal entity or sole proprietor.",
+  "application.financingHeading": "Financing",
+  "application.financingInfo": "Requested amount and intended use of funds.",
+  "application.checkHeading": "Review your details",
+  "application.checkInfo": "Review the entered details before confirming.",
+  "application.fields.company": "Company name",
+  "application.fields.inn": "Company tax ID",
+  "application.fields.amount": "Loan amount, ₽",
+  "application.fields.purpose": "Financing purpose",
+  "application.fields.comment": "Comment",
+  "application.hints.comment": "Optional · up to {maxLength} characters",
+  "application.placeholders.comment":
+    "For example, purchasing materials for the new season",
+  "application.purposes.placeholder": "Select a purpose",
+  "application.purposes.workingCapital": "Working capital",
+  "application.purposes.equipment": "Equipment purchase",
+  "application.validation.company": "Enter the company name",
+  "application.validation.inn":
+    "Enter a {legalDigits}- or {soleDigits}-digit tax ID",
+  "application.validation.amount":
+    "Enter an amount greater than zero with at most {fractionDigits} decimal places",
+  "application.validation.purpose": "Select a financing purpose",
+  "application.validation.title": "Check the form fields",
+  "application.validation.description":
+    "Correct the highlighted fields and check again.",
+  "application.confirmed.title": "Details confirmed",
+  "application.confirmed.description": "The form details have been checked.",
+  "application.actions.check": "Check details",
+  "application.actions.back": "Go back",
+  "application.actions.confirm": "Confirm",
+  "application.confirm.title": "Confirm details",
+  "application.confirm.description": "Review your details before confirming.",
+  "application.summary.company": "Company",
+  "application.summary.amount": "Amount, ₽",
+  "application.summary.inn": "Tax ID",
+} satisfies Record<keyof typeof ru, string>;

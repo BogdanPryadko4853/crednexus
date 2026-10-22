@@ -1,0 +1,38 @@
+@reference "../../../styles/index.css";
+
+.ui-heading {
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+
+.ui-heading--xl {
+  font-size: var(--heading-xl);
+}
+
+.ui-heading--lg {
+  font-size: var(--heading-lg);
+}
+
+.ui-heading--sm {
+  font-size: var(--heading-sm);
+}
+
+.ui-text--sm {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.ui-text--base {
+  font-size: var(--text-base);
+}
+
+.ui-text--lg {
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.ui-text--muted {
+  @apply text-muted;
+}

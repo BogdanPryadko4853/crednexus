@@ -1,0 +1,37 @@
+@reference "../../../styles/index.css";
+
+.ui-table-region {
+  @apply overflow-x-auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.ui-table {
+  @apply w-full text-left whitespace-nowrap border-collapse;
+}
+
+.ui-table th {
+  @apply font-medium text-muted;
+  padding: 14px 20px;
+  background: var(--color-surface-hover);
+  font-size: var(--text-sm);
+}
+
+.ui-table td {
+  padding: 20px;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+}
+
+.ui-table tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+.ui-table .ui-table__number {
+  @apply text-right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-table .ui-table__empty {
+  @apply text-center text-muted p-8;
+}

@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "./tokens/index.css";
+@import "./base/reset.css";
+@import "./base/accessibility.css";
+@import "./base/motion.css";
+
+@theme inline {
+  --font-sans: var(--font-family);
+  --color-canvas: var(--color-background);
+  --color-ink: var(--color-text);
+  --color-muted: var(--color-text-secondary);
+  --color-primary: var(--color-action);
+}

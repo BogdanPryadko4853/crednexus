@@ -1,4 +1,33 @@
 spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/crednexus}
+    username: ${SPRING_DATASOURCE_USERNAME:crednexus}
+    password: ${SPRING_DATASOURCE_PASSWORD:crednexus}
+  flyway:
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081/realms/crednexus}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/crednexus/protocol/openid-connect/certs}
+workflow:
+  jobs:
+    poll-delay-ms: ${WORKFLOW_JOBS_POLL_DELAY_MS:5000}
+    lock-duration: ${WORKFLOW_JOBS_LOCK_DURATION:PT1M}
+scoring:
+  provider: ${SCORING_PROVIDER:rule-based}
+decision:
+  policy: ${DECISION_POLICY:mock}
+  offer-validity: ${CREDIT_OFFER_VALIDITY:P7D}
+storage:
+  s3:
+    endpoint: ${STORAGE_S3_ENDPOINT:http://localhost:9000}
+    access-key: ${STORAGE_S3_ACCESS_KEY:minioadmin}
+    secret-key: ${STORAGE_S3_SECRET_KEY:minioadmin123}
+    bucket: ${STORAGE_S3_BUCKET:crednexus-documents}
+document:
+  max-size-bytes: ${DOCUMENT_MAX_SIZE_BYTES:10485760}
