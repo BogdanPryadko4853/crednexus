@@ -1,3 +1,6 @@
+import { ManualReviewPage } from "../pages/ManualReviewPage/ManualReviewPage";
+import { ManualReviewDetailsPage } from "../pages/ManualReviewPage/ManualReviewDetailsPage";
+import { ReviewAccess } from "../features/manual-review/ui/ReviewAccess";
 import { Navigate, Route, Routes } from "react-router";
 import { CreditApplicationPage } from "../features/credit-application";
 import { NotFoundPage } from "../pages/NotFoundPage";
@@ -22,6 +25,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<CabinetLayout />}>
           <Route path={routes.dashboard} element={<DashboardPage />} />
+          <Route element={<ReviewAccess />}><Route path={routes.review} element={<ManualReviewPage />} /><Route path={routes.reviewDetailsPattern} element={<ManualReviewDetailsPage />} /></Route>
           <Route path={routes.profile} element={<ProfilePage />} />
           <Route
             path={routes.creditApplication}

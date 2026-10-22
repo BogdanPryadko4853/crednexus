@@ -1,4 +1,7 @@
 export const routes = {
+  review: "/manual-review",
+  reviewDetailsPattern: "/manual-review/:applicationId",
+  reviewDetails: (id: string) => `/manual-review/${id}`,
   home: "/",
   login: "/login",
   dashboard: "/dashboard",

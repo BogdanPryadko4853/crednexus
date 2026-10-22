@@ -1,0 +1,7 @@
+.manual-review { display: grid; gap: 1.25rem; }
+.manual-review__heading, .manual-review__actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.manual-review__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.manual-review__list { display: grid; gap: 1rem; list-style: none; padding: 0; margin: 0; }
+.manual-review__item { display: grid; gap: .5rem; padding-block: .75rem; border-bottom: 1px solid var(--color-border); }
+.manual-review__link { color: var(--color-action); text-decoration: underline; }
+@media (max-width: 700px) { .manual-review__fields { grid-template-columns: 1fr; } }
