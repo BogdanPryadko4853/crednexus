@@ -5,6 +5,9 @@ export type CompanyOption = {
   inn: string;
   name: string;
   currentUserCanApply: boolean;
+  ogrnOrOgrnip?: string;
+  legalForm?: string;
+  status?: string;
 };
 
 export type CreditProductOption = {
@@ -252,6 +255,27 @@ export async function loadCreditApplicationOptions(api: ApiClient) {
     companies: companies.filter((company) => company.currentUserCanApply),
     products,
   };
+}
+
+export function loadCreditProducts(api: ApiClient) {
+  return api.request<CreditProductAdmin[]>("/credit-products");
+}
+
+export function createCompany(api: ApiClient, body: { inn: string; ogrnOrOgrnip: string; name: string; legalForm: string; status: string }) {
+  return api.request<CompanyOption>("/companies", { method: "POST", body });
+}
+
+export function loadCompany(api: ApiClient, companyId: string) {
+  return api.request<CompanyOption>(`/companies/${companyId}`);
+}
+
+export type CreditProductAdmin = CreditProductOption & { active: boolean };
+export function createCreditProduct(api: ApiClient, body: { name: string; minAmount: number; maxAmount: number; minTermMonths: number; maxTermMonths: number; baseRate: number; active: boolean }) {
+  return api.request<CreditProductAdmin>("/credit-products", { method: "POST", body });
+}
+
+export function updateCreditProduct(api: ApiClient, productId: string, body: Partial<{ name: string; minAmount: number; maxAmount: number; minTermMonths: number; maxTermMonths: number; baseRate: number; active: boolean }>) {
+  return api.request<CreditProductAdmin>(`/credit-products/${productId}`, { method: "PATCH", body });
 }
 
 export function createLoanApplication(

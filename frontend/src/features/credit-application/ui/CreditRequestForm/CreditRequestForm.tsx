@@ -46,9 +46,8 @@ export function CreditRequestForm({
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(
-    availableProducts?.[0]?.id ?? "",
-  );
+  const [selectedProductId, setSelectedProductId] = useState(availableProducts?.[0]?.id ?? "");
+  const selectedProduct = availableProducts?.find((product) => product.id === selectedProductId);
   const messageValues = {
     legalDigits: CREDIT_INPUT_LIMITS.legalInnDigits,
     soleDigits: CREDIT_INPUT_LIMITS.soleInnDigits,
@@ -62,9 +61,31 @@ export function CreditRequestForm({
     setConfirmed(false);
   }
 
+  function selectProduct(productId: string) {
+    setSelectedProductId(productId);
+    setValues((previous) => ({ ...previous, termMonths: "" }));
+    setErrors({});
+    setConfirmed(false);
+  }
+
+  function selectCompany(companyId: string) {
+    const company = availableCompanies?.find((item) => item.id === companyId);
+    if (!company) return;
+    setValues((previous) => ({ ...previous, company: company.name, inn: company.inn }));
+    setErrors({});
+    setConfirmed(false);
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validateCreditRequest(values);
+    if (availableCompanies && !availableCompanies.some((item) => item.inn === values.inn)) nextErrors.company = "application.validation.companySelection";
+    if (selectedProduct) {
+      const amount = Number(values.amount.replace(/\s/g, "").replace(",", "."));
+      const term = Number(values.termMonths);
+      if (!Number.isFinite(amount) || amount < Number(selectedProduct.minAmount ?? 0) || (selectedProduct.maxAmount !== undefined && amount > selectedProduct.maxAmount)) nextErrors.amount = "application.validation.productAmount";
+      if (!Number.isInteger(term) || term < selectedProduct.minTermMonths || (selectedProduct.maxTermMonths !== undefined && term > selectedProduct.maxTermMonths)) nextErrors.termMonths = "application.validation.productTerm";
+    }
     setErrors(nextErrors);
     setConfirmed(false);
     const firstError = Object.keys(nextErrors)[0];
@@ -103,80 +124,41 @@ export function CreditRequestForm({
             {t("application.confirmed.description")}
           </Alert>
         )}
-        {submitError && (
-          <Alert
-            tone="negative"
-            title={t("application.apiErrorTitle")}
-            role="alert"
-          >
-            {t("application.apiErrorDescription")}
-          </Alert>
-        )}
-        {availableCompanies && availableCompanies.length === 0 && (
-          <Alert
-            tone="attention"
-            title={t("application.companyUnavailableTitle")}
-          >
-            {t("application.companyUnavailableDescription")}
-          </Alert>
-        )}
-        {hasCreditProducts === false && (
-          <Alert
-            tone="attention"
-            title={t("application.productUnavailableTitle")}
-          >
-            {t("application.productUnavailableDescription")}
-          </Alert>
-        )}
-        {availableCompanies ? (
-          <SelectField
-            name="company"
-            label={t("application.fields.company")}
-            required
-            value={values.inn}
-            onChange={(event) => {
-              const selected = availableCompanies.find(
-                (company) => company.inn === event.target.value,
-              );
-              change("company", selected?.name ?? "");
-              change("inn", selected?.inn ?? "");
-            }}
-          >
-            <option value="">—</option>
-            {availableCompanies.map((company) => (
-              <option key={company.id} value={company.inn}>
-                {company.name}
-              </option>
-            ))}
-          </SelectField>
-        ) : (
-          <TextField
-            name="company"
-            label={t("application.fields.company")}
-            value={values.company}
-            onChange={(event) => change("company", event.target.value)}
-            required
-            maxLength={CREDIT_INPUT_LIMITS.company}
-            error={fieldError("company")}
-            autoComplete="off"
-          />
-        )}
+        {submitError && <Alert tone="negative" title={t("application.apiErrorTitle")} role="alert">{t("application.apiErrorDescription")}</Alert>}
+        {availableCompanies && availableCompanies.length === 0 && <Alert tone="attention" title={t("application.companyUnavailableTitle")}>{t("application.companyUnavailableDescription")}</Alert>}
+        {hasCreditProducts === false && <Alert tone="attention" title={t("application.productUnavailableTitle")}>{t("application.productUnavailableDescription")}</Alert>}
+        {availableCompanies ? <SelectField
+          name="company"
+          label={t("application.fields.company")}
+          value={availableCompanies.find((item) => item.inn === values.inn)?.id ?? ""}
+          onChange={(event) => selectCompany(event.target.value)}
+          required
+          error={fieldError("company")}
+        >
+          <option value="">{t("application.companySelectPlaceholder")}</option>
+          {availableCompanies.map((company) => <option key={company.id} value={company.id}>{company.name} · {company.inn}</option>)}
+        </SelectField> : <TextField
+          name="company"
+          label={t("application.fields.company")}
+          value={values.company}
+          onChange={(event) => change("company", event.target.value)}
+          required
+          maxLength={CREDIT_INPUT_LIMITS.company}
+          error={fieldError("company")}
+          autoComplete="off"
+        />}
+        {!availableCompanies && <TextField
+          name="inn"
+          label={t("application.fields.inn")}
+          value={values.inn}
+          onChange={(event) => change("inn", event.target.value)}
+          required
+          maxLength={Math.max(CREDIT_INPUT_LIMITS.legalInnDigits, CREDIT_INPUT_LIMITS.soleInnDigits)}
+          inputMode="numeric"
+          error={fieldError("inn")}
+          autoComplete="off"
+        />}
         <div className="credit-form__row">
-          <TextField
-            name="inn"
-            label={t("application.fields.inn")}
-            value={values.inn}
-            onChange={(event) => change("inn", event.target.value)}
-            required
-            maxLength={Math.max(
-              CREDIT_INPUT_LIMITS.legalInnDigits,
-              CREDIT_INPUT_LIMITS.soleInnDigits,
-            )}
-            inputMode="numeric"
-            error={fieldError("inn")}
-            autoComplete="off"
-            readOnly={availableCompanies !== undefined}
-          />
           <TextField
             name="amount"
             label={t("application.fields.amount")}
@@ -187,13 +169,23 @@ export function CreditRequestForm({
             error={fieldError("amount")}
             autoComplete="off"
           />
+          {selectedProduct && <TextField
+            name="termMonths"
+            label={t("application.fields.termMonths")}
+            hint={t("application.hints.termMonths", { min: selectedProduct.minTermMonths, max: selectedProduct.maxTermMonths ?? selectedProduct.minTermMonths })}
+            value={values.termMonths ?? ""}
+            onChange={(event) => change("termMonths", event.target.value)}
+            required
+            inputMode="numeric"
+            error={fieldError("termMonths")}
+          />}
         </div>
         {availableProducts && availableProducts.length > 0 && (
           <SelectField
             name="product"
             label={t("application.fields.product")}
             value={selectedProductId}
-            onChange={(event) => setSelectedProductId(event.target.value)}
+            onChange={(event) => selectProduct(event.target.value)}
             required
           >
             {availableProducts.map((product) => (
@@ -262,26 +254,16 @@ export function CreditRequestForm({
             </Button>
             <Button
               loading={submitting}
-              disabled={
-                (availableCompanies !== undefined &&
-                  availableCompanies.length === 0) ||
-                hasCreditProducts === false
-              }
+              disabled={!onConfirm || (availableCompanies !== undefined && availableCompanies.length === 0) || hasCreditProducts === false}
               onClick={() => {
                 if (!confirmation) return;
                 setSubmitting(true);
                 setSubmitError(false);
-                void (
-                  onConfirm
-                    ? onConfirm(confirmation, selectedProductId || undefined)
-                    : Promise.resolve()
-                )
-                  .then(() => {
-                    setConfirmation(null);
-                    setConfirmed(true);
-                  })
-                  .catch(() => setSubmitError(true))
-                  .finally(() => setSubmitting(false));
+                if (!onConfirm) return;
+                void onConfirm(confirmation, selectedProductId || undefined).then(() => {
+                  setConfirmation(null);
+                  setConfirmed(true);
+                }).catch(() => setSubmitError(true)).finally(() => setSubmitting(false));
               }}
             >
               {t("application.actions.confirm")}

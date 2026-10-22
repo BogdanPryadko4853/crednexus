@@ -6,6 +6,8 @@ export const routes = {
   login: "/login",
   dashboard: "/dashboard",
   profile: "/profile",
+  companies: "/companies",
+  products: "/credit-products",
   creditApplication: "/applications/new",
   applicationDetailsPattern: "/applications/:applicationId",
   applicationDetails: (id: string) => `/applications/${id}`,

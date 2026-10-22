@@ -17,6 +17,7 @@ export type CreditRequest = {
   company: string;
   inn: string;
   amount: string;
+  termMonths?: string;
   purpose: string;
   comment: string;
 };

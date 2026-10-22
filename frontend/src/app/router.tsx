@@ -8,6 +8,8 @@ import { LoginPage } from "../pages/LoginPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { ApplicationDetailsPage } from "../pages/ApplicationDetailsPage";
 import { ProfilePage } from "../features/profile";
+import { CompaniesPage } from "../pages/CompaniesPage";
+import { CreditProductsPage } from "../pages/CreditProductsPage";
 import { ProtectedRoute } from "../auth";
 import { CabinetLayout } from "./layout/CabinetLayout";
 
@@ -27,10 +29,12 @@ export function AppRoutes() {
           <Route path={routes.dashboard} element={<DashboardPage />} />
           <Route element={<ReviewAccess />}><Route path={routes.review} element={<ManualReviewPage />} /><Route path={routes.reviewDetailsPattern} element={<ManualReviewDetailsPage />} /></Route>
           <Route path={routes.profile} element={<ProfilePage />} />
+          <Route path={routes.companies} element={<CompaniesPage />} />
           <Route
             path={routes.creditApplication}
             element={<CreditApplicationPage />}
           />
+          <Route element={<ReviewAccess />}><Route path={routes.products} element={<CreditProductsPage />} /></Route>
           <Route
             path={routes.applicationDetailsPattern}
             element={<ApplicationDetailsPage />}

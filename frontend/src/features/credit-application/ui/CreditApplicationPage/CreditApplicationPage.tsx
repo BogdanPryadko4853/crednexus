@@ -49,10 +49,8 @@ export function CreditApplicationPage() {
       throw new Error("Credit application options are unavailable");
     const created = await createLoanApplication(api, company.id, {
       productId: product.id,
-      requestedAmount: Number(
-        values.amount.replace(/\s/g, "").replace(",", "."),
-      ),
-      termMonths: product.minTermMonths,
+      requestedAmount: Number(values.amount.replace(/\s/g, "").replace(",", ".")),
+      termMonths: Number(values.termMonths),
       purpose: values.purpose,
     });
     navigate(`/applications/${created.id}`);

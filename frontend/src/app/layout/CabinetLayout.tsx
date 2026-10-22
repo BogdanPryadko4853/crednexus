@@ -53,10 +53,12 @@ export function CabinetLayout() {
       <div className="cabinet-layout">
         <nav className="cabinet-navigation" aria-label={t("navigation.label")}>
           <NavLink to={routes.dashboard}>{t("navigation.dashboard")}</NavLink>
+          <NavLink to={routes.companies}>{t("navigation.companies")}</NavLink>
           <NavLink to={routes.creditApplication}>
             {t("navigation.newApplication")}
           </NavLink>
           {state.status === "authenticated" && canReview(state.user.roles) && <NavLink to={routes.review}>{t("review.title")}</NavLink>}
+          {state.status === "authenticated" && canReview(state.user.roles) && <NavLink to={routes.products}>{t("navigation.products")}</NavLink>}
           <NavLink to={routes.profile}>{t("navigation.profile")}</NavLink>
         </nav>
         <main id="main" className="cabinet-content">

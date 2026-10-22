@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { CreditRequestForm } from "./CreditRequestForm";
 
 async function renderFilledForm(user: ReturnType<typeof userEvent.setup>) {
-  render(<CreditRequestForm />);
+  render(<CreditRequestForm onConfirm={async () => undefined} />);
   await user.type(
     screen.getByRole("textbox", { name: "Название компании" }),
     "ООО «Маяк»",
@@ -17,9 +17,9 @@ async function renderFilledForm(user: ReturnType<typeof userEvent.setup>) {
     screen.getByRole("textbox", { name: "Сумма кредита, ₽" }),
     "1 500 000",
   );
-  await user.type(
-    screen.getByRole("textbox", { name: "Цель финансирования" }),
-    "Пополнение оборотных средств",
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Цель финансирования" }),
+    "working_capital",
   );
 }
 
