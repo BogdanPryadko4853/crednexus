@@ -46,4 +46,11 @@ export const creditApplication = {
   "application.summary.company": "Company",
   "application.summary.amount": "Amount, ₽",
   "application.summary.inn": "Tax ID",
+  "application.loadingTitle": "Loading application data",
+  "application.apiErrorTitle": "Unable to load data",
+  "application.apiErrorDescription": "Check the connection and try again.",
+  "application.companyUnavailableTitle": "No available company",
+  "application.companyUnavailableDescription": "Add a company with application permission first.",
+  "application.productUnavailableTitle": "No available credit product",
+  "application.productUnavailableDescription": "Credit products are not configured yet.",
 } satisfies Record<keyof typeof ru, string>;

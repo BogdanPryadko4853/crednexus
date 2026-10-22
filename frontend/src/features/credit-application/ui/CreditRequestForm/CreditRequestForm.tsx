@@ -5,6 +5,7 @@ import {
   Button,
   Icon,
   Modal,
+  SelectField,
   TextareaField,
   TextField,
 } from "../../../../components";
@@ -18,15 +19,24 @@ import type {
   CreditRequest,
   CreditRequestErrors,
 } from "../../model/creditRequest";
+import type { CompanyOption } from "../../api/creditApplicationApi";
 import "./CreditRequestForm.css";
 
-export function CreditRequestForm() {
+type CreditRequestFormProps = {
+  availableCompanies?: CompanyOption[];
+  hasCreditProducts?: boolean;
+  onConfirm?: (values: CreditRequest) => Promise<void>;
+};
+
+export function CreditRequestForm({ availableCompanies, hasCreditProducts, onConfirm }: CreditRequestFormProps = {}) {
   const { t } = useLocale();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState(createEmptyCreditRequest);
   const [errors, setErrors] = useState<CreditRequestErrors>({});
   const [confirmation, setConfirmation] = useState<CreditRequest | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
   const messageValues = {
     legalDigits: CREDIT_INPUT_LIMITS.legalInnDigits,
     soleDigits: CREDIT_INPUT_LIMITS.soleInnDigits,
@@ -81,6 +91,9 @@ export function CreditRequestForm() {
             {t("application.confirmed.description")}
           </Alert>
         )}
+        {submitError && <Alert tone="negative" title={t("application.apiErrorTitle")} role="alert">{t("application.apiErrorDescription")}</Alert>}
+        {availableCompanies && availableCompanies.length === 0 && <Alert tone="attention" title={t("application.companyUnavailableTitle")}>{t("application.companyUnavailableDescription")}</Alert>}
+        {hasCreditProducts === false && <Alert tone="attention" title={t("application.productUnavailableTitle")}>{t("application.productUnavailableDescription")}</Alert>}
         <TextField
           name="company"
           label={t("application.fields.company")}
@@ -117,15 +130,18 @@ export function CreditRequestForm() {
             autoComplete="off"
           />
         </div>
-        <TextField
+        <SelectField
           name="purpose"
           label={t("application.fields.purpose")}
           value={values.purpose}
           onChange={(event) => change("purpose", event.target.value)}
           required
           error={fieldError("purpose")}
-          autoComplete="off"
-        />
+        >
+          <option value="">{t("application.purposes.placeholder")}</option>
+          <option value="working-capital">{t("application.purposes.workingCapital")}</option>
+          <option value="equipment">{t("application.purposes.equipment")}</option>
+        </SelectField>
         <TextareaField
           name="comment"
           label={t("application.fields.comment")}
@@ -154,9 +170,16 @@ export function CreditRequestForm() {
               {t("application.actions.back")}
             </Button>
             <Button
+              loading={submitting}
+              disabled={(availableCompanies !== undefined && availableCompanies.length === 0) || hasCreditProducts === false}
               onClick={() => {
-                setConfirmation(null);
-                setConfirmed(true);
+                if (!confirmation) return;
+                setSubmitting(true);
+                setSubmitError(false);
+                void (onConfirm ? onConfirm(confirmation) : Promise.resolve()).then(() => {
+                  setConfirmation(null);
+                  setConfirmed(true);
+                }).catch(() => setSubmitError(true)).finally(() => setSubmitting(false));
               }}
             >
               {t("application.actions.confirm")}
