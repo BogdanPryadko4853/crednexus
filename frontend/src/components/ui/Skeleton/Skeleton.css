@@ -13,6 +13,25 @@
   animation: ui-shimmer 1.5s ease infinite;
 }
 
+.ui-skeleton--width-full {
+  width: 100%;
+}
+.ui-skeleton--width-half {
+  width: 50%;
+}
+.ui-skeleton--width-short {
+  width: 30%;
+}
+.ui-skeleton--height-text {
+  height: var(--text-base);
+}
+.ui-skeleton--height-heading {
+  height: var(--heading-lg);
+}
+.ui-skeleton--height-control {
+  height: 52px;
+}
+
 @keyframes ui-shimmer {
   to {
     background-position: -200% 0;

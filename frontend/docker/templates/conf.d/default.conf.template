@@ -1,0 +1,30 @@
+server {
+    listen ${FRONTEND_CONTAINER_PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+    resolver ${FRONTEND_DNS_RESOLVER} valid=10s;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location ${VITE_API_BASE_URL}/ {
+        set $backend ${FRONTEND_BACKEND_ORIGIN};
+        rewrite ^${VITE_API_BASE_URL}/(.*)$ ${FRONTEND_BACKEND_API_PATH}/$1 break;
+        proxy_pass $backend$uri$is_args$args;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout ${FRONTEND_PROXY_CONNECT_TIMEOUT};
+        proxy_read_timeout ${FRONTEND_PROXY_READ_TIMEOUT};
+    }
+
+    location / {
+        rewrite ^${VITE_BASE_PATH}(.+)$ /$1 break;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+}

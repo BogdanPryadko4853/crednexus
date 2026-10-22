@@ -1,0 +1,17 @@
+@reference '../../../../styles/index.css';
+
+.profile-details {
+  @apply m-0 grid gap-6;
+}
+.profile-details > div {
+  @apply grid gap-2;
+}
+.profile-details dt {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+.profile-details dd {
+  @apply m-0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}

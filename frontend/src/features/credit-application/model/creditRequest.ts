@@ -44,7 +44,6 @@ export function validateCreditRequest(
   const amount = values.amount.replace(/\s/g, "");
   if (!amountPattern.test(amount) || !/[1-9]/.test(amount))
     errors.amount = "application.validation.amount";
-  if (!availableFinancingPurposes.some(({ value }) => value === values.purpose))
-    errors.purpose = "application.validation.purpose";
+  if (!values.purpose.trim()) errors.purpose = "application.validation.purpose";
   return errors;
 }

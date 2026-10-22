@@ -1,0 +1,74 @@
+@reference '../../styles/index.css';
+@import "../../styles/layout/credit-cabinet.css";
+
+.cabinet-user {
+  @apply flex min-w-0 items-center gap-4;
+}
+.cabinet-user__name {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
+.cabinet-layout {
+  @apply mx-auto grid items-start gap-6;
+  max-width: var(--layout-cabinet-width);
+  grid-template-columns: var(--layout-navigation-width) minmax(0, 1fr);
+  padding: var(--space-8) var(--space-8) var(--space-16);
+}
+.cabinet-navigation {
+  @apply flex flex-col gap-2;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+}
+.cabinet-navigation a {
+  display: block;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-control);
+  font-size: var(--text-sm);
+}
+.cabinet-navigation a:hover {
+  background: var(--color-background);
+}
+.cabinet-navigation a[aria-current="page"] {
+  color: var(--color-action);
+  background: var(--color-negative-soft);
+  font-weight: 600;
+}
+.cabinet-content {
+  @apply grid min-w-0 gap-6;
+}
+.cabinet-content .credit-page {
+  padding: 0;
+}
+.cabinet-content .credit-page__columns {
+  grid-template-columns: 1fr;
+}
+.cabinet-page {
+  @apply grid min-w-0 gap-6;
+}
+.cabinet-page__heading {
+  @apply grid gap-3;
+}
+@media (max-width: 900px) {
+  .cabinet-layout {
+    grid-template-columns: 1fr;
+    padding: var(--space-6);
+  }
+  .cabinet-navigation {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 600px) {
+  .cabinet-layout {
+    padding: var(--space-6) var(--space-4);
+  }
+  .cabinet-user {
+    gap: var(--space-2);
+  }
+  .cabinet-user__name {
+    display: none;
+  }
+}

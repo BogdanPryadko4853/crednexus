@@ -28,7 +28,7 @@ export function PageState({
         {kind === "loading" ? (
           <span className="ui-spinner" aria-hidden="true" />
         ) : (
-          <Icon name={kind === "error" ? "warning" : "file"} size={24} />
+          <Icon name={kind === "error" ? "warning" : "file"} size="lg" />
         )}
       </span>
       <h3>{title}</h3>

@@ -5,14 +5,12 @@ import {
   Button,
   Icon,
   Modal,
-  SelectField,
   TextareaField,
   TextField,
 } from "../../../../components";
 import { useLocale } from "../../../../i18n";
 import {
   CREDIT_INPUT_LIMITS,
-  availableFinancingPurposes,
   createEmptyCreditRequest,
   validateCreditRequest,
 } from "../../model/creditRequest";
@@ -119,21 +117,15 @@ export function CreditRequestForm() {
             autoComplete="off"
           />
         </div>
-        <SelectField
+        <TextField
           name="purpose"
           label={t("application.fields.purpose")}
-          required
           value={values.purpose}
           onChange={(event) => change("purpose", event.target.value)}
+          required
           error={fieldError("purpose")}
-        >
-          <option value="">{t("application.purposes.placeholder")}</option>
-          {availableFinancingPurposes.map(({ value, labelKey }) => (
-            <option key={value} value={value}>
-              {t(labelKey)}
-            </option>
-          ))}
-        </SelectField>
+          autoComplete="off"
+        />
         <TextareaField
           name="comment"
           label={t("application.fields.comment")}

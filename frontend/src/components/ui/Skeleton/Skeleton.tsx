@@ -1,16 +1,14 @@
-import type { CSSProperties } from "react";
 import "./Skeleton.css";
 export function Skeleton({
-  width = "100%",
-  height = 16,
+  width = "full",
+  height = "text",
 }: {
-  width?: CSSProperties["width"];
-  height?: CSSProperties["height"];
+  width?: "full" | "half" | "short";
+  height?: "text" | "heading" | "control";
 }) {
   return (
     <span
-      className="ui-skeleton"
-      style={{ width, height }}
+      className={`ui-skeleton ui-skeleton--width-${width} ui-skeleton--height-${height}`}
       aria-hidden="true"
     />
   );

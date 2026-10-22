@@ -25,10 +25,13 @@
 }
 
 .ui-control {
-  @apply min-w-0 w-full bg-canvas text-ink;
+  min-width: 0;
+  width: 100%;
+  background-color: #ffffff !important;
+  color: #212124 !important;
   min-height: 52px;
   padding: 13px 16px;
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border) !important;
   border-radius: var(--radius-control);
   transition:
     border-color var(--transition),

@@ -1,0 +1,19 @@
+.ui-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ui-icon--sm {
+  width: 14px;
+  height: 14px;
+}
+.ui-icon--md {
+  width: 20px;
+  height: 20px;
+}
+.ui-icon--lg {
+  width: 24px;
+  height: 24px;
+}

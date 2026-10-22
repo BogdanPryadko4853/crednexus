@@ -1,0 +1,5 @@
+@reference '../../styles/index.css';
+
+.not-found-page {
+  @apply mx-auto flex min-h-screen max-w-2xl flex-col items-start justify-center gap-6 px-6;
+}

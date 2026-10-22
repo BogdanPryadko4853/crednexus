@@ -1,4 +1,5 @@
 import type { SVGProps } from "react";
+import "./Icon.css";
 
 const paths = {
   arrow: "M4 12h16M14 6l6 6-6 6",
@@ -8,7 +9,6 @@ const paths = {
   clock: "M12 6v6l4 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0",
   company:
     "M4 21V5h10v16M14 9h6v12M2 21h20M8 9h2M8 13h2M8 17h2M17 13h1M17 17h1",
-  shield: "M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4Zm-4 9 3 3 5-6",
   file: "M14 3H5v18h14V8l-5-5Zm0 0v5h5M8 12h8M8 16h5",
   plus: "M12 5v14M5 12h14",
   chevron: "m9 5 7 7-7 7",
@@ -19,19 +19,14 @@ export type IconName = keyof typeof paths;
 
 export function Icon({
   name,
-  size = 20,
+  size = "md",
+  className = "",
   ...props
-}: SVGProps<SVGSVGElement> & { name: IconName; size?: number }) {
+}: SVGProps<SVGSVGElement> & { name: IconName; size?: "sm" | "md" | "lg" }) {
   return (
     <svg
-      width={size}
-      height={size}
+      className={`ui-icon ui-icon--${size} ${className}`}
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
       {...props}

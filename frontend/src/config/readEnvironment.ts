@@ -61,6 +61,48 @@ export function readEnvironment(env: Environment) {
       "Invalid VITE_FINANCING_PURPOSES: expected supported purpose IDs",
     );
   return {
+    api: {
+      baseUrl: pathPrefix(env.VITE_API_BASE_URL ?? "/api", "VITE_API_BASE_URL"),
+      currentUserPath: pathPrefix(
+        env.VITE_CURRENT_USER_PATH ?? "/users/me",
+        "VITE_CURRENT_USER_PATH",
+      ),
+      timeoutMs: positiveInteger(env, "VITE_API_TIMEOUT_MS", 15000, 120000),
+      proxyTarget: httpUrl(
+        env.VITE_API_PROXY_TARGET ?? "http://localhost:8080",
+        "VITE_API_PROXY_TARGET",
+      ),
+      proxyPath: pathPrefix(
+        env.VITE_API_PROXY_PATH ?? "/api",
+        "VITE_API_PROXY_PATH",
+      ),
+    },
+    keycloak: {
+      url: httpUrl(
+        env.VITE_KEYCLOAK_URL ?? "http://localhost:8081",
+        "VITE_KEYCLOAK_URL",
+      ),
+      realm: identifier(
+        env.VITE_KEYCLOAK_REALM ?? "crednexus",
+        "VITE_KEYCLOAK_REALM",
+      ),
+      clientId: identifier(
+        env.VITE_KEYCLOAK_CLIENT_ID ?? "crednexus-frontend",
+        "VITE_KEYCLOAK_CLIENT_ID",
+      ),
+      minimumValiditySeconds: positiveInteger(
+        env,
+        "VITE_TOKEN_MIN_VALIDITY_SECONDS",
+        30,
+        300,
+      ),
+      initializationTimeoutMs: positiveInteger(
+        env,
+        "VITE_AUTH_TIMEOUT_MS",
+        20000,
+        120000,
+      ),
+    },
     locale: choice(env, "VITE_APP_LOCALE", "ru", ["ru", "en"]),
     basePath,
     server: {
@@ -95,4 +137,36 @@ export function readEnvironment(env: Environment) {
     },
     purposeIds,
   };
+}
+
+function pathPrefix(value: string, key: string) {
+  if (!/^\/(?:[a-zA-Z0-9_-]+\/?)+$/.test(value))
+    throw new Error(`Invalid ${key}: expected an absolute API path`);
+  return value.replace(/\/$/, "");
+}
+
+function httpUrl(value: string, key: string) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`Invalid ${key}: expected an HTTP(S) URL`);
+  }
+  if (
+    !["http:", "https:"].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  )
+    throw new Error(
+      `Invalid ${key}: expected an HTTP(S) URL without credentials, query or fragment`,
+    );
+  return value.replace(/\/$/, "");
+}
+
+function identifier(value: string, key: string) {
+  if (!/^[a-zA-Z0-9_.-]+$/.test(value))
+    throw new Error(`Invalid ${key}: expected a non-empty identifier`);
+  return value;
 }

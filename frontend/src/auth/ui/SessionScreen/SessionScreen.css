@@ -1,0 +1,12 @@
+@reference "../../../styles/index.css";
+
+.session-screen {
+  @apply flex min-h-screen items-center justify-center p-6;
+}
+.session-screen__card {
+  width: 100%;
+  max-width: var(--layout-auth-width);
+}
+.session-screen__actions {
+  @apply flex flex-wrap justify-center gap-3;
+}

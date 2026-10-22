@@ -45,9 +45,7 @@ describe("Localization", () => {
     );
     expect(
       screen.getByRole("textbox", { name: "Company tax ID" }),
-    ).toHaveAccessibleDescription(
-      "Enter a 10- or 12-digit tax ID",
-    );
+    ).toHaveAccessibleDescription("Enter a 10- or 12-digit tax ID");
     expect(document.body.textContent).not.toMatch(/[А-Яа-яЁё]/);
     await user.type(
       screen.getByRole("textbox", { name: "Company tax ID" }),

@@ -41,6 +41,7 @@ services:
       - "${KEYCLOAK_PORT:-8081}:8080"
     volumes:
       - ./infrastructure/keycloak/realm/crednexus-realm.json:/opt/keycloak/data/import/crednexus-realm.json:ro
+      - ./infrastructure/keycloak/themes/crednexus:/opt/keycloak/themes/crednexus:ro
 
   minio:
     image: minio/minio:latest
@@ -88,6 +89,43 @@ services:
       DOCUMENT_MAX_SIZE_BYTES: ${DOCUMENT_MAX_SIZE_BYTES:-10485760}
     ports:
       - "${BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NODE_IMAGE: ${FRONTEND_NODE_IMAGE:-node:24.22.1-alpine3.24}
+        NGINX_IMAGE: ${FRONTEND_NGINX_IMAGE:-nginx:1.30.6-alpine3.24}
+        VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      FRONTEND_CONTAINER_PORT: ${FRONTEND_CONTAINER_PORT:-8080}
+      FRONTEND_BACKEND_ORIGIN: ${FRONTEND_BACKEND_ORIGIN:-http://backend:8080}
+      FRONTEND_BACKEND_API_PATH: ${FRONTEND_BACKEND_API_PATH:-/api}
+      FRONTEND_PROXY_CONNECT_TIMEOUT: ${FRONTEND_PROXY_CONNECT_TIMEOUT:-5s}
+      FRONTEND_PROXY_READ_TIMEOUT: ${FRONTEND_PROXY_READ_TIMEOUT:-60s}
+      FRONTEND_DNS_RESOLVER: ${FRONTEND_DNS_RESOLVER:-127.0.0.11}
+      VITE_BASE_PATH: ${VITE_BASE_PATH:-/}
+      VITE_APP_LOCALE: ${VITE_APP_LOCALE:-ru}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      VITE_CURRENT_USER_PATH: ${VITE_CURRENT_USER_PATH:-/users/me}
+      VITE_API_TIMEOUT_MS: ${VITE_API_TIMEOUT_MS:-15000}
+      VITE_KEYCLOAK_URL: ${VITE_KEYCLOAK_URL:-http://localhost:8081}
+      VITE_KEYCLOAK_REALM: ${VITE_KEYCLOAK_REALM:-crednexus}
+      VITE_KEYCLOAK_CLIENT_ID: ${VITE_KEYCLOAK_CLIENT_ID:-crednexus-frontend}
+      VITE_TOKEN_MIN_VALIDITY_SECONDS: ${VITE_TOKEN_MIN_VALIDITY_SECONDS:-30}
+      VITE_AUTH_TIMEOUT_MS: ${VITE_AUTH_TIMEOUT_MS:-20000}
+      VITE_COMPANY_MAX_LENGTH: ${VITE_COMPANY_MAX_LENGTH:-255}
+      VITE_COMMENT_MAX_LENGTH: ${VITE_COMMENT_MAX_LENGTH:-500}
+      VITE_AMOUNT_INTEGER_DIGITS: ${VITE_AMOUNT_INTEGER_DIGITS:-17}
+      VITE_AMOUNT_FRACTION_DIGITS: ${VITE_AMOUNT_FRACTION_DIGITS:-2}
+      VITE_LEGAL_INN_DIGITS: ${VITE_LEGAL_INN_DIGITS:-10}
+      VITE_SOLE_INN_DIGITS: ${VITE_SOLE_INN_DIGITS:-12}
+      VITE_FINANCING_PURPOSES: ${VITE_FINANCING_PURPOSES:-working-capital,equipment}
+    ports:
+      - "${FRONTEND_PORT:-5173}:${FRONTEND_CONTAINER_PORT:-8080}"
 
 volumes:
   postgres-data:

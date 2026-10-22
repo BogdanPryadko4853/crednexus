@@ -38,7 +38,17 @@ export default defineConfig(({ mode }) => {
         },
       },
     ],
-    server: config.server,
+    server: {
+      ...config.server,
+      proxy: {
+        [config.api.baseUrl]: {
+          target: config.api.proxyTarget,
+          changeOrigin: true,
+          rewrite: (path) =>
+            config.api.proxyPath + path.slice(config.api.baseUrl.length),
+        },
+      },
+    },
     preview: config.preview,
   };
 });

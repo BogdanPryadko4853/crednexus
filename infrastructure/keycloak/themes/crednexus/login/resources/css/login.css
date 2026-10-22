@@ -1,0 +1,325 @@
+:root {
+  --crednexus-red: #ef3124;
+  --crednexus-red-hover: #d72505;
+  --crednexus-text: #212124;
+  --crednexus-muted: #62626a;
+  --crednexus-border: #dcdde1;
+  --crednexus-background: #f2f3f5;
+  --crednexus-surface: #ffffff;
+  --crednexus-error: #c7241f;
+  --crednexus-error-background: #fff0f0;
+  --crednexus-focus: #2453b4;
+}
+
+body,
+.login-pf body {
+  background:
+    radial-gradient(circle at 14% 20%, rgb(239 49 36 / 12%), transparent 30%),
+    radial-gradient(circle at 88% 88%, rgb(239 49 36 / 8%), transparent 28%),
+    var(--crednexus-background);
+  color: var(--crednexus-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  min-height: 100vh;
+}
+
+.pf-v5-c-login {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 20px;
+}
+
+#kc-header {
+  color: var(--crednexus-text);
+  grid-area: header;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+#kc-header-wrapper {
+  align-items: center;
+  display: flex;
+  font-size: 0;
+  letter-spacing: -0.04em;
+  padding: 0;
+  text-transform: none;
+}
+
+#kc-header-wrapper::before {
+  align-items: center;
+  background: var(--crednexus-red);
+  border-radius: 11px;
+  color: var(--crednexus-surface);
+  content: "C";
+  display: inline-flex;
+  font-size: 25px;
+  font-weight: 700;
+  height: 40px;
+  justify-content: center;
+  margin-right: 12px;
+  width: 40px;
+}
+
+#kc-header-wrapper::after {
+  color: var(--crednexus-text);
+  content: "CredNexus";
+  font-size: 24px;
+  font-weight: 720;
+}
+
+.card-pf,
+.pf-v5-c-login__main {
+  background: var(--crednexus-surface);
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgb(18 18 19 / 12%);
+  grid-area: main;
+  margin: 0;
+  max-width: 460px;
+  padding: 40px;
+  width: 100%;
+}
+
+.pf-v5-c-login__container {
+  grid-template-areas:
+    "header"
+    "main";
+  grid-template-columns: minmax(0, 460px);
+  justify-content: center;
+  row-gap: 28px;
+  width: 100%;
+}
+
+.pf-v5-c-login__footer {
+  display: none;
+}
+
+#kc-page-title {
+  color: var(--crednexus-text);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  margin: 0 0 28px;
+  text-align: left;
+}
+
+.pf-v5-c-login__main-header {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-v5-c-login__main-header-utilities {
+  display: none;
+}
+
+.pf-v5-c-login__main-body,
+#kc-form-wrapper,
+#kc-form,
+#kc-form-login {
+  max-width: none;
+  width: 100%;
+}
+
+.pf-v5-c-login__main-body {
+  padding: 0;
+}
+
+.pf-v5-c-form,
+#kc-form-login {
+  gap: 22px;
+}
+
+.pf-v5-c-form__group,
+.form-group {
+  margin-bottom: 22px;
+}
+
+.pf-v5-c-form__label,
+.control-label {
+  color: var(--crednexus-text);
+  font-size: 14px;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+
+.pf-v5-c-form-control,
+.form-control {
+  background: var(--crednexus-surface);
+  border: 1px solid var(--crednexus-border);
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--crednexus-text);
+  font-size: 16px;
+  min-height: 52px;
+  padding: 13px 16px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.pf-v5-c-form-control:focus-within,
+.form-control:focus {
+  border-color: var(--crednexus-focus);
+  box-shadow: 0 0 0 3px rgb(36 83 180 / 14%);
+  outline: none;
+}
+
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after {
+  content: none;
+  display: none;
+}
+
+.pf-v5-c-form-control > input,
+.pf-v5-c-form-control > input:focus,
+.pf-v5-c-form-control > input:invalid,
+.pf-v5-c-form-control > input[aria-invalid="true"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #212124 !important;
+  opacity: 1 !important;
+}
+
+.pf-v5-c-form-control > input:-webkit-autofill,
+.pf-v5-c-form-control > input:-webkit-autofill:focus {
+  background: var(--crednexus-surface) !important;
+  box-shadow: 0 0 0 1000px var(--crednexus-surface) inset !important;
+  -webkit-text-fill-color: var(--crednexus-text);
+}
+
+.pf-v5-c-input-group {
+  border: 1px solid var(--crednexus-border);
+  border-radius: 12px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.pf-v5-c-input-group:focus-within {
+  border-color: var(--crednexus-focus);
+  box-shadow: 0 0 0 3px rgb(36 83 180 / 14%);
+}
+
+.pf-v5-c-input-group .pf-v5-c-form-control {
+  border: 0;
+  border-radius: 12px 0 0 12px;
+  box-shadow: none;
+}
+
+.pf-v5-c-input-group__item .pf-v5-c-button,
+.pf-v5-c-input-group .pf-v5-c-button {
+  background: var(--crednexus-surface);
+  border: 0 !important;
+  border-radius: 0 12px 12px 0;
+  color: var(--crednexus-muted);
+  min-height: 52px;
+  padding: 0 16px;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.pf-v5-c-input-group__item {
+  border-left: 0 !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-button::after {
+  content: none !important;
+  display: none !important;
+}
+
+.pf-v5-c-check__label,
+.checkbox label {
+  color: var(--crednexus-muted);
+  font-size: 14px;
+}
+
+.pf-v5-c-check__input,
+input[type="checkbox"] {
+  accent-color: var(--crednexus-red);
+}
+
+#kc-form-buttons {
+  margin-top: 28px;
+}
+
+#kc-login,
+.pf-v5-c-button.pf-m-primary,
+.btn-primary {
+  background: var(--crednexus-red);
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--crednexus-surface);
+  font-size: 16px;
+  font-weight: 650;
+  min-height: 52px;
+  transition: background-color 150ms ease, transform 150ms ease;
+  width: 100%;
+}
+
+#kc-login:hover,
+.pf-v5-c-button.pf-m-primary:hover,
+.btn-primary:hover {
+  background: var(--crednexus-red-hover);
+}
+
+#kc-login:active,
+.pf-v5-c-button.pf-m-primary:active,
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.pf-v5-c-alert.pf-m-danger,
+.alert-error {
+  background: var(--crednexus-error-background);
+  border: 0;
+  border-radius: 12px;
+  color: var(--crednexus-error);
+  margin-bottom: 22px;
+  padding: 14px 16px;
+}
+
+.pf-v5-c-alert__icon,
+.alert-error .pficon-error-circle-o {
+  color: var(--crednexus-error);
+}
+
+#kc-locale,
+#kc-info,
+.login-pf-signup {
+  color: var(--crednexus-muted);
+  font-size: 14px;
+}
+
+a {
+  color: var(--crednexus-red-hover);
+}
+
+@media (max-width: 600px) {
+  .pf-v5-c-login {
+    align-items: stretch;
+    padding: 24px 16px;
+  }
+
+  .card-pf,
+  .pf-v5-c-login__main {
+    border-radius: 20px;
+    padding: 28px 20px;
+  }
+
+  #kc-page-title {
+    font-size: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

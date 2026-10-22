@@ -41,7 +41,40 @@ describe("Environment configuration", () => {
     ["VITE_BASE_PATH", "//other-host/"],
     ["VITE_STRICT_PORT", "yes"],
     ["VITE_FINANCING_PURPOSES", "unknown"],
+    ["VITE_API_BASE_URL", "https://other.test/api"],
+    ["VITE_API_PROXY_PATH", "/../private"],
+    ["VITE_KEYCLOAK_URL", "https://user:password@identity.test"],
+    ["VITE_KEYCLOAK_REALM", ""],
+    ["VITE_API_TIMEOUT_MS", "0"],
   ])("rejects an invalid %s override with an English error", (key, value) => {
     expect(() => readEnvironment({ [key]: value })).toThrow(`Invalid ${key}`);
+  });
+  it("overrides API and identity settings independently of deployment defaults", () => {
+    const config = readEnvironment({
+      VITE_API_BASE_URL: "/service/",
+      VITE_CURRENT_USER_PATH: "/profile/me",
+      VITE_API_PROXY_TARGET: "https://backend.example.test",
+      VITE_API_PROXY_PATH: "/v1",
+      VITE_API_TIMEOUT_MS: "25000",
+      VITE_KEYCLOAK_URL: "https://identity.example.test/auth/",
+      VITE_KEYCLOAK_REALM: "business",
+      VITE_KEYCLOAK_CLIENT_ID: "portal",
+      VITE_TOKEN_MIN_VALIDITY_SECONDS: "45",
+      VITE_AUTH_TIMEOUT_MS: "30000",
+    });
+    expect(config.api).toEqual({
+      baseUrl: "/service",
+      currentUserPath: "/profile/me",
+      proxyTarget: "https://backend.example.test",
+      proxyPath: "/v1",
+      timeoutMs: 25000,
+    });
+    expect(config.keycloak).toEqual({
+      url: "https://identity.example.test/auth",
+      realm: "business",
+      clientId: "portal",
+      minimumValiditySeconds: 45,
+      initializationTimeoutMs: 30000,
+    });
   });
 });

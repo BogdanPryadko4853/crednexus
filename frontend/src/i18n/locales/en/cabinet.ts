@@ -1,0 +1,35 @@
+import type { cabinet as ru } from "../ru/cabinet.ts";
+
+export const cabinet = {
+  "auth.loading": "Opening your account",
+  "auth.loginTitle": "Sign in",
+  "auth.loginDescription":
+    "Business financing: companies, applications and decisions in one place.",
+  "auth.loginAction": "Sign in",
+  "auth.logoutAction": "Sign out",
+  "auth.errorTitle": "Unable to complete the action",
+  "auth.identityError": "Unable to sign in. Please try again.",
+  "auth.profileError":
+    "Unable to load your profile. Check your connection and try again.",
+  "auth.logoutError": "Unable to sign out. Please try again.",
+  "auth.sessionExpired": "Session expired",
+  "auth.sessionExpiredDescription": "Sign in again to continue.",
+  "common.retry": "Try again",
+  "navigation.label": "Account navigation",
+  "navigation.dashboard": "Home",
+  "navigation.newApplication": "Apply for financing",
+  "navigation.profile": "Profile",
+  "dashboard.welcome": "Welcome, {name}",
+  "dashboard.description": "Your business lending account.",
+  "dashboard.accountTitle": "Your account",
+  "dashboard.profileAction": "View profile",
+  "profile.title": "Profile",
+  "profile.description": "Your account details.",
+  "profile.fullName": "Full name",
+  "profile.email": "Email",
+  "profile.roles": "Roles",
+  "profile.noRoles": "No assigned roles",
+  "profile.roles.admin": "Administrator",
+  "profile.roles.employee": "Bank employee",
+  "profile.roles.client": "Customer",
+} satisfies Record<keyof typeof ru, string>;

@@ -1,0 +1,21 @@
+@reference '../../styles/index.css';
+@import "../../styles/layout/credit-cabinet.css";
+
+.login-page {
+  @apply flex min-h-screen flex-col items-center justify-center gap-8 px-6 py-12;
+}
+.login-page__brand {
+  @apply flex items-center gap-3;
+  font-size: var(--heading-sm);
+  font-weight: 650;
+}
+.login-page__card {
+  @apply flex w-full flex-col gap-6;
+  max-width: var(--layout-auth-width);
+}
+.login-page__button {
+  @apply w-full;
+}
+.login-page__footer {
+  @apply text-center;
+}

@@ -29,7 +29,7 @@ export function StatusBadge({
                   ? "clock"
                   : "file"
         }
-        size={14}
+        size="sm"
       />
       {children}
     </span>
