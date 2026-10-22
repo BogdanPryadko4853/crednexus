@@ -6,7 +6,8 @@ import { useLocale } from "../../i18n";
 import type { MessageKey } from "../../i18n";
 import { routes } from "../../config/routes";
 import { ApiError } from "../../api/httpClient";
-import { downloadDocument } from "../../features/credit-application/api/creditApplicationApi";
+import { downloadDocument, loadFulfillment, retryFulfillment, runVerifications } from "../../features/credit-application/api/creditApplicationApi";
+import type { Fulfillment } from "../../features/credit-application/api/creditApplicationApi";
 import { loadReviewDetails, makeManualDecision, requestReviewInformation } from "../../features/manual-review/api/manualReviewApi";
 import type { ManualDecision, ReviewDetails } from "../../features/manual-review/api/manualReviewApi";
 import "./ManualReviewPage.css";
@@ -22,6 +23,8 @@ export function ManualReviewDetailsPage() {
   const [actionError, setActionError] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [fulfillment, setFulfillment] = useState<Fulfillment | null>(null);
+  const [operationMessage, setOperationMessage] = useState<string | null>(null);
   const [action, setAction] = useState<ManualDecision["action"]>("APPROVE");
   const [reason, setReason] = useState("");
   const [question, setQuestion] = useState("");
@@ -32,7 +35,14 @@ export function ManualReviewDetailsPage() {
     if (!api || !applicationId) return;
     let active = true;
     setError(false); setDetails(null);
-    void loadReviewDetails(api, applicationId).then((value) => { if (active) setDetails(value); }).catch(() => { if (active) setError(true); });
+    void Promise.all([
+      loadReviewDetails(api, applicationId),
+      loadFulfillment(api, applicationId).catch(() => null),
+    ]).then(([value, status]) => {
+      if (!active) return;
+      setDetails(value);
+      setFulfillment(status);
+    }).catch(() => { if (active) setError(true); });
     return () => { active = false; };
   }, [api, applicationId, revision]);
   const latestStatus = details?.statusHistory.at(-1)?.toStatus;
@@ -59,12 +69,31 @@ export function ManualReviewDetailsPage() {
       anchor.click(); URL.revokeObjectURL(url);
     } catch { setActionError(true); } finally { setBusy(false); }
   }
+  async function rerunChecks() {
+    if (!api || !applicationId || busy) return;
+    setBusy(true); setActionError(false); setOperationMessage(null);
+    try {
+      await runVerifications(api, applicationId);
+      setOperationMessage(t("review.verificationsStarted"));
+      reload();
+    } catch { setActionError(true); } finally { setBusy(false); }
+  }
+  async function retryProcessing() {
+    if (!api || !applicationId || busy) return;
+    setBusy(true); setActionError(false); setOperationMessage(null);
+    try {
+      await retryFulfillment(api, applicationId);
+      setOperationMessage(t("review.fulfillmentRetryStarted"));
+      reload();
+    } catch { setActionError(true); } finally { setBusy(false); }
+  }
   if (error || !applicationId) return <PageState kind="error" title={t("application.detailsErrorTitle")} action={<Button onClick={reload}>{t("application.retry")}</Button>} />;
   if (!details) return <PageState kind="loading" title={t("application.detailsLoading")} />;
   return <section className="manual-review">
     <Link to={routes.review}>{t("review.back")}</Link>
     <div className="manual-review__heading"><Heading level={1}>{details.company.name}</Heading><Button variant="secondary" onClick={reload}>{t("application.refresh")}</Button></div>
     {completed && <Alert tone="positive" title={t("review.saved")} />}
+    {operationMessage && <Alert tone="positive" title={operationMessage} />}
     {conflict && <Alert tone="negative" title={t("review.conflict")} />}
     {actionError && <Alert tone="negative" title={t("application.actionErrorTitle")} />}
     <Card title={t("application.detailsSummaryTitle")}>
@@ -81,6 +110,7 @@ export function ManualReviewDetailsPage() {
     <Card title={t("application.verificationsTitle")}>
       {details.verifications.length === 0 && <Text muted>{t("application.verificationsEmpty")}</Text>}
       <ul className="manual-review__list">{details.verifications.map((item) => <li className="manual-review__item" key={item.id}><Text>{t(`application.verificationType.${item.type}` as MessageKey)}</Text><StatusBadge tone={item.status === "SUCCESS" ? "positive" : "info"}>{t(`application.verificationStatus.${item.status}` as MessageKey)}</StatusBadge></li>)}</ul>
+      {latestStatus === "MANUAL_REVIEW" && <Button variant="secondary" loading={busy} onClick={() => void rerunChecks()}>{t("review.rerunVerifications")}</Button>}
     </Card>
     <Card title={t("review.scoring")}>
       {details.scoring ? <><Text>{t("review.score")}: {details.scoring.score}</Text><Text>{t("review.risk")}: {t(`review.risk.${details.scoring.riskLevel}` as MessageKey)}</Text></> : <Text muted>{t("review.noData")}</Text>}
@@ -101,6 +131,11 @@ export function ManualReviewDetailsPage() {
       {details.decisions.length === 0 && <Text muted>{t("review.noData")}</Text>}
       {details.decisions.map((item) => <div className="manual-review__item" key={item.id}><strong>{t(`application.decisionType.${item.decisionType}` as MessageKey)}</strong><Text>{item.reason}</Text>{item.offer && <Text>{item.offer.amount.toLocaleString(locale)} · {item.offer.termMonths} {t("dashboard.months")} · {item.offer.interestRate}%</Text>}</div>)}
     </Card>
+    {fulfillment && <Card title={t("application.fulfillmentTitle")}>
+      <Text>{fulfillment.agreementStatus ?? t("application.fulfillmentPending")}</Text>
+      {fulfillment.disbursementStatus && <Text>{fulfillment.disbursementStatus}</Text>}
+      {(fulfillment.agreementStatus === "FAILED" || fulfillment.disbursementStatus === "FAILED") && <Button variant="secondary" loading={busy} onClick={() => void retryProcessing()}>{t("review.retryFulfillment")}</Button>}
+    </Card>}
     {editable && <>
       <Card title={t("review.request")}><TextField name="question" label={t("review.question")} value={question} onChange={(event) => setQuestion(event.target.value)} /><Button disabled={!question.trim() || busy} onClick={() => setConfirmation("question")}>{t("review.request")}</Button></Card>
       <Card title={t("review.decision")}>

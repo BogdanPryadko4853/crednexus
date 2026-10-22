@@ -81,4 +81,8 @@ export const cabinet = {
   "review.terms.termMonths": "Срок, мес.",
   "review.terms.interestRate": "Ставка, %",
   "review.confirm": "Подтверждение действия",
+  "review.rerunVerifications": "Повторить проверки",
+  "review.verificationsStarted": "Проверки поставлены в очередь",
+  "review.retryFulfillment": "Повторить оформление и выдачу",
+  "review.fulfillmentRetryStarted": "Повторное оформление поставлено в очередь",
 } as const;

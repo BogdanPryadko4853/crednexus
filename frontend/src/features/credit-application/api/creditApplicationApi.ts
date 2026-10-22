@@ -45,6 +45,10 @@ export function loadVerifications(api: ApiClient, applicationId: string) {
   return api.request<VerificationResult[]>(`/loan-applications/${applicationId}/verifications`);
 }
 
+export function runVerifications(api: ApiClient, applicationId: string) {
+  return api.request<void>(`/loan-applications/${applicationId}/verifications/run`, { method: "POST" });
+}
+
 export function loadLoanApplications(api: ApiClient) {
   return api.request<LoanApplicationResponse[]>("/loan-applications");
 }
@@ -104,6 +108,10 @@ export function declineOffer(api: ApiClient, applicationId: string) {
 }
 export function loadFulfillment(api: ApiClient, applicationId: string) {
   return api.request<Fulfillment>(`/loan-applications/${applicationId}/fulfillment`);
+}
+
+export function retryFulfillment(api: ApiClient, applicationId: string) {
+  return api.request<void>(`/loan-applications/${applicationId}/fulfillment/retry`, { method: "POST" });
 }
 export function saveFinancialSnapshot(api: ApiClient, applicationId: string, snapshot: Omit<FinancialSnapshot, "id" | "applicationId">) {
   return api.request<FinancialSnapshot>(`/loan-applications/${applicationId}/financial-snapshot`, { method: "PUT", body: snapshot });

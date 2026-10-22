@@ -83,4 +83,8 @@ export const cabinet = {
   "review.terms.termMonths": "Term, months",
   "review.terms.interestRate": "Interest rate, %",
   "review.confirm": "Confirm action",
+  "review.rerunVerifications": "Run checks again",
+  "review.verificationsStarted": "Checks queued for processing",
+  "review.retryFulfillment": "Retry agreement and disbursement",
+  "review.fulfillmentRetryStarted": "Agreement and disbursement queued again",
 } satisfies Record<keyof typeof ru, string>;
