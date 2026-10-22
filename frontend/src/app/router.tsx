@@ -3,6 +3,7 @@ import { CreditApplicationPage } from "../features/credit-application";
 import { NotFoundPage } from "../pages/NotFoundPage";
 import { LoginPage } from "../pages/LoginPage";
 import { DashboardPage } from "../pages/DashboardPage";
+import { ApplicationDetailsPage } from "../pages/ApplicationDetailsPage";
 import { ProfilePage } from "../features/profile";
 import { ProtectedRoute } from "../auth";
 import { CabinetLayout } from "./layout/CabinetLayout";
@@ -25,6 +26,10 @@ export function AppRoutes() {
           <Route
             path={routes.creditApplication}
             element={<CreditApplicationPage />}
+          />
+          <Route
+            path={routes.applicationDetailsPattern}
+            element={<ApplicationDetailsPage />}
           />
         </Route>
       </Route>

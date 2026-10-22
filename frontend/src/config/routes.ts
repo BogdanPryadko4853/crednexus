@@ -4,4 +4,6 @@ export const routes = {
   dashboard: "/dashboard",
   profile: "/profile",
   creditApplication: "/applications/new",
+  applicationDetailsPattern: "/applications/:applicationId",
+  applicationDetails: (id: string) => `/applications/${id}`,
 } as const;

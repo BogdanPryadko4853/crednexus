@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Card, Heading, Icon, PageState, Text } from "../../../../components";
+import { useNavigate } from "react-router";
+import { Alert, Card, Heading, PageState, Text } from "../../../../components";
 import { useAuth } from "../../../../auth/AuthProvider";
 import { useLocale } from "../../../../i18n";
 import { createLoanApplication, loadCreditApplicationOptions } from "../../api/creditApplicationApi";
@@ -11,6 +12,7 @@ import "./CreditApplicationPage.css";
 
 export function CreditApplicationPage() {
   const { t } = useLocale();
+  const navigate = useNavigate();
   const { api } = useAuth();
   const [options, setOptions] = useState<{ companies: CompanyOption[]; products: CreditProductOption[] } | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -23,17 +25,18 @@ export function CreditApplicationPage() {
     });
     return () => { active = false; };
   }, [api]);
-  async function submitDraft(values: CreditRequest) {
+  async function submitDraft(values: CreditRequest, productId?: string) {
     if (!options) throw new Error("Credit application options are unavailable");
     const company = options.companies.find((item) => item.inn === values.inn);
-    const product = options.products[0];
+    const product = options.products.find((item) => item.id === productId) ?? options.products[0];
     if (!company || !product) throw new Error("Credit application options are unavailable");
-    await createLoanApplication(api, company.id, {
+    const created = await createLoanApplication(api, company.id, {
       productId: product.id,
       requestedAmount: Number(values.amount.replace(/\s/g, "").replace(",", ".")),
       termMonths: product.minTermMonths,
       purpose: values.purpose,
     });
+    navigate(`/applications/${created.id}`);
   }
   return (
     <section className="credit-page">
@@ -56,47 +59,12 @@ export function CreditApplicationPage() {
           <CreditRequestForm
             {...(options ? {
               availableCompanies: options.companies,
+              availableProducts: options.products,
               hasCreditProducts: options.products.length > 0,
               onConfirm: submitDraft,
             } : {})}
           />
         </Card>
-        <aside
-          className="credit-page__aside"
-          aria-label={t("application.infoLabel")}
-        >
-          <Card title={t("application.infoTitle")}>
-            <ul className="credit-requirements">
-              <li>
-                <Icon name="company" />
-                <div>
-                  <strong>{t("application.companyHeading")}</strong>
-                  <Text size="sm" muted>
-                    {t("application.companyInfo")}
-                  </Text>
-                </div>
-              </li>
-              <li>
-                <Icon name="file" />
-                <div>
-                  <strong>{t("application.financingHeading")}</strong>
-                  <Text size="sm" muted>
-                    {t("application.financingInfo")}
-                  </Text>
-                </div>
-              </li>
-              <li>
-                <Icon name="check" />
-                <div>
-                  <strong>{t("application.checkHeading")}</strong>
-                  <Text size="sm" muted>
-                    {t("application.checkInfo")}
-                  </Text>
-                </div>
-              </li>
-            </ul>
-          </Card>
-        </aside>
       </div>
     </section>
   );

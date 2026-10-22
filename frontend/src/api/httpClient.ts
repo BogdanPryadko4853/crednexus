@@ -52,14 +52,16 @@ export function createApiClient({
         const headers = new Headers(options.headers);
         headers.set("Authorization", `Bearer ${token}`);
         headers.set("Accept", "application/json");
-        if (options.body !== undefined)
+        if (options.body !== undefined && !(options.body instanceof FormData))
           headers.set("Content-Type", "application/json");
         const { body, ...requestOptions } = options;
         const response = await fetcher(`${baseUrl}${path}`, {
           ...requestOptions,
           headers,
           signal: controller.signal,
-          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          ...(body === undefined
+            ? {}
+            : { body: body instanceof FormData ? body : JSON.stringify(body) }),
         });
         if (response.status === 401) onUnauthorized();
         if (!response.ok) throw new ApiError("http", response.status);
