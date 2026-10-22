@@ -4,6 +4,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from crednexus_ml.history import MEASURES
+
 # sector, weight, median monthly sales, goods share, fixed share, season amplitude,
 # preferred peak month, credit-sales fraction, inventory coverage (months)
 SECTORS = [
@@ -16,7 +18,6 @@ SECTORS = [
     ("transport", .08, 1_300_000, .53, .33, .11, 9, .70, .1),
     ("hospitality", .06, 900_000, .30, .52, .45, 7, .22, .15),
 ]
-MEASURES = ("sales", "cash_inflow", "operating_cash_outflow", "cash_balance", "operating_expense")
 STATES = {0: "active", 1: "distressed", 2: "restructuring", 3: "closed", 4: "not_started"}
 
 

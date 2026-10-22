@@ -17,6 +17,7 @@ python -m pip install -r requirements-training.txt -r requirements-plots.txt
 OMP_NUM_THREADS=4 OPENBLAS_NUM_THREADS=4 MKL_NUM_THREADS=4 python -m crednexus_ml.train data/sme_100k_v2 --output artifacts/benchmark_v1
 python -m crednexus_ml.intervals --artifacts artifacts/benchmark_v1
 python -m crednexus_ml.verify data/sme_100k_v2 --artifacts artifacts/benchmark_v1
+python -m pip install -r requirements-test.txt
 python -m unittest discover -s tests -v
 python -m crednexus_ml.report
 ```
