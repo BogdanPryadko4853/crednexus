@@ -8,8 +8,8 @@ const stageByStatus: Record<string, number> = {
   REJECTED: 3,
   OFFERED: 4,
   ACCEPTED: 4,
-  AGREEMENT_PENDING: 4,
-  DISBURSED: 4,
+  AGREEMENT_PENDING: 5,
+  DISBURSED: 6,
   DECLINED: 4,
   EXPIRED: 4,
 };

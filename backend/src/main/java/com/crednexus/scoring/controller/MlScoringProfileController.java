@@ -2,7 +2,7 @@ package com.crednexus.scoring.controller;
 
 import com.crednexus.scoring.dto.UpsertMlScoringProfileRequest;
 import com.crednexus.scoring.service.MlScoringProfileService;
-import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map;
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,13 +25,13 @@ public class MlScoringProfileController {
 
     @PutMapping
     @Operation(summary = "Сохранить ML-профиль", description = "Сохраняет месячный финансовый профиль черновика. Без него отправка заявки невозможна.")
-    public JsonNode upsert(@PathVariable UUID applicationId, @Valid @RequestBody UpsertMlScoringProfileRequest request) {
+    public Map<String, Object> upsert(@PathVariable UUID applicationId, @Valid @RequestBody UpsertMlScoringProfileRequest request) {
         return service.upsert(applicationId, request);
     }
 
     @GetMapping
     @Operation(summary = "Получить ML-профиль", description = "Возвращает сохранённый ML-профиль активному представителю компании.")
-    public JsonNode get(@PathVariable UUID applicationId) {
+    public Map<String, Object> get(@PathVariable UUID applicationId) {
         return service.get(applicationId);
     }
 }

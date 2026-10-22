@@ -25,6 +25,7 @@ export const creditApplication = {
   "application.purposes.placeholder": "Выберите цель",
   "application.purposes.workingCapital": "Пополнение оборотных средств",
   "application.purposes.equipment": "Покупка оборудования",
+  "application.purposes.refinance": "Рефинансирование",
   "application.validation.company": "Укажите название компании",
   "application.validation.inn":
     "Введите {legalDigits} или {soleDigits} цифр ИНН",
@@ -54,17 +55,21 @@ export const creditApplication = {
   "application.progressTitle": "Этапы рассмотрения",
   "application.detailsLoading": "Загружаем заявку",
   "application.detailsErrorTitle": "Не удалось загрузить заявку",
-  "application.detailsErrorDescription": "Проверьте подключение и повторите попытку.",
+  "application.detailsErrorDescription":
+    "Проверьте подключение и повторите попытку.",
   "application.submitAction": "Отправить на рассмотрение",
   "application.editAction": "Изменить заявку",
   "application.editTitle": "Редактирование черновика",
   "application.draftSave": "Сохранить изменения",
   "application.draftSaved": "Изменения сохранены",
   "application.submitErrorTitle": "Не удалось отправить заявку",
-  "application.submitErrorDescription": "Проверьте заполненность финансовых данных и повторите попытку.",
-  "application.progressTerminal": "По этой заявке больше нет доступных действий.",
+  "application.submitErrorDescription":
+    "Проверьте заполненность финансовых данных и повторите попытку.",
+  "application.progressTerminal":
+    "По этой заявке больше нет доступных действий.",
   "application.financialTitle": "Финансовые показатели",
-  "application.financialDescription": "Заполните данные для отправки заявки на рассмотрение.",
+  "application.financialDescription":
+    "Заполните данные для отправки заявки на рассмотрение.",
   "application.financial.annualRevenue": "Годовая выручка, ₽",
   "application.financial.annualExpenses": "Годовые расходы, ₽",
   "application.financial.existingDebt": "Текущий долг, ₽",
@@ -91,11 +96,14 @@ export const creditApplication = {
   "application.actionErrorDescription": "Проверьте данные и повторите попытку.",
   "application.loadingTitle": "Загружаем данные для заявки",
   "application.apiErrorTitle": "Не удалось загрузить данные",
-  "application.apiErrorDescription": "Проверьте подключение и повторите попытку.",
+  "application.apiErrorDescription":
+    "Проверьте подключение и повторите попытку.",
   "application.companyUnavailableTitle": "Нет доступной компании",
-  "application.companyUnavailableDescription": "Сначала добавьте компанию с правом подачи заявки.",
+  "application.companyUnavailableDescription":
+    "Сначала добавьте компанию с правом подачи заявки.",
   "application.productUnavailableTitle": "Нет доступного кредитного продукта",
-  "application.productUnavailableDescription": "Кредитные продукты пока не настроены.",
+  "application.productUnavailableDescription":
+    "Кредитные продукты пока не настроены.",
   "application.retry": "Повторить",
   "application.refresh": "Обновить",
   "application.documentsEmpty": "Документы пока не загружены",
@@ -108,8 +116,10 @@ export const creditApplication = {
   "application.resource.documents": "Не удалось загрузить документы",
   "application.resource.decision": "Не удалось загрузить решение",
   "application.resource.fulfillment": "Не удалось загрузить сведения о выдаче",
-  "application.resource.verifications": "Не удалось загрузить результаты проверок",
-  "application.resource.financial": "Не удалось загрузить финансовые показатели",
+  "application.resource.verifications":
+    "Не удалось загрузить результаты проверок",
+  "application.resource.financial":
+    "Не удалось загрузить финансовые показатели",
   "application.documentStatus.UPLOADED": "Загружен",
   "application.documentStatus.AVAILABLE": "Доступен",
   "application.documentStatus.REJECTED": "Отклонён",

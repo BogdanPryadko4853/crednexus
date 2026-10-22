@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface LoanAgreementRepository extends JpaRepository<LoanAgreement, UUID> {
 
+    Optional<LoanAgreement> findFirstByOffer_Decision_Application_Id(UUID applicationId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<LoanAgreement> findByOffer_Decision_Application_Id(UUID applicationId);
 }

@@ -102,8 +102,8 @@ public class ContractFulfillmentService {
         LoanApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan application not found"));
         requireAccess(application);
-        LoanAgreement agreement = agreementRepository.findByOffer_Decision_Application_Id(applicationId).orElse(null);
-        Disbursement disbursement = disbursementRepository.findByAgreement_Offer_Decision_Application_Id(applicationId).orElse(null);
+        LoanAgreement agreement = agreementRepository.findFirstByOffer_Decision_Application_Id(applicationId).orElse(null);
+        Disbursement disbursement = disbursementRepository.findFirstByAgreement_Offer_Decision_Application_Id(applicationId).orElse(null);
         return new FulfillmentResponse(application.getStatus(), agreement == null ? null : agreement.getId(),
                 agreement == null ? null : agreement.getContractNumber(), agreement == null ? null : agreement.getStatus(),
                 agreement == null ? null : agreement.getSignedAt(), disbursement == null ? null : disbursement.getId(),

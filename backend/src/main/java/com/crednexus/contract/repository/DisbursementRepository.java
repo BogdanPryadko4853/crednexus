@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DisbursementRepository extends JpaRepository<Disbursement, UUID> {
 
+    Optional<Disbursement> findFirstByAgreement_Offer_Decision_Application_Id(UUID applicationId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Disbursement> findByAgreement_Offer_Decision_Application_Id(UUID applicationId);
 }

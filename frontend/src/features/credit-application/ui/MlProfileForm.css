@@ -1,0 +1,33 @@
+.ml-profile__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.ml-profile__table-wrap {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.ml-profile__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.ml-profile__table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.ml-profile__table th,
+.ml-profile__table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+.ml-profile__table input {
+  min-width: 8rem;
+  width: 100%;
+}
+.ml-profile__fieldset:disabled {
+  opacity: 0.8;
+}

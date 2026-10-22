@@ -33,20 +33,96 @@ export type LoanApplicationResponse = CreateDraftRequest & {
   updatedAt: string;
   version: number;
 };
-export type InformationRequest = { id: string; question: string; status: string; answer?: string; answeredAt?: string };
-export type DocumentResponse = { id: string; documentType: string; fileName: string; contentType: string; sizeBytes: number; status: string; createdAt: string; informationRequestId?: string };
-export type CreditDecision = { id: string; decisionType: string; reason: string; decidedAt?: string; policyVersion?: string; offer?: CreditOffer };
-export type CreditOffer = { id: string; amount: number; termMonths: number; interestRate: number; status: string; expiresAt?: string };
-export type Fulfillment = { applicationStatus: string; agreementId?: string; contractNumber?: string; agreementStatus?: string; signedAt?: string; disbursementId?: string; disbursementAmount?: number; disbursementStatus?: string; disbursedAt?: string };
-export type FinancialSnapshot = { id?: string; applicationId?: string; annualRevenue: number; annualExpenses: number; existingDebt: number; monthlyPayments: number; employeeCount: number; period: string };
-export type VerificationResult = { id: string; type: string; status: string; source: string; checkedAt?: string };
+export type InformationRequest = {
+  id: string;
+  question: string;
+  status: string;
+  answer?: string;
+  answeredAt?: string;
+  requiresDocument?: boolean;
+  requirementCode?: string;
+};
+export type DocumentResponse = {
+  id: string;
+  documentType: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  status: string;
+  createdAt: string;
+  informationRequestId?: string;
+};
+export type CreditDecision = {
+  id: string;
+  decisionType: string;
+  reason: string;
+  decidedAt?: string;
+  policyVersion?: string;
+  offer?: CreditOffer;
+};
+export type CreditOffer = {
+  id: string;
+  amount: number;
+  termMonths: number;
+  interestRate: number;
+  status: string;
+  expiresAt?: string;
+};
+export type Fulfillment = {
+  applicationStatus: string;
+  agreementId?: string;
+  contractNumber?: string;
+  agreementStatus?: string;
+  signedAt?: string;
+  disbursementId?: string;
+  disbursementAmount?: number;
+  disbursementStatus?: string;
+  disbursedAt?: string;
+};
+export type FinancialSnapshot = {
+  id?: string;
+  applicationId?: string;
+  annualRevenue: number;
+  annualExpenses: number;
+  existingDebt: number;
+  monthlyPayments: number;
+  employeeCount: number;
+  period: string;
+};
+export type VerificationResult = {
+  id: string;
+  type: string;
+  status: string;
+  source: string;
+  checkedAt?: string;
+  payload?: { outcome?: string; message?: string };
+};
+
+export type ApplicationHistory = {
+  id: string;
+  fromStatus: string;
+  toStatus: string;
+  occurredAt: string;
+  reason?: string;
+  actorName?: string;
+};
+export function loadApplicationHistory(api: ApiClient, applicationId: string) {
+  return api.request<ApplicationHistory[]>(
+    `/loan-applications/${applicationId}/history`,
+  );
+}
 
 export function loadVerifications(api: ApiClient, applicationId: string) {
-  return api.request<VerificationResult[]>(`/loan-applications/${applicationId}/verifications`);
+  return api.request<VerificationResult[]>(
+    `/loan-applications/${applicationId}/verifications`,
+  );
 }
 
 export function runVerifications(api: ApiClient, applicationId: string) {
-  return api.request<void>(`/loan-applications/${applicationId}/verifications/run`, { method: "POST" });
+  return api.request<void>(
+    `/loan-applications/${applicationId}/verifications/run`,
+    { method: "POST" },
+  );
 }
 
 export function loadLoanApplications(api: ApiClient) {
@@ -54,7 +130,9 @@ export function loadLoanApplications(api: ApiClient) {
 }
 
 export function loadLoanApplication(api: ApiClient, applicationId: string) {
-  return api.request<LoanApplicationResponse>(`/loan-applications/${applicationId}`);
+  return api.request<LoanApplicationResponse>(
+    `/loan-applications/${applicationId}`,
+  );
 }
 
 export type UpdateDraftRequest = Partial<CreateDraftRequest>;
@@ -78,47 +156,91 @@ export function submitLoanApplication(api: ApiClient, applicationId: string) {
 }
 
 export function loadInformationRequests(api: ApiClient, applicationId: string) {
-  return api.request<InformationRequest[]>(`/loan-applications/${applicationId}/information-requests`);
+  return api.request<InformationRequest[]>(
+    `/loan-applications/${applicationId}/information-requests`,
+  );
 }
-export function answerInformationRequest(api: ApiClient, applicationId: string, requestId: string, answer: string) {
-  return api.request<InformationRequest>(`/loan-applications/${applicationId}/information-requests/${requestId}/answer`, { method: "POST", body: { answer } });
+export function answerInformationRequest(
+  api: ApiClient,
+  applicationId: string,
+  requestId: string,
+  answer: string,
+) {
+  return api.request<InformationRequest>(
+    `/loan-applications/${applicationId}/information-requests/${requestId}/answer`,
+    { method: "POST", body: { answer } },
+  );
 }
 export function loadDocuments(api: ApiClient, applicationId: string) {
-  return api.request<DocumentResponse[]>(`/loan-applications/${applicationId}/documents`);
+  return api.request<DocumentResponse[]>(
+    `/loan-applications/${applicationId}/documents`,
+  );
 }
 
 export function downloadDocument(api: ApiClient, documentId: string) {
   return api.download(`/documents/${documentId}/download`);
 }
-export function uploadDocument(api: ApiClient, applicationId: string, type: string, file: File, informationRequestId?: string) {
+export function uploadDocument(
+  api: ApiClient,
+  applicationId: string,
+  type: string,
+  file: File,
+  informationRequestId?: string,
+) {
   const body = new FormData();
   body.set("type", type);
   body.set("file", file);
-  if (informationRequestId) body.set("informationRequestId", informationRequestId);
-  return api.request<DocumentResponse>(`/loan-applications/${applicationId}/documents`, { method: "POST", body });
+  if (informationRequestId)
+    body.set("informationRequestId", informationRequestId);
+  return api.request<DocumentResponse>(
+    `/loan-applications/${applicationId}/documents`,
+    { method: "POST", body },
+  );
 }
 export function loadDecision(api: ApiClient, applicationId: string) {
-  return api.request<CreditDecision>(`/loan-applications/${applicationId}/decision`);
+  return api.request<CreditDecision>(
+    `/loan-applications/${applicationId}/decision`,
+  );
 }
 export function acceptOffer(api: ApiClient, applicationId: string) {
-  return api.request<{ applicationStatus: string; offer: CreditOffer }>(`/loan-applications/${applicationId}/offer/accept`, { method: "POST" });
+  return api.request<{ applicationStatus: string; offer: CreditOffer }>(
+    `/loan-applications/${applicationId}/offer/accept`,
+    { method: "POST" },
+  );
 }
 export function declineOffer(api: ApiClient, applicationId: string) {
-  return api.request<{ applicationStatus: string; offer: CreditOffer }>(`/loan-applications/${applicationId}/offer/decline`, { method: "POST" });
+  return api.request<{ applicationStatus: string; offer: CreditOffer }>(
+    `/loan-applications/${applicationId}/offer/decline`,
+    { method: "POST" },
+  );
 }
 export function loadFulfillment(api: ApiClient, applicationId: string) {
-  return api.request<Fulfillment>(`/loan-applications/${applicationId}/fulfillment`);
+  return api.request<Fulfillment>(
+    `/loan-applications/${applicationId}/fulfillment`,
+  );
 }
 
 export function retryFulfillment(api: ApiClient, applicationId: string) {
-  return api.request<void>(`/loan-applications/${applicationId}/fulfillment/retry`, { method: "POST" });
+  return api.request<void>(
+    `/loan-applications/${applicationId}/fulfillment/retry`,
+    { method: "POST" },
+  );
 }
-export function saveFinancialSnapshot(api: ApiClient, applicationId: string, snapshot: Omit<FinancialSnapshot, "id" | "applicationId">) {
-  return api.request<FinancialSnapshot>(`/loan-applications/${applicationId}/financial-snapshot`, { method: "PUT", body: snapshot });
+export function saveFinancialSnapshot(
+  api: ApiClient,
+  applicationId: string,
+  snapshot: Omit<FinancialSnapshot, "id" | "applicationId">,
+) {
+  return api.request<FinancialSnapshot>(
+    `/loan-applications/${applicationId}/financial-snapshot`,
+    { method: "PUT", body: snapshot },
+  );
 }
 
 export function loadFinancialSnapshot(api: ApiClient, applicationId: string) {
-  return api.request<FinancialSnapshot>(`/loan-applications/${applicationId}/financial-snapshot`);
+  return api.request<FinancialSnapshot>(
+    `/loan-applications/${applicationId}/financial-snapshot`,
+  );
 }
 
 export async function loadCreditApplicationOptions(api: ApiClient) {

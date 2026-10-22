@@ -19,7 +19,10 @@ import type {
   CreditRequest,
   CreditRequestErrors,
 } from "../../model/creditRequest";
-import type { CompanyOption, CreditProductOption } from "../../api/creditApplicationApi";
+import type {
+  CompanyOption,
+  CreditProductOption,
+} from "../../api/creditApplicationApi";
 import "./CreditRequestForm.css";
 
 type CreditRequestFormProps = {
@@ -29,7 +32,12 @@ type CreditRequestFormProps = {
   onConfirm?: (values: CreditRequest, productId?: string) => Promise<void>;
 };
 
-export function CreditRequestForm({ availableCompanies, availableProducts, hasCreditProducts, onConfirm }: CreditRequestFormProps = {}) {
+export function CreditRequestForm({
+  availableCompanies,
+  availableProducts,
+  hasCreditProducts,
+  onConfirm,
+}: CreditRequestFormProps = {}) {
   const { t } = useLocale();
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState(createEmptyCreditRequest);
@@ -38,7 +46,9 @@ export function CreditRequestForm({ availableCompanies, availableProducts, hasCr
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(availableProducts?.[0]?.id ?? "");
+  const [selectedProductId, setSelectedProductId] = useState(
+    availableProducts?.[0]?.id ?? "",
+  );
   const messageValues = {
     legalDigits: CREDIT_INPUT_LIMITS.legalInnDigits,
     soleDigits: CREDIT_INPUT_LIMITS.soleInnDigits,
@@ -93,19 +103,64 @@ export function CreditRequestForm({ availableCompanies, availableProducts, hasCr
             {t("application.confirmed.description")}
           </Alert>
         )}
-        {submitError && <Alert tone="negative" title={t("application.apiErrorTitle")} role="alert">{t("application.apiErrorDescription")}</Alert>}
-        {availableCompanies && availableCompanies.length === 0 && <Alert tone="attention" title={t("application.companyUnavailableTitle")}>{t("application.companyUnavailableDescription")}</Alert>}
-        {hasCreditProducts === false && <Alert tone="attention" title={t("application.productUnavailableTitle")}>{t("application.productUnavailableDescription")}</Alert>}
-        <TextField
-          name="company"
-          label={t("application.fields.company")}
-          value={values.company}
-          onChange={(event) => change("company", event.target.value)}
-          required
-          maxLength={CREDIT_INPUT_LIMITS.company}
-          error={fieldError("company")}
-          autoComplete="off"
-        />
+        {submitError && (
+          <Alert
+            tone="negative"
+            title={t("application.apiErrorTitle")}
+            role="alert"
+          >
+            {t("application.apiErrorDescription")}
+          </Alert>
+        )}
+        {availableCompanies && availableCompanies.length === 0 && (
+          <Alert
+            tone="attention"
+            title={t("application.companyUnavailableTitle")}
+          >
+            {t("application.companyUnavailableDescription")}
+          </Alert>
+        )}
+        {hasCreditProducts === false && (
+          <Alert
+            tone="attention"
+            title={t("application.productUnavailableTitle")}
+          >
+            {t("application.productUnavailableDescription")}
+          </Alert>
+        )}
+        {availableCompanies ? (
+          <SelectField
+            name="company"
+            label={t("application.fields.company")}
+            required
+            value={values.inn}
+            onChange={(event) => {
+              const selected = availableCompanies.find(
+                (company) => company.inn === event.target.value,
+              );
+              change("company", selected?.name ?? "");
+              change("inn", selected?.inn ?? "");
+            }}
+          >
+            <option value="">—</option>
+            {availableCompanies.map((company) => (
+              <option key={company.id} value={company.inn}>
+                {company.name}
+              </option>
+            ))}
+          </SelectField>
+        ) : (
+          <TextField
+            name="company"
+            label={t("application.fields.company")}
+            value={values.company}
+            onChange={(event) => change("company", event.target.value)}
+            required
+            maxLength={CREDIT_INPUT_LIMITS.company}
+            error={fieldError("company")}
+            autoComplete="off"
+          />
+        )}
         <div className="credit-form__row">
           <TextField
             name="inn"
@@ -120,6 +175,7 @@ export function CreditRequestForm({ availableCompanies, availableProducts, hasCr
             inputMode="numeric"
             error={fieldError("inn")}
             autoComplete="off"
+            readOnly={availableCompanies !== undefined}
           />
           <TextField
             name="amount"
@@ -147,15 +203,36 @@ export function CreditRequestForm({ availableCompanies, availableProducts, hasCr
             ))}
           </SelectField>
         )}
-        <TextField
-          name="purpose"
-          label={t("application.fields.purpose")}
-          value={values.purpose}
-          onChange={(event) => change("purpose", event.target.value)}
-          required
-          error={fieldError("purpose")}
-          autoComplete="off"
-        />
+        {onConfirm ? (
+          <SelectField
+            name="purpose"
+            label={t("application.fields.purpose")}
+            required
+            value={values.purpose}
+            onChange={(event) => change("purpose", event.target.value)}
+          >
+            <option value="">{t("application.purposes.placeholder")}</option>
+            <option value="working_capital">
+              {t("application.purposes.workingCapital")}
+            </option>
+            <option value="equipment">
+              {t("application.purposes.equipment")}
+            </option>
+            <option value="refinance">
+              {t("application.purposes.refinance")}
+            </option>
+          </SelectField>
+        ) : (
+          <TextField
+            name="purpose"
+            label={t("application.fields.purpose")}
+            value={values.purpose}
+            onChange={(event) => change("purpose", event.target.value)}
+            required
+            error={fieldError("purpose")}
+            autoComplete="off"
+          />
+        )}
         <TextareaField
           name="comment"
           label={t("application.fields.comment")}
@@ -185,15 +262,26 @@ export function CreditRequestForm({ availableCompanies, availableProducts, hasCr
             </Button>
             <Button
               loading={submitting}
-              disabled={(availableCompanies !== undefined && availableCompanies.length === 0) || hasCreditProducts === false}
+              disabled={
+                (availableCompanies !== undefined &&
+                  availableCompanies.length === 0) ||
+                hasCreditProducts === false
+              }
               onClick={() => {
                 if (!confirmation) return;
                 setSubmitting(true);
                 setSubmitError(false);
-                void (onConfirm ? onConfirm(confirmation, selectedProductId || undefined) : Promise.resolve()).then(() => {
-                  setConfirmation(null);
-                  setConfirmed(true);
-                }).catch(() => setSubmitError(true)).finally(() => setSubmitting(false));
+                void (
+                  onConfirm
+                    ? onConfirm(confirmation, selectedProductId || undefined)
+                    : Promise.resolve()
+                )
+                  .then(() => {
+                    setConfirmation(null);
+                    setConfirmed(true);
+                  })
+                  .catch(() => setSubmitError(true))
+                  .finally(() => setSubmitting(false));
               }}
             >
               {t("application.actions.confirm")}

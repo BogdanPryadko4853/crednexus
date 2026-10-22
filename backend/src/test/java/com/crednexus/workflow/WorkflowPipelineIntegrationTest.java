@@ -45,6 +45,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.http.MediaType;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -58,6 +66,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
+@AutoConfigureMockMvc
 @Testcontainers
 @TestPropertySource(properties = "spring.task.scheduling.enabled=false")
 class WorkflowPipelineIntegrationTest {
@@ -87,6 +96,8 @@ class WorkflowPipelineIntegrationTest {
     @Autowired private AgreementSigningJobWorker agreementSigningJobWorker;
     @Autowired private DisbursementJobWorker disbursementJobWorker;
     @Autowired private EntityManager entityManager;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private com.crednexus.contract.service.ContractFulfillmentService fulfillmentService;
 
     @DynamicPropertySource
     static void configureDataSource(DynamicPropertyRegistry registry) {
@@ -115,6 +126,34 @@ class WorkflowPipelineIntegrationTest {
                 .extracting(history -> history.getToStatus())
                 .containsSequence(LoanApplicationStatus.SUBMITTED, LoanApplicationStatus.VERIFYING,
                         LoanApplicationStatus.SCORING, LoanApplicationStatus.OFFERED);
+    }
+
+    @Test
+    void mlProfileRoundTripsThroughRealMvcSerializationAndPostgres() throws Exception {
+        LoanApplication application = createSubmittedApplication("7701234500", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+        jdbcTemplate.update("UPDATE loan_applications SET status = 'DRAFT' WHERE id = ?", application.getId());
+        var user = application.getCreatedBy();
+        var auth = jwt().jwt(token -> token.subject(user.getKeycloakId()).claim("email", user.getEmail()).claim("name", user.getFullName()));
+        String endpoint = "/api/loan-applications/" + application.getId() + "/ml-scoring-profile";
+        mockMvc.perform(put(endpoint).with(auth).contentType(MediaType.APPLICATION_JSON).content("""
+                {"profile":{"as_of_month":"2026-09-01","company":{"sector":"retail"},
+                "history":[{"month":"2026-07-01","sales":1000},{"month":"2026-08-01","sales":null},{"month":"2026-09-01","sales":0}],
+                "financial_snapshot":{"month":"2026-09-01"}}}
+                """))
+                .andExpect(MockMvcResultMatchers.status().isOk()).andExpect(jsonPath("$.company.sector").value("retail"));
+        mockMvc.perform(get(endpoint).with(auth)).andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(jsonPath("$.history[0].sales").value(1000))
+                .andExpect(jsonPath("$.history[2].sales").value(0));
+    }
+
+    @Test
+    void readsFulfillmentWithoutWriteLocksInReadOnlyTransaction() {
+        LoanApplication application = createSubmittedApplication("7701234500", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+        assertThat(invokeAs(application.getCreatedBy().getKeycloakId(), () -> {
+            assertThat(fulfillmentService.get(application.getId()).applicationStatus()).isEqualTo(LoanApplicationStatus.SUBMITTED);
+        })).isEqualTo("OK");
     }
 
     @Test

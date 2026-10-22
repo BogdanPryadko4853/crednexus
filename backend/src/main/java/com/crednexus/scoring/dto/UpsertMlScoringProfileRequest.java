@@ -1,6 +1,6 @@
 package com.crednexus.scoring.dto;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Map;
 import jakarta.validation.constraints.NotNull;
 
-public record UpsertMlScoringProfileRequest(@NotNull JsonNode profile) { }
+public record UpsertMlScoringProfileRequest(@NotNull Map<String, Object> profile) { }

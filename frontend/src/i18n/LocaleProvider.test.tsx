@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import { CreditApplicationPage } from "../features/credit-application";
+import { CreditRequestForm } from "../features/credit-application/ui/CreditRequestForm";
 import { LocaleProvider } from "./LocaleProvider";
 import { createTranslator, catalogs } from "./catalog";
 
@@ -27,7 +27,7 @@ describe("Localization", () => {
     const { rerender } = render(
       <MemoryRouter>
         <LocaleProvider locale="ru">
-          <CreditApplicationPage />
+          <CreditRequestForm />
         </LocaleProvider>
       </MemoryRouter>,
     );
@@ -39,7 +39,7 @@ describe("Localization", () => {
     rerender(
       <MemoryRouter>
         <LocaleProvider locale="en">
-          <CreditApplicationPage />
+          <CreditRequestForm />
         </LocaleProvider>
       </MemoryRouter>,
     );

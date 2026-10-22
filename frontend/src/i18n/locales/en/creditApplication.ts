@@ -1,6 +1,7 @@
 import type { creditApplication as ru } from "../ru/creditApplication.ts";
 
 export const creditApplication = {
+  "application.purposes.refinance": "Refinancing",
   "application.eyebrow": "Business lending",
   "application.title": "Financing application",
   "application.intro": "Enter your company details and loan requirements.",
@@ -63,10 +64,13 @@ export const creditApplication = {
   "application.draftSave": "Save changes",
   "application.draftSaved": "Changes saved",
   "application.submitErrorTitle": "Unable to submit application",
-  "application.submitErrorDescription": "Complete the financial data and try again.",
-  "application.progressTerminal": "There are no further actions for this application.",
+  "application.submitErrorDescription":
+    "Complete the financial data and try again.",
+  "application.progressTerminal":
+    "There are no further actions for this application.",
   "application.financialTitle": "Financial data",
-  "application.financialDescription": "Complete the data required to submit the application.",
+  "application.financialDescription":
+    "Complete the data required to submit the application.",
   "application.financial.annualRevenue": "Annual revenue, ₽",
   "application.financial.annualExpenses": "Annual expenses, ₽",
   "application.financial.existingDebt": "Existing debt, ₽",
@@ -95,9 +99,11 @@ export const creditApplication = {
   "application.apiErrorTitle": "Unable to load data",
   "application.apiErrorDescription": "Check the connection and try again.",
   "application.companyUnavailableTitle": "No available company",
-  "application.companyUnavailableDescription": "Add a company with application permission first.",
+  "application.companyUnavailableDescription":
+    "Add a company with application permission first.",
   "application.productUnavailableTitle": "No available credit product",
-  "application.productUnavailableDescription": "Credit products are not configured yet.",
+  "application.productUnavailableDescription":
+    "Credit products are not configured yet.",
   "application.retry": "Retry",
   "application.refresh": "Refresh",
   "application.documentsEmpty": "No documents uploaded yet",
