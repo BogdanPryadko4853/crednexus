@@ -54,9 +54,11 @@ export function CreditApplicationPage() {
           {loadError && <Alert tone="negative" title={t("application.apiErrorTitle")}>{t("application.apiErrorDescription")}</Alert>}
           {!options && !loadError && <PageState kind="loading" title={t("application.loadingTitle")} />}
           <CreditRequestForm
-            availableCompanies={options?.companies}
-            hasCreditProducts={options ? options.products.length > 0 : undefined}
-            onConfirm={options ? submitDraft : undefined}
+            {...(options ? {
+              availableCompanies: options.companies,
+              hasCreditProducts: options.products.length > 0,
+              onConfirm: submitDraft,
+            } : {})}
           />
         </Card>
         <aside
