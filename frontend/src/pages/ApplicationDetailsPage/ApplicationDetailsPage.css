@@ -5,14 +5,18 @@
 .application-details__summary dt { color: var(--color-text-muted); font-size: 0.875rem; }
 .application-details__summary dd { margin: 0.25rem 0 0; font-weight: 600; }
 .application-progress { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; padding: 0; margin: 0 0 1.5rem; list-style: none; }
-.application-progress li { display: grid; gap: 0.5rem; color: var(--color-text-muted); font-size: 0.8rem; }
-.application-progress span { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-surface-muted); }
-.application-progress .is-active { color: var(--color-text); }
-.application-progress .is-active span { color: #fff; background: var(--color-primary); }
+.application-progress li { display: grid; gap: 0.5rem; color: var(--color-text-secondary); font-size: 0.8rem; }
+.application-progress span { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-background); }
+.application-progress .is-current { color: var(--color-text); font-weight: 600; }
+.application-progress .is-current span { color: var(--color-surface); background: var(--color-action); }
+.application-progress .is-complete { color: var(--color-positive); }
+.application-progress .is-complete span { color: var(--color-positive); background: var(--color-positive-soft); }
 @media (max-width: 700px) { .application-details__summary { grid-template-columns: 1fr; } .application-progress { grid-template-columns: 1fr; } .application-progress li { grid-template-columns: 2rem 1fr; align-items: center; } }
 .application-financial-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem; }
 .application-requests, .application-document-list { display: grid; gap: 1rem; padding: 0; margin: 0; list-style: none; }
 .application-request { display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: .75rem; }
 .application-document-upload, .application-offer-actions { display: flex; align-items: end; gap: 1rem; margin-bottom: 1rem; }
 .application-document-list li { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--color-border); }
+.application-document-link { padding: 0; border: 0; color: var(--color-primary); background: transparent; cursor: pointer; font: inherit; text-align: left; }
+.application-document-link:hover { text-decoration: underline; }
 @media (max-width: 700px) { .application-financial-grid { grid-template-columns: 1fr; } .application-document-upload, .application-offer-actions { align-items: stretch; flex-direction: column; } }
