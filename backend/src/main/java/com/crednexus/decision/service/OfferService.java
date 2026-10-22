@@ -42,12 +42,12 @@ public class OfferService {
         this.workflowJobService = workflowJobService;
     }
 
-    @Transactional(noRollbackFor = ResponseStatusException.class)
+    @Transactional(noRollbackFor = OfferExpiredException.class)
     public OfferActionResponse accept(UUID applicationId) {
         return act(applicationId, CreditOfferStatus.ACCEPTED);
     }
 
-    @Transactional(noRollbackFor = ResponseStatusException.class)
+    @Transactional(noRollbackFor = OfferExpiredException.class)
     public OfferActionResponse decline(UUID applicationId) {
         return act(applicationId, CreditOfferStatus.DECLINED);
     }
@@ -83,7 +83,7 @@ public class OfferService {
             offer.expire();
             workflowService.transition(application, LoanApplicationStatus.EXPIRED, null,
                     "Срок действия кредитного предложения истёк");
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Credit offer has expired");
+            throw new OfferExpiredException();
         }
         if (targetStatus == CreditOfferStatus.ACCEPTED) {
             offer.accept();

@@ -87,10 +87,6 @@ class VerificationServiceTest {
         }).when(workflowService).transition(application, LoanApplicationStatus.VERIFYING, employee);
         when(taxServiceMock.verify(application.getCompany())).thenReturn(successOutcome());
         when(creditBureauMock.verify(application.getCompany())).thenReturn(successOutcome());
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.TAX_SERVICE))
-                .thenReturn(0L);
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.CREDIT_BUREAU))
-                .thenReturn(0L);
         when(verificationResultRepository.save(any(VerificationResult.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -122,8 +118,6 @@ class VerificationServiceTest {
         when(verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(
                 applicationId, VerificationType.CREDIT_BUREAU
         )).thenReturn(Optional.of(bureauSuccess));
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.TAX_SERVICE))
-                .thenReturn(1L);
         when(taxServiceMock.verify(application.getCompany())).thenReturn(successOutcome());
         when(verificationResultRepository.save(any(VerificationResult.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -148,10 +142,6 @@ class VerificationServiceTest {
         }).when(workflowService).transition(application, LoanApplicationStatus.VERIFYING, employee);
         doThrow(new IllegalStateException("timeout")).when(taxServiceMock).verify(application.getCompany());
         when(creditBureauMock.verify(application.getCompany())).thenReturn(successOutcome());
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.TAX_SERVICE))
-                .thenReturn(0L);
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.CREDIT_BUREAU))
-                .thenReturn(0L);
         when(verificationResultRepository.save(any(VerificationResult.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -163,7 +153,7 @@ class VerificationServiceTest {
     }
 
     @Test
-    void rejectsRetryAfterMaximumAttemptCount() {
+    void retainsTechnicalRetryResponsibilityInWorkflowJob() {
         UUID applicationId = UUID.randomUUID();
         LoanApplication application = application(applicationId, LoanApplicationStatus.VERIFYING);
         when(currentUserProvider.getCurrentUser()).thenReturn(user("employee"));
@@ -174,15 +164,11 @@ class VerificationServiceTest {
         when(verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(
                 applicationId, VerificationType.CREDIT_BUREAU
         )).thenReturn(Optional.of(result(application, VerificationType.CREDIT_BUREAU, VerificationStatus.ERROR)));
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.TAX_SERVICE))
-                .thenReturn(3L);
-        when(verificationResultRepository.countByApplication_IdAndType(applicationId, VerificationType.CREDIT_BUREAU))
-                .thenReturn(3L);
+        when(taxServiceMock.verify(application.getCompany())).thenReturn(successOutcome());
+        when(creditBureauMock.verify(application.getCompany())).thenReturn(successOutcome());
+        when(verificationResultRepository.save(any(VerificationResult.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> verificationService.runVerifications(applicationId))
-                .isInstanceOfSatisfying(ResponseStatusException.class, exception ->
-                        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.CONFLICT)
-                );
+        assertThat(verificationService.runVerifications(applicationId).results()).hasSize(2);
     }
 
     private MockVerificationOutcome successOutcome() {

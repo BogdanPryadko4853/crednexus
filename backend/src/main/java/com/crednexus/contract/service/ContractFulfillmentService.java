@@ -82,6 +82,21 @@ public class ContractFulfillmentService {
                 "Выдача средств смоделирована");
     }
 
+    @Transactional
+    public void retryFulfillment(UUID applicationId) {
+        LoanApplication application = application(applicationId);
+        if (application.getStatus() == LoanApplicationStatus.ACCEPTED) {
+            workflowJobService.enqueueAgreementSigning(application);
+            return;
+        }
+        if (application.getStatus() == LoanApplicationStatus.AGREEMENT_PENDING) {
+            workflowJobService.enqueueDisbursement(application);
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                "Fulfillment can only be retried for accepted applications or pending agreements");
+    }
+
     @Transactional(readOnly = true)
     public FulfillmentResponse get(UUID applicationId) {
         LoanApplication application = applicationRepository.findById(applicationId)

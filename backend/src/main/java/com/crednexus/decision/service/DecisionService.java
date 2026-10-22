@@ -89,6 +89,16 @@ public class DecisionService {
                     "Отрицательный бизнес-результат проверки не допускает автоматического решения");
             return;
         }
+        if (!hasSuccessfulMandatoryVerifications(applicationId)) {
+            workflowService.transition(application, LoanApplicationStatus.MANUAL_REVIEW, null,
+                    "Для автоматического решения требуются успешные результаты ФНС и БКИ");
+            return;
+        }
+        if (!productSupportsRequestedTerms(application)) {
+            workflowService.transition(application, LoanApplicationStatus.MANUAL_REVIEW, null,
+                    "Параметры заявки не соответствуют актуальным условиям кредитного продукта");
+            return;
+        }
         DecisionOutput output = decisionPolicy.evaluate(new DecisionInput(
                 application.getId(),
                 application.getRequestedAmount(),
@@ -109,6 +119,26 @@ public class DecisionService {
             }
         }
         return false;
+    }
+
+    private boolean hasSuccessfulMandatoryVerifications(UUID applicationId) {
+        for (VerificationType type : VerificationType.values()) {
+            boolean successful = verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(applicationId, type)
+                    .map(result -> result.getStatus() == VerificationStatus.SUCCESS
+                            && "SUCCESS".equals(result.getPayload().get("outcome")))
+                    .orElse(false);
+            if (!successful) return false;
+        }
+        return true;
+    }
+
+    private boolean productSupportsRequestedTerms(LoanApplication application) {
+        var product = application.getProduct();
+        return product.isActive()
+                && application.getRequestedAmount().compareTo(product.getMinAmount()) >= 0
+                && application.getRequestedAmount().compareTo(product.getMaxAmount()) <= 0
+                && application.getTermMonths() >= product.getMinTermMonths()
+                && application.getTermMonths() <= product.getMaxTermMonths();
     }
 
     @Transactional(readOnly = true)

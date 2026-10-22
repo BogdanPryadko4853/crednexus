@@ -1,11 +1,13 @@
 package com.crednexus.application.controller;
 
 import com.crednexus.application.dto.CreateLoanApplicationRequest;
+import com.crednexus.application.dto.ApplicationStatusHistoryResponse;
 import com.crednexus.application.dto.FinancialSnapshotResponse;
 import com.crednexus.application.dto.LoanApplicationResponse;
 import com.crednexus.application.dto.UpsertFinancialSnapshotRequest;
 import com.crednexus.application.dto.UpdateLoanApplicationRequest;
 import com.crednexus.application.service.FinancialSnapshotService;
+import com.crednexus.application.service.ApplicationHistoryService;
 import com.crednexus.application.service.LoanApplicationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,13 +37,16 @@ public class LoanApplicationController {
 
     private final LoanApplicationService loanApplicationService;
     private final FinancialSnapshotService financialSnapshotService;
+    private final ApplicationHistoryService applicationHistoryService;
 
     public LoanApplicationController(
             LoanApplicationService loanApplicationService,
-            FinancialSnapshotService financialSnapshotService
+            FinancialSnapshotService financialSnapshotService,
+            ApplicationHistoryService applicationHistoryService
     ) {
         this.loanApplicationService = loanApplicationService;
         this.financialSnapshotService = financialSnapshotService;
+        this.applicationHistoryService = applicationHistoryService;
     }
 
     @PostMapping("/companies/{companyId}/loan-applications")
@@ -92,6 +97,14 @@ public class LoanApplicationController {
             @Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId
     ) {
         return loanApplicationService.getApplication(applicationId);
+    }
+
+    @GetMapping("/loan-applications/{applicationId}/history")
+    @Operation(summary = "Получить историю статусов заявки", description = "Возвращает хронологию переходов статусов активному представителю компании. Технические детали внутренних сбоев не раскрываются.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "История получена"), @ApiResponse(responseCode = "403", description = "Нет доступа к компании"), @ApiResponse(responseCode = "404", description = "Заявка не найдена")})
+    public List<ApplicationStatusHistoryResponse> getHistory(
+            @Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId) {
+        return applicationHistoryService.getHistory(applicationId);
     }
 
     @PatchMapping("/loan-applications/{applicationId}")

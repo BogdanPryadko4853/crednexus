@@ -4,6 +4,7 @@ import com.crednexus.decision.dto.CreditDecisionResponse;
 import com.crednexus.manualreview.dto.CreateInformationRequest;
 import com.crednexus.manualreview.dto.ManualDecisionRequest;
 import com.crednexus.manualreview.dto.ManualReviewApplicationResponse;
+import com.crednexus.manualreview.dto.ManualReviewDetailsResponse;
 import com.crednexus.manualreview.service.ManualReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +42,13 @@ public class ManualReviewController {
     @Operation(summary = "Получить заявку для ручного рассмотрения", description = "Возвращает основные данные заявки сотруднику банка.")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "Заявка получена"), @ApiResponse(responseCode = "403", description = "Недостаточно прав сотрудника"), @ApiResponse(responseCode = "404", description = "Заявка не найдена")})
     public ManualReviewApplicationResponse application(@Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId) { return service.getApplication(applicationId); }
+
+    @GetMapping("/{applicationId}/details")
+    @Operation(summary = "Получить полную карточку ручного рассмотрения", description = "Возвращает сотруднику компании, финансы, проверки, скоринг, документы, запросы уточнений, историю и предыдущие решения. Доступно только ADMIN и BANK_EMPLOYEE.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Карточка получена"), @ApiResponse(responseCode = "403", description = "Недостаточно прав сотрудника"), @ApiResponse(responseCode = "404", description = "Заявка не найдена")})
+    public ManualReviewDetailsResponse details(@Parameter(description = "Идентификатор заявки", required = true) @PathVariable UUID applicationId) {
+        return service.getDetails(applicationId);
+    }
 
     @PostMapping("/{applicationId}/decision")
     @Operation(summary = "Принять ручное решение", description = "Одобряет, отклоняет или формирует контрпредложение для заявки в MANUAL_REVIEW. Решение, оффер, статус и история сохраняются атомарно.")

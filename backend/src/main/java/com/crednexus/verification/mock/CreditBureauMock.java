@@ -4,12 +4,17 @@ import com.crednexus.company.entity.Company;
 import com.crednexus.verification.entity.VerificationStatus;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CreditBureauMock {
 
     public MockVerificationOutcome verify(Company company) {
+        return verify(company, Set.of());
+    }
+
+    public MockVerificationOutcome verify(Company company, Set<String> satisfiedRequirements) {
         return switch (penultimateDigit(company.getInn())) {
             case 0, 1, 2, 3, 4 -> success("POSITIVE", false, "GOOD", "Кредитная история получена");
             case 5 -> success("ADVERSE", true, "POOR", "Обнаружены неблагоприятные факторы кредитной истории");
@@ -21,14 +26,7 @@ public class CreditBureauMock {
                     "missingFields", List.of(),
                     "message", "Сведения БКИ не прошли бизнес-проверку"
             ));
-            case 7 -> new MockVerificationOutcome(VerificationStatus.SUCCESS, Map.of(
-                    "outcome", "NEEDS_INFO",
-                    "creditHistory", "UNKNOWN",
-                    "hasOverdue", false,
-                    "paymentDiscipline", "UNKNOWN",
-                    "missingFields", List.of("consentToCreditHistoryCheck"),
-                    "message", "Для проверки БКИ требуются дополнительные сведения"
-            ));
+            case 7 -> consentOutcome(satisfiedRequirements);
             default -> new MockVerificationOutcome(VerificationStatus.ERROR, Map.of(
                     "outcome", "ERROR",
                     "errorCode", "MOCK_TIMEOUT",
@@ -55,5 +53,16 @@ public class CreditBureauMock {
 
     private int penultimateDigit(String inn) {
         return Character.digit(inn.charAt(inn.length() - 2), 10);
+    }
+
+    private MockVerificationOutcome consentOutcome(Set<String> satisfiedRequirements) {
+        if (satisfiedRequirements.contains("consentToCreditHistoryCheck")) {
+            return success("POSITIVE", false, "GOOD", "Согласие на проверку кредитной истории получено");
+        }
+        return new MockVerificationOutcome(VerificationStatus.SUCCESS, Map.of(
+                "outcome", "NEEDS_INFO", "creditHistory", "UNKNOWN", "hasOverdue", false,
+                "paymentDiscipline", "UNKNOWN", "missingFields", List.of("consentToCreditHistoryCheck"),
+                "message", "Для проверки БКИ требуются дополнительные сведения"
+        ));
     }
 }

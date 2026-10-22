@@ -5,5 +5,5 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record InformationRequestResponse(UUID id, String question, InformationRequestStatus status, String answer,
-                                         Instant answeredAt) {
+                                         Instant answeredAt, String requirementCode, boolean requiresDocument) {
 }

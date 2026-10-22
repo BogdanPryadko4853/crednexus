@@ -10,6 +10,9 @@ import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.entity.LoanApplicationStatus;
 import com.crednexus.application.repository.InformationRequestRepository;
 import com.crednexus.application.repository.LoanApplicationRepository;
+import com.crednexus.application.repository.FinancialSnapshotRepository;
+import com.crednexus.application.repository.DocumentRepository;
+import com.crednexus.application.repository.ApplicationStatusHistoryRepository;
 import com.crednexus.auth.entity.User;
 import com.crednexus.auth.service.CurrentUserProvider;
 import com.crednexus.company.entity.Company;
@@ -21,6 +24,8 @@ import com.crednexus.decision.repository.CreditOfferRepository;
 import com.crednexus.manualreview.dto.ManualDecisionAction;
 import com.crednexus.manualreview.dto.ManualDecisionRequest;
 import com.crednexus.product.entity.CreditProduct;
+import com.crednexus.scoring.repository.ScoringResultRepository;
+import com.crednexus.verification.repository.VerificationResultRepository;
 import com.crednexus.workflow.service.WorkflowJobService;
 import com.crednexus.workflow.service.WorkflowService;
 import java.math.BigDecimal;
@@ -43,6 +48,11 @@ class ManualReviewServiceTest {
     @Mock private CurrentUserProvider users;
     @Mock private WorkflowService workflow;
     @Mock private WorkflowJobService jobs;
+    @Mock private FinancialSnapshotRepository financialSnapshots;
+    @Mock private VerificationResultRepository verifications;
+    @Mock private ScoringResultRepository scorings;
+    @Mock private DocumentRepository documents;
+    @Mock private ApplicationStatusHistoryRepository statusHistory;
 
     @Test
     void createsCounterOfferAndExpirationJob() {
@@ -64,7 +74,8 @@ class ManualReviewServiceTest {
     }
 
     private ManualReviewService service() {
-        return new ManualReviewService(applications, informationRequests, decisions, offers, users, workflow, jobs, Duration.ofDays(7));
+        return new ManualReviewService(applications, informationRequests, decisions, offers, users, workflow, jobs, Duration.ofDays(7),
+                financialSnapshots, verifications, scorings, documents, statusHistory);
     }
 
     private LoanApplication application(UUID id) {

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,14 +41,18 @@ public class DocumentController {
 
     @GetMapping("/loan-applications/{applicationId}/documents")
     @Operation(summary = "Получить документы заявки", description = "Возвращает метаданные документов активному представителю компании.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Метаданные документов получены"), @ApiResponse(responseCode = "401", description = "JWT отсутствует, недействителен или истёк"), @ApiResponse(responseCode = "403", description = "Нет доступа к компании"), @ApiResponse(responseCode = "404", description = "Заявка не найдена")})
     public List<DocumentResponse> list(@PathVariable UUID applicationId) {
         return service.list(applicationId);
     }
 
     @GetMapping("/documents/{documentId}/download")
     @Operation(summary = "Скачать документ", description = "Передаёт файл через backend после проверки доступа к компании заявки.")
+    @ApiResponses({@ApiResponse(responseCode = "200", description = "Файл передан"), @ApiResponse(responseCode = "401", description = "JWT отсутствует, недействителен или истёк"), @ApiResponse(responseCode = "403", description = "Нет доступа к документу"), @ApiResponse(responseCode = "404", description = "Документ не найден"), @ApiResponse(responseCode = "502", description = "Хранилище недоступно")})
     public ResponseEntity<InputStreamResource> download(@PathVariable UUID documentId) {
         var d = service.download(documentId);
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(d.contentType())).contentLength(d.size()).header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + d.fileName() + "\"").body(new InputStreamResource(d.stream()));
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(d.contentType())).contentLength(d.size())
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(d.fileName()).build().toString())
+                .body(new InputStreamResource(d.stream()));
     }
 }

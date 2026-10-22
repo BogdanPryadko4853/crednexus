@@ -24,6 +24,9 @@ import com.crednexus.scoring.entity.RiskLevel;
 import com.crednexus.scoring.entity.ScoringResult;
 import com.crednexus.scoring.repository.ScoringResultRepository;
 import com.crednexus.verification.repository.VerificationResultRepository;
+import com.crednexus.verification.entity.VerificationResult;
+import com.crednexus.verification.entity.VerificationStatus;
+import com.crednexus.verification.entity.VerificationType;
 import com.crednexus.workflow.service.WorkflowService;
 import com.crednexus.workflow.service.WorkflowJobService;
 import java.math.BigDecimal;
@@ -106,6 +109,7 @@ class DecisionServiceTest {
         ScoringResult scoring = scoring(application, RiskLevel.LOW);
         when(loanApplicationRepository.findByIdForUpdate(applicationId)).thenReturn(Optional.of(application));
         when(scoringResultRepository.findTopByApplication_IdOrderByCalculatedAtDesc(applicationId)).thenReturn(Optional.of(scoring));
+        successfulVerifications(applicationId, application);
         when(decisionPolicy.evaluate(any())).thenReturn(new DecisionOutput(
                 DecisionAction.OFFER,
                 DecisionType.APPROVED,
@@ -136,6 +140,7 @@ class DecisionServiceTest {
         when(loanApplicationRepository.findByIdForUpdate(applicationId)).thenReturn(Optional.of(application));
         when(scoringResultRepository.findTopByApplication_IdOrderByCalculatedAtDesc(applicationId))
                 .thenReturn(Optional.of(scoring(application, RiskLevel.MEDIUM)));
+        successfulVerifications(applicationId, application);
         when(decisionPolicy.evaluate(any())).thenReturn(new DecisionOutput(
                 DecisionAction.MANUAL_REVIEW, null, "Ручное рассмотрение", null, "mock-policy-v1"
         ));
@@ -164,5 +169,13 @@ class DecisionServiceTest {
 
     private ScoringResult scoring(LoanApplication application, RiskLevel riskLevel) {
         return new ScoringResult(application, 75, riskLevel, Map.of("mock", true), "mock-v1", Instant.now());
+    }
+
+    private void successfulVerifications(UUID applicationId, LoanApplication application) {
+        for (VerificationType type : VerificationType.values()) {
+            when(verificationResultRepository.findTopByApplication_IdAndTypeOrderByCheckedAtDesc(applicationId, type))
+                    .thenReturn(Optional.of(new VerificationResult(application, type, VerificationStatus.SUCCESS, "mock",
+                            Map.of("outcome", "SUCCESS"), Instant.now())));
+        }
     }
 }

@@ -3,6 +3,10 @@ package com.crednexus.workflow;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.crednexus.application.entity.FinancialSnapshot;
+import com.crednexus.application.entity.InformationRequestStatus;
+import com.crednexus.application.repository.InformationRequestRepository;
+import com.crednexus.application.service.InformationRequestService;
+import com.crednexus.application.dto.AnswerInformationRequest;
 import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.entity.LoanApplicationStatus;
 import com.crednexus.application.repository.ApplicationStatusHistoryRepository;
@@ -68,6 +72,8 @@ class WorkflowPipelineIntegrationTest {
     @Autowired private CreditProductRepository creditProductRepository;
     @Autowired private LoanApplicationRepository loanApplicationRepository;
     @Autowired private FinancialSnapshotRepository financialSnapshotRepository;
+    @Autowired private InformationRequestRepository informationRequestRepository;
+    @Autowired private InformationRequestService informationRequestService;
     @Autowired private ApplicationStatusHistoryRepository historyRepository;
     @Autowired private CreditDecisionRepository creditDecisionRepository;
     @Autowired private CreditOfferRepository creditOfferRepository;
@@ -131,6 +137,31 @@ class WorkflowPipelineIntegrationTest {
 
         assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.MANUAL_REVIEW);
         assertThat(creditDecisionRepository.count()).isZero();
+    }
+
+    @Test
+    void requestsInformationThenResumesPipelineAfterClientAnswer() {
+        LoanApplication application = createSubmittedApplication("7701234570", new BigDecimal("10000000"),
+                new BigDecimal("6000000"), BigDecimal.ZERO, BigDecimal.ZERO, new BigDecimal("1000000"));
+
+        verificationJobWorker.poll();
+
+        assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.NEEDS_INFO);
+        var request = informationRequestRepository.findAllByApplication_IdOrderByIdDesc(application.getId()).getFirst();
+        assertThat(request.getStatus()).isEqualTo(InformationRequestStatus.OPEN);
+        assertThat(request.isRequiresDocument()).isFalse();
+        assertThat(request.getRequirementCode()).isEqualTo("consentToCreditHistoryCheck");
+
+        assertThat(invokeAs(application.getCreatedBy().getKeycloakId(),
+                () -> informationRequestService.answer(application.getId(), request.getId(),
+                        new AnswerInformationRequest("Согласие предоставлено")))).isEqualTo("OK");
+        verificationJobWorker.poll();
+        scoringJobWorker.poll();
+        decisionJobWorker.poll();
+
+        assertThat(status(application.getId())).isEqualTo(LoanApplicationStatus.OFFERED);
+        assertThat(informationRequestRepository.findById(request.getId()).orElseThrow().getStatus())
+                .isEqualTo(InformationRequestStatus.ANSWERED);
     }
 
     @Test

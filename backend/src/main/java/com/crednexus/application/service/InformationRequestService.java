@@ -64,6 +64,12 @@ public class InformationRequestService {
         if (request.getStatus() != InformationRequestStatus.OPEN) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Information request is not open");
         }
+        if (request.isRequiresDocument()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A document is required for this information request");
+        }
+        if (answer.answer() == null || answer.answer().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Information request answer must not be blank");
+        }
         request.answer(answer.answer(), Instant.now());
         if (!requestRepository.existsByApplication_IdAndStatus(applicationId, InformationRequestStatus.OPEN)) {
             workflowService.transition(application, LoanApplicationStatus.SUBMITTED, user, "Клиент ответил на все запросы уточнений");
@@ -86,6 +92,7 @@ public class InformationRequestService {
     }
 
     private InformationRequestResponse response(InformationRequest request) {
-        return new InformationRequestResponse(request.getId(), request.getQuestion(), request.getStatus(), request.getAnswer(), request.getAnsweredAt());
+        return new InformationRequestResponse(request.getId(), request.getQuestion(), request.getStatus(), request.getAnswer(), request.getAnsweredAt(),
+                request.getRequirementCode(), request.isRequiresDocument());
     }
 }

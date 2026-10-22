@@ -13,7 +13,7 @@ public record UpsertFinancialSnapshotRequest(
         @NotNull @DecimalMin("0.00") @Digits(integer = 17, fraction = 2) BigDecimal annualExpenses,
         @NotNull @DecimalMin("0.00") @Digits(integer = 17, fraction = 2) BigDecimal existingDebt,
         @NotNull @DecimalMin("0.00") @Digits(integer = 17, fraction = 2) BigDecimal monthlyPayments,
-        @NotNull @Min(1) Integer employeeCount,
+        @NotNull @Min(0) Integer employeeCount,
         @NotBlank @Size(max = 255) String period
 ) {
 }

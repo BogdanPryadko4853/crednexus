@@ -48,6 +48,8 @@ public class SecurityConfig {
                         .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
                         .requestMatchers(HttpMethod.POST, "/api/loan-applications/*/verifications/run")
                         .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
+                        .requestMatchers(HttpMethod.POST, "/api/loan-applications/*/fulfillment/retry")
+                        .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
                         .requestMatchers("/api/manual-review/**")
                         .hasAnyRole("ADMIN", "BANK_EMPLOYEE")
                         .anyRequest().authenticated()

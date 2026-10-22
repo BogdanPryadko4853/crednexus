@@ -1,6 +1,9 @@
 package com.crednexus.verification.service;
 
+import com.crednexus.application.entity.InformationRequest;
 import com.crednexus.application.entity.LoanApplication;
+import com.crednexus.application.entity.InformationRequestStatus;
+import com.crednexus.application.repository.InformationRequestRepository;
 import com.crednexus.application.entity.LoanApplicationStatus;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.auth.entity.User;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -34,8 +38,6 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class VerificationService {
 
-    private static final int MAX_ATTEMPTS = 3;
-
     private final LoanApplicationRepository loanApplicationRepository;
     private final VerificationResultRepository verificationResultRepository;
     private final WorkflowService workflowService;
@@ -44,6 +46,7 @@ public class VerificationService {
     private final CreditBureauMock creditBureauMock;
     private final WorkflowJobService workflowJobService;
     private final CompanyMemberRepository companyMemberRepository;
+    private final InformationRequestRepository informationRequestRepository;
 
     public VerificationService(
             LoanApplicationRepository loanApplicationRepository,
@@ -51,7 +54,8 @@ public class VerificationService {
             WorkflowService workflowService,
             CurrentUserProvider currentUserProvider,
             TaxServiceMock taxServiceMock,
-            CreditBureauMock creditBureauMock, WorkflowJobService workflowJobService, CompanyMemberRepository companyMemberRepository
+            CreditBureauMock creditBureauMock, WorkflowJobService workflowJobService, CompanyMemberRepository companyMemberRepository,
+            InformationRequestRepository informationRequestRepository
     ) {
         this.loanApplicationRepository = loanApplicationRepository;
         this.verificationResultRepository = verificationResultRepository;
@@ -61,6 +65,7 @@ public class VerificationService {
         this.creditBureauMock = creditBureauMock;
         this.workflowJobService = workflowJobService;
         this.companyMemberRepository = companyMemberRepository;
+        this.informationRequestRepository = informationRequestRepository;
     }
 
     @Transactional
@@ -115,7 +120,7 @@ public class VerificationService {
                 application,
                 VerificationType.TAX_SERVICE,
                 "mock-fns",
-                () -> taxServiceMock.verify(application.getCompany()),
+                () -> verifyTaxService(application),
                 initialRun,
                 results
         );
@@ -123,7 +128,7 @@ public class VerificationService {
                 application,
                 VerificationType.CREDIT_BUREAU,
                 "mock-bki",
-                () -> creditBureauMock.verify(application.getCompany()),
+                () -> verifyCreditBureau(application),
                 initialRun,
                 results
         );
@@ -164,11 +169,6 @@ public class VerificationService {
             return;
         }
 
-        long attempts = verificationResultRepository.countByApplication_IdAndType(application.getId(), type);
-        if (attempts >= MAX_ATTEMPTS) {
-            return;
-        }
-
         MockVerificationOutcome outcome;
         try {
             outcome = verification.get();
@@ -179,7 +179,7 @@ public class VerificationService {
             outcome.payload().put("message", "Техническая ошибка mock-проверки");
         }
 
-        MapWithAttempt payload = withAttempt(outcome, attempts + 1);
+        MapWithAttempt payload = withAttempt(outcome, nextAttemptNumber(application.getId(), type));
         VerificationResult result = verificationResultRepository.save(new VerificationResult(
                 application,
                 type,
@@ -195,6 +195,34 @@ public class VerificationService {
         LinkedHashMap<String, Object> payload = new LinkedHashMap<>(outcome.payload());
         payload.put("attempt", attempt);
         return new MapWithAttempt(payload);
+    }
+
+    private long nextAttemptNumber(UUID applicationId, VerificationType type) {
+        return verificationResultRepository.countByApplication_IdAndType(applicationId, type) + 1;
+    }
+
+    private Set<String> satisfiedRequirements(UUID applicationId, VerificationType type) {
+        if (informationRequestRepository == null) return Set.of();
+        List<com.crednexus.application.entity.InformationRequest> requests = informationRequestRepository
+                .findAllByApplication_IdOrderByIdDesc(applicationId);
+        if (requests == null) return Set.of();
+        return requests.stream()
+                .filter(request -> request.getVerificationType() == type)
+                .filter(request -> request.getStatus() == InformationRequestStatus.ANSWERED)
+                .filter(request -> !request.isRequiresDocument() || request.getAnswer() != null)
+                .map(InformationRequest::getRequirementCode)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+    }
+
+    private MockVerificationOutcome verifyTaxService(LoanApplication application) {
+        Set<String> evidence = satisfiedRequirements(application.getId(), VerificationType.TAX_SERVICE);
+        return evidence.isEmpty() ? taxServiceMock.verify(application.getCompany()) : taxServiceMock.verify(application.getCompany(), evidence);
+    }
+
+    private MockVerificationOutcome verifyCreditBureau(LoanApplication application) {
+        Set<String> evidence = satisfiedRequirements(application.getId(), VerificationType.CREDIT_BUREAU);
+        return evidence.isEmpty() ? creditBureauMock.verify(application.getCompany()) : creditBureauMock.verify(application.getCompany(), evidence);
     }
 
     private VerificationResultResponse toResponse(VerificationResult result) {

@@ -1,6 +1,7 @@
 package com.crednexus.application.entity;
 
 import com.crednexus.auth.entity.User;
+import com.crednexus.verification.entity.VerificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -57,10 +58,33 @@ public class InformationRequest {
     @Setter
     private Instant answeredAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_type")
+    @Setter
+    private VerificationType verificationType;
+
+    @Column(name = "requirement_code")
+    @Setter
+    private String requirementCode;
+
+    @Column(name = "requires_document", nullable = false)
+    @Setter
+    private boolean requiresDocument;
+
     public InformationRequest(LoanApplication application, String question, User requestedBy) {
         this.application = application;
         this.question = question;
         this.requestedBy = requestedBy;
+        this.status = InformationRequestStatus.OPEN;
+    }
+
+    public InformationRequest(LoanApplication application, String question, VerificationType verificationType,
+                              String requirementCode, boolean requiresDocument) {
+        this.application = application;
+        this.question = question;
+        this.verificationType = verificationType;
+        this.requirementCode = requirementCode;
+        this.requiresDocument = requiresDocument;
         this.status = InformationRequestStatus.OPEN;
     }
 
