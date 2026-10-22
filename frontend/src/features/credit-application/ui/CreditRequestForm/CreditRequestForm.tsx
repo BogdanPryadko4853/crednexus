@@ -5,7 +5,6 @@ import {
   Button,
   Icon,
   Modal,
-  SelectField,
   TextareaField,
   TextField,
 } from "../../../../components";
@@ -130,18 +129,15 @@ export function CreditRequestForm({ availableCompanies, hasCreditProducts, onCon
             autoComplete="off"
           />
         </div>
-        <SelectField
+        <TextField
           name="purpose"
           label={t("application.fields.purpose")}
           value={values.purpose}
           onChange={(event) => change("purpose", event.target.value)}
           required
           error={fieldError("purpose")}
-        >
-          <option value="">{t("application.purposes.placeholder")}</option>
-          <option value="working-capital">{t("application.purposes.workingCapital")}</option>
-          <option value="equipment">{t("application.purposes.equipment")}</option>
-        </SelectField>
+          autoComplete="off"
+        />
         <TextareaField
           name="comment"
           label={t("application.fields.comment")}

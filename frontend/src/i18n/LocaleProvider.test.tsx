@@ -55,9 +55,9 @@ describe("Localization", () => {
       screen.getByRole("textbox", { name: "Loan amount, ₽" }),
       "1000",
     );
-    await user.selectOptions(
-      screen.getByRole("combobox", { name: "Financing purpose" }),
-      "equipment",
+    await user.type(
+      screen.getByRole("textbox", { name: "Financing purpose" }),
+      "Equipment purchase",
     );
     await user.click(screen.getByRole("button", { name: "Check details" }));
     expect(

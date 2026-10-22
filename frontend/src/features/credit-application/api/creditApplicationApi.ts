@@ -24,7 +24,13 @@ export type LoanApplicationResponse = CreateDraftRequest & {
   id: string;
   companyId: string;
   status: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
+
+export function loadLoanApplications(api: ApiClient) {
+  return api.request<LoanApplicationResponse[]>("/loan-applications");
+}
 
 export async function loadCreditApplicationOptions(api: ApiClient) {
   const [companies, products] = await Promise.all([
