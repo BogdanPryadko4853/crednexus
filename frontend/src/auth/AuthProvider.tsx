@@ -23,6 +23,7 @@ export function useAuth() {
   );
   return {
     state,
+    api: controller.api,
     login: controller.login,
     logout: controller.logout,
     retry: controller.initialize,

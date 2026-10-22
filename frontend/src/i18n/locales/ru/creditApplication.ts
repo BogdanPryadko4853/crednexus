@@ -44,4 +44,11 @@ export const creditApplication = {
   "application.summary.company": "Компания",
   "application.summary.amount": "Сумма, ₽",
   "application.summary.inn": "ИНН",
+  "application.loadingTitle": "Загружаем данные для заявки",
+  "application.apiErrorTitle": "Не удалось загрузить данные",
+  "application.apiErrorDescription": "Проверьте подключение и повторите попытку.",
+  "application.companyUnavailableTitle": "Нет доступной компании",
+  "application.companyUnavailableDescription": "Сначала добавьте компанию с правом подачи заявки.",
+  "application.productUnavailableTitle": "Нет доступного кредитного продукта",
+  "application.productUnavailableDescription": "Кредитные продукты пока не настроены.",
 } as const;
