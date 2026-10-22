@@ -21,7 +21,8 @@ def main():
         report[target]=result
     unexpected=[name for name in ('catboost','lightgbm','xgboost','torch','sklearn') if name in sys.modules]
     if unexpected:raise RuntimeError(f'Unexpected runtime dependencies: {unexpected}')
-    print(json.dumps({'status':'passed','provider':'CPUExecutionProvider','native_ml_imports':False,'models':report},indent=2))
+    print(json.dumps({'status':'passed','provider':model.runtime.provider,'runtime':model.runtime.as_dict(),
+                      'native_ml_imports':False,'models':report},indent=2))
 
 
 if __name__=='__main__':main()

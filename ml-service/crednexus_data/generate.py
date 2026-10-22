@@ -11,6 +11,9 @@ import time
 import numpy as np
 import pandas as pd
 
+from crednexus_ml.history import history_features
+from crednexus_ml import history as shared_history
+
 from . import __version__
 from .config import Config, MEASURES, SECTORS, annuity, cohorts, macro_path, service_fifo
 from .simulation import economy, observations
@@ -23,33 +26,8 @@ def write_table(root, table, part, frame):
 
 
 def source_fingerprint():
-    files = [Path(__file__), Path(__file__).with_name('config.py'), Path(__file__).with_name('simulation.py')]
+    files = [Path(__file__), Path(__file__).with_name('config.py'), Path(__file__).with_name('simulation.py'), Path(shared_history.__file__)]
     return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
-
-
-def history_features(observed, rows, origins):
-    """History before business birth / dataset start is missing, never negative indexing."""
-    out = {}
-    for key in MEASURES:
-        data = observed[key]
-        for lag in (0, 1, 2, 3, 6, 12):
-            index = origins-lag
-            out[f"{key}_lag_{lag}"] = np.where(index>=0, data[rows, np.maximum(index, 0)], np.nan)
-        for window in (3, 6, 12):
-            index = origins[:, None]-np.arange(window)[None, :]
-            history = np.where(index>=0, data[rows[:, None], np.maximum(index, 0)], np.nan)
-            count = np.isfinite(history).sum(axis=1)
-            mean = np.divide(np.nansum(history, axis=1), count, out=np.full(len(rows), np.nan), where=count>0)
-            variance = np.divide(np.nansum((history-mean[:, None])**2, axis=1), count,
-                                 out=np.full(len(rows), np.nan), where=count>0)
-            out[f"{key}_mean_{window}"] = mean
-            out[f"{key}_std_{window}"] = np.sqrt(variance)
-            if window==12:
-                out[f"{key}_missing_fraction_12"] = 1-count/window
-        previous = data[rows, np.maximum(origins-12, 0)]
-        valid = (origins>=12)&(previous>0)
-        out[f"{key}_yoy"] = np.divide(data[rows, origins], previous, out=np.full(len(rows), np.nan), where=valid)-1
-    return out
 
 
 def scoring_frames(companies, observed, truth, contract):

@@ -1,0 +1,118 @@
+{
+  "as_of_month": "2026-09-01",
+  "company": {
+    "sector": "retail",
+    "business_age_months": 36
+  },
+  "history": [
+    {
+      "month": "2025-09-01",
+      "sales": 2988000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2025-10-01",
+      "sales": 2989000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2025-11-01",
+      "sales": 2990000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2025-12-01",
+      "sales": 2991000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-01-01",
+      "sales": 2992000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-02-01",
+      "sales": 2993000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-03-01",
+      "sales": 2994000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-04-01",
+      "sales": 2995000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-05-01",
+      "sales": 2996000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-06-01",
+      "sales": 2997000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-07-01",
+      "sales": 2998000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-08-01",
+      "sales": 2999000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    },
+    {
+      "month": "2026-09-01",
+      "sales": 3000000.0,
+      "cash_inflow": 2800000.0,
+      "operating_cash_outflow": 2100000.0,
+      "cash_balance": 1000000.0,
+      "operating_expense": 2200000.0
+    }
+  ],
+  "horizons": [
+    1,
+    2,
+    3
+  ]
+}

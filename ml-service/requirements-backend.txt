@@ -1,0 +1,4 @@
+-r requirements-api.txt
+SQLAlchemy[asyncio]==2.0.51
+asyncpg==0.32.0
+alembic==1.18.5

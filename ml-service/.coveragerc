@@ -1,0 +1,25 @@
+[run]
+branch = True
+source = crednexus_ml,crednexus_backend
+relative_files = True
+omit =
+    crednexus_ml/train.py
+    crednexus_ml/data.py
+    crednexus_ml/foundation.py
+    crednexus_ml/export.py
+    crednexus_ml/intervals.py
+    crednexus_ml/prepare_single.py
+    crednexus_ml/report.py
+    crednexus_ml/inference.py
+    crednexus_ml/verify.py
+    crednexus_ml/onnx_export.py
+    crednexus_ml/onnx_verify.py
+    crednexus_ml/onnx_demo.py
+
+[report]
+show_missing = True
+precision = 2
+fail_under = 80
+exclude_also =
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:

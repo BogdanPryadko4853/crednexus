@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import onnxruntime as ort
 from .common import score_features,forecast_features,scale_for
+from .runtime import resolve_runtime
 
 
 def matrix(frame,schema):
@@ -20,12 +21,13 @@ def matrix(frame,schema):
 
 
 class OnnxPredictor:
-    def __init__(self,root,target,threads=4):
+    def __init__(self,root,target,threads=4,device=None):
         root=Path(root)/target
         self.schema=json.loads((root/'schema.json').read_text());self.registry=json.loads((root/'registry.json').read_text())
         self.classification=self.registry['task_type']=='classification'
+        self.runtime=resolve_runtime(device)
         options=ort.SessionOptions();options.intra_op_num_threads=threads;options.inter_op_num_threads=1
-        self.session=ort.InferenceSession(str(root/'model.onnx'),options,providers=['CPUExecutionProvider'])
+        self.session=ort.InferenceSession(str(root/'model.onnx'),options,providers=[self.runtime.provider])
     def predict(self,frame):
         x=score_features(frame) if self.classification else forecast_features(frame)
         return self.session.run(['prediction'],{'features':matrix(x,self.schema)})[0].ravel()
