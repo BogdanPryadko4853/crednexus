@@ -2,7 +2,8 @@
 
 Реализованы FastAPI backend, асинхронный PostgreSQL, очередь ML-заданий с отдельным
 worker, скоринг, прогноз потоков и кассового разрыва, заявки и демонстрационные
-кредитные правила. Все данные синтетические. Frontend пока не реализован.
+кредитные правила. Демонстрационные данные синтетические.
+Java backend, Keycloak, MinIO и frontend развиваются отдельно; интеграция Java с HTTP ML пока не подключена.
 
 ```bash
 cp .env.example .env
@@ -13,6 +14,7 @@ Swagger backend: http://127.0.0.1:8000/docs. Для `/api/v1/*` нужен за�
 `X-API-Key` со значением `CREDNEXUS_BACKEND_API_KEY` из `.env`.
 
 - [Запуск backend, API, бизнес-правила и тесты](ml-service/docs/BACKEND.md)
+- [Интеграция с Java: контракты, клиент, workflow и недостающие данные](ml-service/docs/JAVA_INTEGRATION.md)
 - [Прямой ML API без PostgreSQL](ml-service/docs/API.md)
 - [Расчёт кассового разрыва](ml-service/docs/CASH_GAP.md)
 - [Модели и метрики](ml-service/docs/DEPLOYMENT.md)
@@ -25,8 +27,9 @@ export CREDNEXUS_BACKEND_API_KEY=synthetic-local-demo-api-key
 python scripts/backend_demo.py
 ```
 
-Если ключ изменён, используйте своё значение. Java-каркас в `backend/` не участвует
-в текущем запуске. Ниже сохранено исходное ТЗ хакатона.
+Если ключ изменён, используйте своё значение. Java backend в `backend/` запускается
+через корневой `compose.yaml`; его скоринг сейчас работает по правилам. Команда выше
+запускает отдельный Python-контур. Ниже сохранено исходное ТЗ хакатона.
 
 ---
 

@@ -103,6 +103,7 @@ jobs:
           python -m pip install -c requirements-backend.lock -r requirements-ci.txt
           python -m pip check
           python scripts/lock_runtime.py --check
+          python scripts/export_openapi.py --check
           mkdir -p reports
           python -m pip inspect > reports/dependencies.json
       - name: Verify committed models without GPU

@@ -14,11 +14,16 @@ import pandas as pd
 
 from .contracts import CashGapRequest, ForecastRequest, ScoreRequest
 from .features import FEATURE_VERSION
-from .responses import ScoreResponse, ForecastResponse, CashGapResponse
+from .responses import ScoreResponse, ForecastResponse, CashGapResponse, ValidationErrorResponse
 from .service import predict_score, predict_forecast, predict_cash_gap
 from .onnx_inference import OnnxPredictor
 
 DEFAULT_MODELS = Path(__file__).resolve().parents[1] / "models" / "onnx"
+PREDICTION_ERRORS = {
+    422: {"model": ValidationErrorResponse, "description": "Input validation failed"},
+    500: {"description": "Inference failed (code=INFERENCE_ERROR)"},
+    503: {"description": "Models are not ready"},
+}
 TARGETS = ("default_next12m", "default_90dpd_next12m", "cash_inflow_target", "operating_cash_outflow_target")
 
 
@@ -95,21 +100,21 @@ def create_app(models_root: Path | str | None = None, threads: int | None = None
     def live():
         return {"status": "alive"}
 
-    @application.get("/health/ready")
+    @application.get("/health/ready", responses={503: {"description": "Models are not ready"}})
     def ready():
         loaded = bundle()
         return {"status": "ready", "model_version": loaded.version, "feature_version": FEATURE_VERSION,
                 "targets": list(loaded.models), "runtime": loaded.runtime.as_dict()}
 
-    @application.post("/v1/score", response_model=ScoreResponse)
+    @application.post("/v1/score", response_model=ScoreResponse, responses=PREDICTION_ERRORS)
     def score(payload: ScoreRequest):
         return predict_score(bundle(), payload)
 
-    @application.post("/v1/forecast", response_model=ForecastResponse)
+    @application.post("/v1/forecast", response_model=ForecastResponse, responses=PREDICTION_ERRORS)
     def forecast(payload: ForecastRequest):
         return predict_forecast(bundle(), payload)
 
-    @application.post("/v1/cash-gap", response_model=CashGapResponse)
+    @application.post("/v1/cash-gap", response_model=CashGapResponse, responses=PREDICTION_ERRORS)
     def cash_gap(payload: CashGapRequest):
         return predict_cash_gap(bundle(), payload)
 

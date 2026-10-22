@@ -109,6 +109,21 @@ class ApiTests(unittest.TestCase):
     def tearDownClass(cls):
         cls.context.__exit__(None, None, None)
 
+    def test_openapi_describes_actual_validation_response(self):
+        from crednexus_ml.responses import ValidationErrorResponse
+        schema = self.client.get("/openapi.json").json()
+        for path in ("/v1/score", "/v1/forecast", "/v1/cash-gap"):
+            response = self.client.post(path, json={})
+            self.assertEqual(response.status_code, 422)
+            error = ValidationErrorResponse.model_validate(response.json())
+            self.assertEqual(error.code, "VALIDATION_ERROR")
+            self.assertTrue(error.errors)
+            responses = schema["paths"][path]["post"]["responses"]
+            self.assertEqual(responses["422"]["content"]["application/json"]["schema"]["$ref"],
+                             "#/components/schemas/ValidationErrorResponse")
+            self.assertIn("500", responses)
+            self.assertIn("503", responses)
+
     def test_health_and_model_reuse(self):
         self.assertEqual(self.client.get("/health/live").status_code, 200)
         ready = self.client.get("/health/ready").json()

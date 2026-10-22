@@ -1,0 +1,1125 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CredNexus ML",
+    "version": "1.2.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "summary": "Live",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "503": {
+            "description": "Models are not ready"
+          }
+        }
+      }
+    },
+    "/v1/score": {
+      "post": {
+        "summary": "Score",
+        "operationId": "score_v1_score_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Input validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Inference failed (code=INFERENCE_ERROR)"
+          },
+          "503": {
+            "description": "Models are not ready"
+          }
+        }
+      }
+    },
+    "/v1/forecast": {
+      "post": {
+        "summary": "Forecast",
+        "operationId": "forecast_v1_forecast_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForecastRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForecastResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Input validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Inference failed (code=INFERENCE_ERROR)"
+          },
+          "503": {
+            "description": "Models are not ready"
+          }
+        }
+      }
+    },
+    "/v1/cash-gap": {
+      "post": {
+        "summary": "Cash Gap",
+        "operationId": "cash_gap_v1_cash_gap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashGapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashGapResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Input validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Inference failed (code=INFERENCE_ERROR)"
+          },
+          "503": {
+            "description": "Models are not ready"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Application": {
+        "properties": {
+          "requested_amount": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Requested Amount"
+          },
+          "term_months": {
+            "type": "integer",
+            "maximum": 1200.0,
+            "minimum": 1.0,
+            "title": "Term Months"
+          },
+          "annual_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Annual Rate"
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Purpose"
+          },
+          "product_limit": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Product Limit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "requested_amount",
+          "term_months",
+          "annual_rate",
+          "purpose",
+          "product_limit"
+        ],
+        "title": "Application"
+      },
+      "BureauMonth": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month",
+            "description": "First day of a calendar month, YYYY-MM-01"
+          },
+          "dpd": {
+            "type": "integer",
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Dpd"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "dpd"
+        ],
+        "title": "BureauMonth"
+      },
+      "CashEstimate": {
+        "properties": {
+          "lower": {
+            "type": "number",
+            "title": "Lower"
+          },
+          "prediction": {
+            "type": "number",
+            "title": "Prediction"
+          },
+          "upper": {
+            "type": "number",
+            "title": "Upper"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lower",
+          "prediction",
+          "upper"
+        ],
+        "title": "CashEstimate"
+      },
+      "CashGapMonth": {
+        "properties": {
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month"
+          },
+          "opening_balance": {
+            "type": "number",
+            "title": "Opening Balance"
+          },
+          "cash_inflow": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Cash Inflow"
+          },
+          "operating_cash_outflow": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Operating Cash Outflow"
+          },
+          "non_operating_inflow": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Non Operating Inflow"
+          },
+          "non_operating_outflow": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Non Operating Outflow"
+          },
+          "net_cash_flow": {
+            "type": "number",
+            "title": "Net Cash Flow"
+          },
+          "closing_balance": {
+            "type": "number",
+            "title": "Closing Balance"
+          },
+          "cash_shortfall": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Cash Shortfall"
+          },
+          "reserve_shortfall": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Reserve Shortfall"
+          }
+        },
+        "type": "object",
+        "required": [
+          "horizon",
+          "month",
+          "opening_balance",
+          "cash_inflow",
+          "operating_cash_outflow",
+          "non_operating_inflow",
+          "non_operating_outflow",
+          "net_cash_flow",
+          "closing_balance",
+          "cash_shortfall",
+          "reserve_shortfall"
+        ],
+        "title": "CashGapMonth"
+      },
+      "CashGapRequest": {
+        "properties": {
+          "as_of_month": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of Month",
+            "description": "Last closed month, YYYY-MM-01"
+          },
+          "company": {
+            "$ref": "#/components/schemas/Company"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/MonthlyObservation"
+            },
+            "type": "array",
+            "maxItems": 120,
+            "minItems": 3,
+            "title": "History"
+          },
+          "months": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Months",
+            "default": 3
+          },
+          "minimum_cash_reserve": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Minimum Cash Reserve",
+            "default": 0.0
+          },
+          "cash_plan": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedCashMovements"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Cash Plan"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "as_of_month",
+          "company",
+          "history",
+          "cash_plan"
+        ],
+        "title": "CashGapRequest"
+      },
+      "CashGapResponse": {
+        "properties": {
+          "calculation_version": {
+            "type": "string",
+            "title": "Calculation Version",
+            "default": "cash-gap-v1"
+          },
+          "as_of_month": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of Month"
+          },
+          "opening_balance": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Opening Balance"
+          },
+          "minimum_cash_reserve": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Minimum Cash Reserve"
+          },
+          "base": {
+            "$ref": "#/components/schemas/CashGapScenario"
+          },
+          "adverse": {
+            "$ref": "#/components/schemas/CashGapScenario"
+          },
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_version": {
+            "type": "string",
+            "title": "Feature Version",
+            "default": "monthly-v1"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Explanation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cash_plan": {
+            "items": {
+              "$ref": "#/components/schemas/PlannedCashMovements"
+            },
+            "type": "array",
+            "title": "Cash Plan"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of_month",
+          "opening_balance",
+          "minimum_cash_reserve",
+          "base",
+          "adverse",
+          "model_version",
+          "warnings",
+          "cash_plan"
+        ],
+        "title": "CashGapResponse"
+      },
+      "CashGapScenario": {
+        "properties": {
+          "first_cash_gap_month": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Cash Gap Month"
+          },
+          "first_reserve_breach_month": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Reserve Breach Month"
+          },
+          "minimum_balance": {
+            "type": "number",
+            "title": "Minimum Balance"
+          },
+          "funding_to_avoid_cash_gap": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Funding To Avoid Cash Gap"
+          },
+          "funding_to_maintain_reserve": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Funding To Maintain Reserve"
+          },
+          "months": {
+            "items": {
+              "$ref": "#/components/schemas/CashGapMonth"
+            },
+            "type": "array",
+            "title": "Months"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first_cash_gap_month",
+          "first_reserve_breach_month",
+          "minimum_balance",
+          "funding_to_avoid_cash_gap",
+          "funding_to_maintain_reserve",
+          "months"
+        ],
+        "title": "CashGapScenario"
+      },
+      "Company": {
+        "properties": {
+          "sector": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Sector"
+          },
+          "business_age_months": {
+            "type": "integer",
+            "maximum": 1200.0,
+            "minimum": 3.0,
+            "title": "Business Age Months"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sector",
+          "business_age_months"
+        ],
+        "title": "Company"
+      },
+      "Explanation": {
+        "properties": {
+          "template_version": {
+            "type": "string",
+            "title": "Template Version",
+            "default": "ru-templates-v1"
+          },
+          "language": {
+            "type": "string",
+            "const": "ru",
+            "title": "Language",
+            "default": "ru"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Facts"
+          },
+          "next_steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Next Steps"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "summary"
+        ],
+        "title": "Explanation"
+      },
+      "FinancialSnapshot": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month",
+            "description": "First day of a calendar month, YYYY-MM-01"
+          },
+          "legal_form": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Legal Form"
+          },
+          "largest_customer_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Largest Customer Share"
+          },
+          "largest_channel_share": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Largest Channel Share"
+          },
+          "accounts_receivable": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Accounts Receivable"
+          },
+          "accounts_payable": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Accounts Payable"
+          },
+          "overdue_payables": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Overdue Payables"
+          },
+          "debt_outstanding": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Debt Outstanding"
+          },
+          "loan_arrears": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Loan Arrears"
+          },
+          "inventory": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Inventory"
+          },
+          "business_state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "distressed",
+              "restructuring"
+            ],
+            "title": "Business State"
+          },
+          "existing_monthly_debt_service": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Existing Monthly Debt Service"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "legal_form",
+          "largest_customer_share",
+          "largest_channel_share",
+          "accounts_receivable",
+          "accounts_payable",
+          "overdue_payables",
+          "debt_outstanding",
+          "loan_arrears",
+          "inventory",
+          "business_state",
+          "existing_monthly_debt_service"
+        ],
+        "title": "FinancialSnapshot"
+      },
+      "ForecastMonth": {
+        "properties": {
+          "horizon": {
+            "type": "integer",
+            "title": "Horizon"
+          },
+          "target_month": {
+            "type": "string",
+            "title": "Target Month"
+          },
+          "cash_inflow": {
+            "$ref": "#/components/schemas/CashEstimate"
+          },
+          "operating_cash_outflow": {
+            "$ref": "#/components/schemas/CashEstimate"
+          },
+          "operating_net_cash_flow": {
+            "type": "number",
+            "title": "Operating Net Cash Flow"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Explanation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "horizon",
+          "target_month",
+          "cash_inflow",
+          "operating_cash_outflow",
+          "operating_net_cash_flow"
+        ],
+        "title": "ForecastMonth"
+      },
+      "ForecastRequest": {
+        "properties": {
+          "as_of_month": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of Month",
+            "description": "Last closed month, YYYY-MM-01"
+          },
+          "company": {
+            "$ref": "#/components/schemas/Company"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/MonthlyObservation"
+            },
+            "type": "array",
+            "maxItems": 120,
+            "minItems": 3,
+            "title": "History"
+          },
+          "horizons": {
+            "items": {
+              "type": "integer",
+              "maximum": 3.0,
+              "minimum": 1.0
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Horizons",
+            "default": [
+              1,
+              2,
+              3
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "as_of_month",
+          "company",
+          "history"
+        ],
+        "title": "ForecastRequest"
+      },
+      "ForecastResponse": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_version": {
+            "type": "string",
+            "title": "Feature Version",
+            "default": "monthly-v1"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Explanation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "interval_nominal_coverage": {
+            "type": "number",
+            "exclusiveMaximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Interval Nominal Coverage"
+          },
+          "forecasts": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastMonth"
+            },
+            "type": "array",
+            "title": "Forecasts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "warnings",
+          "interval_nominal_coverage",
+          "forecasts"
+        ],
+        "title": "ForecastResponse"
+      },
+      "MonthlyObservation": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month",
+            "description": "First day of a calendar month, YYYY-MM-01"
+          },
+          "sales": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales"
+          },
+          "cash_inflow": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Inflow"
+          },
+          "operating_cash_outflow": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Cash Outflow"
+          },
+          "cash_balance": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Balance"
+          },
+          "operating_expense": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000000000000000.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Expense"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "sales",
+          "cash_inflow",
+          "operating_cash_outflow",
+          "cash_balance",
+          "operating_expense"
+        ],
+        "title": "MonthlyObservation"
+      },
+      "PlannedCashMovements": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "format": "date",
+            "title": "Month",
+            "description": "First day of a calendar month, YYYY-MM-01"
+          },
+          "debt_service": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Debt Service"
+          },
+          "investments": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Investments"
+          },
+          "financing_inflow": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Financing Inflow"
+          },
+          "other_inflow": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Other Inflow"
+          },
+          "other_outflow": {
+            "type": "number",
+            "maximum": 1000000000000000.0,
+            "minimum": 0.0,
+            "title": "Other Outflow"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "debt_service",
+          "investments",
+          "financing_inflow",
+          "other_inflow",
+          "other_outflow"
+        ],
+        "title": "PlannedCashMovements",
+        "description": "Known non-operating cash movements; explicit zeros mean no planned movement."
+      },
+      "ScoreRequest": {
+        "properties": {
+          "as_of_month": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of Month",
+            "description": "Last closed month, YYYY-MM-01"
+          },
+          "company": {
+            "$ref": "#/components/schemas/Company"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/MonthlyObservation"
+            },
+            "type": "array",
+            "maxItems": 120,
+            "minItems": 3,
+            "title": "History"
+          },
+          "financial_snapshot": {
+            "$ref": "#/components/schemas/FinancialSnapshot"
+          },
+          "bureau_history": {
+            "items": {
+              "$ref": "#/components/schemas/BureauMonth"
+            },
+            "type": "array",
+            "maxItems": 12,
+            "minItems": 12,
+            "title": "Bureau History"
+          },
+          "application": {
+            "$ref": "#/components/schemas/Application"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "as_of_month",
+          "company",
+          "history",
+          "financial_snapshot",
+          "bureau_history",
+          "application"
+        ],
+        "title": "ScoreRequest"
+      },
+      "ScoreResponse": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "feature_version": {
+            "type": "string",
+            "title": "Feature Version",
+            "default": "monthly-v1"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Explanation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "default_next12m": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Default Next12M"
+          },
+          "default_90dpd_next12m": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Default 90Dpd Next12M"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "warnings",
+          "default_next12m",
+          "default_90dpd_next12m"
+        ],
+        "title": "ScoreResponse"
+      },
+      "ValidationErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": "VALIDATION_ERROR"
+          },
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssue"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "errors"
+        ],
+        "title": "ValidationErrorResponse"
+      },
+      "ValidationIssue": {
+        "properties": {
+          "location": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "location",
+          "type",
+          "message"
+        ],
+        "title": "ValidationIssue"
+      }
+    }
+  }
+}

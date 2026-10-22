@@ -44,3 +44,14 @@ class ForecastResponse(PredictionMetadata):
 
 class CashGapResponse(PredictionMetadata, CashGapCalculation):
     cash_plan: list[PlannedCashMovements]
+
+
+class ValidationIssue(BaseModel):
+    location: list[str | int]
+    type: str
+    message: str
+
+
+class ValidationErrorResponse(BaseModel):
+    code: str = "VALIDATION_ERROR"
+    errors: list[ValidationIssue]

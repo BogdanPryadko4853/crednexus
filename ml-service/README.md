@@ -7,6 +7,8 @@
 Из корня репозитория: скопируйте `.env.example` в `.env`, затем `docker compose -f compose.python.yaml up --build -d`.
 Backend и worker устанавливаются через `requirements-backend.txt`; прямой ML API описан ниже.
 
+**Интеграция с Java backend:** [пошаговое руководство, клиент и OpenAPI](docs/JAVA_INTEGRATION.md).
+
 **HTTP API:** [контракты, запуск и примеры](docs/API.md). Из `ml-service`:
 
 ```bash
