@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --crednexus-red: #ef3124;
   --crednexus-red-hover: #d72505;
   --crednexus-text: #212124;
@@ -8,18 +9,23 @@
   --crednexus-surface: #ffffff;
   --crednexus-error: #c7241f;
   --crednexus-error-background: #fff0f0;
-  --crednexus-focus: #2453b4;
+  --crednexus-focus: #d72505;
+  --crednexus-auth-width: 560px;
 }
 
 body,
 .login-pf body {
-  background:
-    radial-gradient(circle at 14% 20%, rgb(239 49 36 / 12%), transparent 30%),
-    radial-gradient(circle at 88% 88%, rgb(239 49 36 / 8%), transparent 28%),
-    var(--crednexus-background);
+  background: var(--crednexus-background);
   color: var(--crednexus-text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   min-height: 100vh;
+  margin: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 .pf-v5-c-login {
@@ -27,7 +33,7 @@ body,
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  padding: 32px 20px;
+  padding: 56px 24px;
 }
 
 #kc-header {
@@ -35,12 +41,13 @@ body,
   grid-area: header;
   margin: 0;
   padding: 0;
-  text-align: left;
+  text-align: center;
 }
 
 #kc-header-wrapper {
   align-items: center;
   display: flex;
+  justify-content: center;
   font-size: 0;
   letter-spacing: -0.04em;
   padding: 0;
@@ -50,7 +57,7 @@ body,
 #kc-header-wrapper::before {
   align-items: center;
   background: var(--crednexus-red);
-  border-radius: 11px;
+  border-radius: 12px;
   color: var(--crednexus-surface);
   content: "C";
   display: inline-flex;
@@ -65,20 +72,21 @@ body,
 #kc-header-wrapper::after {
   color: var(--crednexus-text);
   content: "CredNexus";
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 720;
 }
 
 .card-pf,
 .pf-v5-c-login__main {
   background: var(--crednexus-surface);
-  border: 0;
-  border-radius: 24px;
-  box-shadow: 0 24px 80px rgb(18 18 19 / 12%);
+  border: 1px solid rgb(220 221 225 / 65%);
+  border-top: 4px solid var(--crednexus-red);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgb(18 18 19 / 5%);
   grid-area: main;
   margin: 0;
-  max-width: 460px;
-  padding: 40px;
+  max-width: var(--crednexus-auth-width);
+  padding: 44px 48px;
   width: 100%;
 }
 
@@ -86,9 +94,10 @@ body,
   grid-template-areas:
     "header"
     "main";
-  grid-template-columns: minmax(0, 460px);
+  grid-template-columns: minmax(0, var(--crednexus-auth-width));
   justify-content: center;
-  row-gap: 28px;
+  display: grid;
+  row-gap: 32px;
   width: 100%;
 }
 
@@ -98,19 +107,21 @@ body,
 
 #kc-page-title {
   color: var(--crednexus-text);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.035em;
   line-height: 1.2;
-  margin: 0 0 28px;
+  margin: 0;
   text-align: left;
 }
 
 .pf-v5-c-login__main-header {
+  border-top: 0;
   align-items: stretch;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 0 0 28px;
 }
 
 .pf-v5-c-login__main-header-utilities {
@@ -131,12 +142,13 @@ body,
 
 .pf-v5-c-form,
 #kc-form-login {
-  gap: 22px;
+  display: grid;
+  gap: 20px;
 }
 
 .pf-v5-c-form__group,
 .form-group {
-  margin-bottom: 22px;
+  margin-bottom: 0;
 }
 
 .pf-v5-c-form__label,
@@ -163,7 +175,7 @@ body,
 .pf-v5-c-form-control:focus-within,
 .form-control:focus {
   border-color: var(--crednexus-focus);
-  box-shadow: 0 0 0 3px rgb(36 83 180 / 14%);
+  box-shadow: 0 0 0 3px rgb(239 49 36 / 14%);
   outline: none;
 }
 
@@ -200,7 +212,7 @@ body,
 
 .pf-v5-c-input-group:focus-within {
   border-color: var(--crednexus-focus);
-  box-shadow: 0 0 0 3px rgb(36 83 180 / 14%);
+  box-shadow: 0 0 0 3px rgb(239 49 36 / 14%);
 }
 
 .pf-v5-c-input-group .pf-v5-c-form-control {
@@ -242,7 +254,7 @@ input[type="checkbox"] {
 }
 
 #kc-form-buttons {
-  margin-top: 28px;
+  margin-top: 8px;
 }
 
 #kc-login,
@@ -296,11 +308,47 @@ input[type="checkbox"] {
 
 a {
   color: var(--crednexus-red-hover);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button:focus-visible,
+a:focus-visible,
+input[type="submit"]:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 3px solid var(--crednexus-focus);
+  outline-offset: 4px;
+}
+
+.pf-v5-c-form-control[aria-invalid="true"],
+.pf-v5-c-form-control:has(input[aria-invalid="true"]) {
+  border-color: var(--crednexus-error);
+  background: var(--crednexus-error-background);
+}
+
+.pf-v5-c-helper-text__item.pf-m-error,
+#input-error,
+#input-error-username,
+#input-error-password {
+  color: var(--crednexus-error);
+  font-size: 14px;
+}
+
+#kc-form-options {
+  margin: 0;
+}
+
+#kc-info-wrapper {
+  background: transparent;
+  padding: 24px 0 0;
 }
 
 @media (max-width: 600px) {
   .pf-v5-c-login {
-    align-items: stretch;
+    align-items: center;
     padding: 24px 16px;
   }
 
