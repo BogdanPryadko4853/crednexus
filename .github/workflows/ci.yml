@@ -1,0 +1,251 @@
+name: Service CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: service-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.13.11'
+  CUDA_VISIBLE_DEVICES: ''
+  NVIDIA_VISIBLE_DEVICES: void
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: Syntax and workflow validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: python -m pip install ruff==0.16.0
+      - name: Python checks
+        working-directory: ml-service
+        run: |
+          python -m ruff check .
+          python -m compileall -q crednexus_ml crednexus_backend crednexus_data tests backend_tests migrations scripts
+          git diff --check
+      - name: Validate GitHub workflows
+        run: |
+          curl --fail --location --retry 3 --output /tmp/actionlint.tar.gz https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  /tmp/actionlint.tar.gz' | sha256sum --check
+          tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
+          /tmp/actionlint -color
+      - name: Validate Compose configuration
+        env:
+          POSTGRES_PASSWORD: ci-only-postgres-password
+          CREDNEXUS_BACKEND_API_KEY: ci-only-internal-api-key
+        run: |
+          docker compose -f compose.python.yaml config --quiet
+          docker compose -f compose.ml.yaml config --quiet
+
+  tests:
+    name: Tests (${{ matrix.device }}, PostgreSQL 16)
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [auto, cpu, cuda]
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_DB: crednexus_test
+          POSTGRES_USER: crednexus
+          POSTGRES_PASSWORD: ci-only-postgres-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U crednexus -d crednexus_test"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://crednexus:ci-only-postgres-password@127.0.0.1:5432/crednexus_test
+      CREDNEXUS_TEST_DATABASE_URL: postgresql+asyncpg://crednexus:ci-only-postgres-password@127.0.0.1:5432/crednexus_test
+      CREDNEXUS_DEVICE: ${{ matrix.device }}
+    defaults:
+      run:
+        working-directory: ml-service
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            ml-service/requirements-*.txt
+            ml-service/requirements-*.lock
+      - name: Install and verify dependencies
+        run: |
+          python -m pip install -c requirements-backend.lock -r requirements-ci.txt
+          python -m pip check
+          python scripts/lock_runtime.py --check
+          mkdir -p reports
+          python -m pip inspect > reports/dependencies.json
+      - name: Verify committed models without GPU
+        run: python -m crednexus_ml.onnx_demo > reports/onnx-cpu-verification.json
+      - name: Apply migrations and check schema drift
+        run: |
+          python -m alembic upgrade head
+          python -m alembic check
+      - name: Unit, API and real PostgreSQL tests
+        run: |
+          python -m coverage run -m unittest discover -s tests -v
+          python -m coverage run --append -m unittest discover -s backend_tests -v
+          python -m coverage report
+      - name: Verify migration rollback and reapply
+        run: |
+          python -m alembic downgrade base
+          python -m alembic upgrade head
+          python -m alembic check
+      - name: Export coverage
+        if: always()
+        run: |
+          python -m coverage xml -o reports/coverage.xml
+          python -m coverage html -d reports/htmlcov
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-reports-${{ matrix.device }}
+          path: ml-service/reports/
+          retention-days: 14
+
+  security:
+    name: Runtime dependency audit
+    needs: lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: python -m pip install pip-audit==2.10.1
+      - name: Audit exact runtime versions
+        working-directory: ml-service
+        run: |
+          mkdir -p reports
+          python -m pip_audit --no-deps --disable-pip --progress-spinner off -r requirements-backend.lock --format json --output reports/pip-audit.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: dependency-audit
+          path: ml-service/reports/pip-audit.json
+          retention-days: 14
+
+  docker:
+    name: Docker build and end-to-end smoke
+    needs: [tests, security]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      COMPOSE_PROJECT_NAME: crednexus-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      POSTGRES_PASSWORD: ci-only-postgres-password
+      CREDNEXUS_BACKEND_API_KEY: ci-only-internal-api-key
+      CREDNEXUS_IMAGE: crednexus-backend:ci
+      CREDNEXUS_ML_IMAGE: crednexus-ml:ci
+      CREDNEXUS_DEVICE: auto
+      CREDNEXUS_POLL_SECONDS: '0.1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ml-service
+          target: backend
+          tags: crednexus-backend:ci
+          load: true
+          push: false
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ml-service
+          target: ml
+          tags: crednexus-ml:ci
+          load: true
+          push: false
+          cache-from: type=gha,scope=backend
+      - name: Verify CPU image without GPU access
+        run: |
+          docker run --rm --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -e CUDA_VISIBLE_DEVICES= -e NVIDIA_VISIBLE_DEVICES=void -e CREDNEXUS_DEVICE=auto crednexus-ml:ci python -m crednexus_ml.onnx_demo
+      - name: Start both stacks and wait for healthchecks
+        run: |
+          docker compose -f compose.python.yaml up --no-build -d --wait --wait-timeout 120
+          docker compose -f compose.ml.yaml -p "${COMPOSE_PROJECT_NAME}-ml" up --no-build -d --wait --wait-timeout 120
+      - name: Exercise business and ML APIs
+        run: |
+          python3 ml-service/scripts/backend_demo.py
+          python3 ml-service/scripts/container_smoke.py ml
+          docker compose -f compose.python.yaml exec -T worker python -m crednexus_ml.healthcheck worker
+      - name: Verify durable queue across worker restart
+        run: |
+          mkdir -p reports
+          docker compose -f compose.python.yaml stop worker
+          python3 ml-service/scripts/container_smoke.py enqueue --queue-state reports/queued-job.json
+          docker compose -f compose.python.yaml up --no-build -d --wait --wait-timeout 120 worker
+          python3 ml-service/scripts/container_smoke.py recover --queue-state reports/queued-job.json
+      - name: Collect service logs
+        if: always()
+        run: |
+          mkdir -p reports
+          docker compose -f compose.python.yaml ps --all > reports/compose-status.txt
+          docker compose -f compose.python.yaml logs --no-color > reports/compose.log
+          docker compose -f compose.ml.yaml -p "${COMPOSE_PROJECT_NAME}-ml" logs --no-color > reports/ml.log
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: docker-smoke-logs
+          path: reports/
+          retention-days: 7
+      - name: Stop test stacks
+        if: always()
+        run: |
+          docker compose -f compose.ml.yaml -p "${COMPOSE_PROJECT_NAME}-ml" down --volumes --remove-orphans
+          docker compose -f compose.python.yaml down --volumes --remove-orphans
+
+  ci:
+    name: CI
+    if: always()
+    needs: [lint, tests, security, docker]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require all checks
+        env:
+          LINT_RESULT: ${{ needs.lint.result }}
+          TEST_RESULT: ${{ needs.tests.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          DOCKER_RESULT: ${{ needs.docker.result }}
+        run: |
+          test "$LINT_RESULT" = success
+          test "$TEST_RESULT" = success
+          test "$SECURITY_RESULT" = success
+          test "$DOCKER_RESULT" = success

@@ -20,9 +20,24 @@
 - Optuna 4.9.0 — MIT; подбор параметров.
 - ONNX 1.21.0 — Apache-2.0; построение и проверка графов.
 - ONNX Runtime 1.26.0 — MIT; CPU inference.
+- FastAPI 0.138.2 — MIT; HTTP API и OpenAPI.
+- Pydantic 2.12.4 — MIT; проверка контрактов запросов и ответов.
+- Uvicorn 0.49.0 — BSD-3-Clause; ASGI-сервер.
+- HTTPX 0.28.1 — BSD-3-Clause; HTTP-тесты.
+- SQLAlchemy 2.0.51 — MIT; асинхронный слой работы с БД.
+- asyncpg 0.32.0 — Apache-2.0; драйвер PostgreSQL.
+- Alembic 1.18.5 — MIT; миграции схемы.
+- PostgreSQL 16 — PostgreSQL License; хранение и очередь ML-заданий.
 - Chronos-2 / Chronos-2 Small — Apache-2.0, сравнительный эксперимент; pretrained/fine-tuned веса в Git и ONNX-комплект приложения не включены.
 
 Четыре опубликованные одиночные ONNX-модели получены из моделей, обученных нами на собственных синтетических данных; это не скачанные банковские модели. Они не содержат записи исследовательских публичных датасетов. Код конвертации использует стандартные операторы ONNX, CTR-таблицы и хеши из собственного экспорта CatBoost. Метаданные происхождения и SHA256 исходных весов находятся в `models/onnx/export_manifest.json` и `training_run.json`.
+
+## Инструменты CI
+
+- coverage.py 7.16.2 — Apache-2.0; измерение покрытия.
+- Ruff 0.16.0 — MIT; статические проверки Python.
+- pip-audit 2.10.1 — Apache-2.0; аудит Python-зависимостей.
+- Actionlint 1.7.12 — MIT; проверка GitHub Actions workflow.
 
 ## Источники исследования
 

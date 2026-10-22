@@ -1,5 +1,25 @@
 # CredNexus — синтетические данные v2.1 (генератор 0.2.1)
 
+**CI, Docker, healthcheck и CPU fallback:** [конфигурация и проверки](docs/CI.md).
+Только ML без БД: `docker compose -f compose.ml.yaml up --build -d --wait` из корня.
+
+**Backend FastAPI + PostgreSQL:** [запуск, бизнес-процесс и очередь ML](docs/BACKEND.md).
+Из корня репозитория: скопируйте `.env.example` в `.env`, затем `docker compose -f compose.python.yaml up --build -d`.
+Backend и worker устанавливаются через `requirements-backend.txt`; прямой ML API описан ниже.
+
+**HTTP API:** [контракты, запуск и примеры](docs/API.md). Из `ml-service`:
+
+```bash
+python -m pip install -r requirements-api.txt
+python -m uvicorn crednexus_ml.api:app --host 127.0.0.1 --port 8000
+```
+
+Скоринг: `POST /v1/score`, прогноз: `POST /v1/forecast`, готовность:
+`GET /health/ready`. Swagger: `http://127.0.0.1:8000/docs`.
+Кассовый разрыв: `POST /v1/cash-gap` — [контракт и расчёт](docs/CASH_GAP.md).
+Для результатов и кредитных решений добавлены [шаблонные пояснения без LLM](docs/EXPLANATIONS.md).
+Для полного набора тестов установите `requirements-test.txt`.
+
 **Готовые модели в Git:** [ONNX для CPU](docs/ONNX.md). После clone можно выполнить `python -m crednexus_ml.onnx_demo` из `ml-service`, установив `requirements-onnx.txt`; большой датасет и native-веса не нужны.
 
 Текущий MVP: XGBoost для основного риска и денежных потоков, LightGBM для 90DPD. [Состав, метрики и причины выбора](docs/DEPLOYMENT.md). Ансамбли сохранены в истории экспериментов.

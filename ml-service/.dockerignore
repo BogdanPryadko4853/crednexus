@@ -1,0 +1,17 @@
+.venv*
+artifacts
+data
+tests
+backend_tests
+__pycache__
+**/__pycache__
+*.pyc
+docs
+.env
+.env.*
+.coverage*
+htmlcov
+reports
+.ruff_cache
+.pytest_cache
+.git

@@ -1,0 +1,27 @@
+name: crednexus-ml
+
+services:
+  ml:
+    image: ${CREDNEXUS_ML_IMAGE:-crednexus-ml:local}
+    build:
+      context: ./ml-service
+      target: ml
+    environment:
+      CREDNEXUS_DEVICE: ${CREDNEXUS_DEVICE:-auto}
+      CREDNEXUS_MODEL_THREADS: ${CREDNEXUS_MODEL_THREADS:-4}
+    ports:
+      - "127.0.0.1:${ML_PORT:-8001}:8000"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: ["CMD", "python", "-m", "crednexus_ml.healthcheck", "http"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    restart: unless-stopped
+    stop_grace_period: 30s

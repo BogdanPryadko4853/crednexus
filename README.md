@@ -1,3 +1,35 @@
+# CredNexus — ML и кредитный backend
+
+Реализованы FastAPI backend, асинхронный PostgreSQL, очередь ML-заданий с отдельным
+worker, скоринг, прогноз потоков и кассового разрыва, заявки и демонстрационные
+кредитные правила. Все данные синтетические. Frontend пока не реализован.
+
+```bash
+cp .env.example .env
+docker compose -f compose.python.yaml up --build -d
+```
+
+Swagger backend: http://127.0.0.1:8000/docs. Для `/api/v1/*` нужен заголовок
+`X-API-Key` со значением `CREDNEXUS_BACKEND_API_KEY` из `.env`.
+
+- [Запуск backend, API, бизнес-правила и тесты](ml-service/docs/BACKEND.md)
+- [Прямой ML API без PostgreSQL](ml-service/docs/API.md)
+- [Расчёт кассового разрыва](ml-service/docs/CASH_GAP.md)
+- [Модели и метрики](ml-service/docs/DEPLOYMENT.md)
+- [CI, Docker, healthcheck и запуск без GPU](ml-service/docs/CI.md)
+
+Сквозная проверка из `ml-service` после запуска Compose:
+
+```bash
+export CREDNEXUS_BACKEND_API_KEY=synthetic-local-demo-api-key
+python scripts/backend_demo.py
+```
+
+Если ключ изменён, используйте своё значение. Java-каркас в `backend/` не участвует
+в текущем запуске. Ниже сохранено исходное ТЗ хакатона.
+
+---
+
 # Альфа-Хак — Умный кредитный кабинет предпринимателя
 
 > **Сжатое ТЗ по кейсу Альфа-Банка (16 страниц).** Документ сохраняет обязательные требования, нюансы сценария и критерии проверки, убирая вводные и повторения. Это **конспект задания, а не описание уже реализованного проекта**.

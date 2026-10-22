@@ -1,0 +1,95 @@
+name: crednexus-python
+
+x-environment: &environment
+  PGHOST: postgres
+  PGPORT: "5432"
+  PGDATABASE: crednexus
+  PGUSER: crednexus
+  PGPASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+  CREDNEXUS_BACKEND_API_KEY: ${CREDNEXUS_BACKEND_API_KEY:?Set CREDNEXUS_BACKEND_API_KEY in .env}
+  CREDNEXUS_DEVICE: ${CREDNEXUS_DEVICE:-auto}
+  CREDNEXUS_MODEL_THREADS: ${CREDNEXUS_MODEL_THREADS:-4}
+  CREDNEXUS_POLL_SECONDS: ${CREDNEXUS_POLL_SECONDS:-1}
+
+x-service: &service
+  image: ${CREDNEXUS_IMAGE:-crednexus-backend:local}
+  build:
+    context: ./ml-service
+    target: backend
+  environment: *environment
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_DB: crednexus
+      POSTGRES_USER: crednexus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${PYTHON_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  migrate:
+    <<: *service
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    <<: *service
+    ports:
+      - "127.0.0.1:${PYTHON_BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "crednexus_ml.healthcheck", "http"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  worker:
+    <<: *service
+    command: ["python", "-m", "crednexus_backend.worker"]
+    environment:
+      <<: *environment
+      CREDNEXUS_HEALTHCHECK_MODE: worker
+      CREDNEXUS_WORKER_HEALTH_FILE: /tmp/crednexus-worker-health.json
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "crednexus_ml.healthcheck", "worker"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
