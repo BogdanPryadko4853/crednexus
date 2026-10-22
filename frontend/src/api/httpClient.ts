@@ -52,14 +52,16 @@ export function createApiClient({
         const headers = new Headers(options.headers);
         headers.set("Authorization", `Bearer ${token}`);
         headers.set("Accept", "application/json");
-        if (options.body !== undefined)
+        if (options.body !== undefined && !(options.body instanceof FormData))
           headers.set("Content-Type", "application/json");
         const { body, ...requestOptions } = options;
         const response = await fetcher(`${baseUrl}${path}`, {
           ...requestOptions,
           headers,
           signal: controller.signal,
-          ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+          ...(body === undefined
+            ? {}
+            : { body: body instanceof FormData ? body : JSON.stringify(body) }),
         });
         if (response.status === 401) onUnauthorized();
         if (!response.ok) throw new ApiError("http", response.status);
@@ -76,6 +78,27 @@ export function createApiClient({
       } finally {
         clearTimeout(timeout);
         options.signal?.removeEventListener("abort", abort);
+      }
+    },
+    async download(path: string, options: Omit<RequestInit, "body"> = {}) {
+      if (!path.startsWith("/") || path.startsWith("//") || path.includes("..") || path.includes("://")) {
+        throw new Error("API resource must be a relative path within the configured API");
+      }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const token = await getToken();
+        const headers = new Headers(options.headers);
+        headers.set("Authorization", `Bearer ${token}`);
+        const response = await fetcher(`${baseUrl}${path}`, { ...options, headers, signal: controller.signal });
+        if (response.status === 401) onUnauthorized();
+        if (!response.ok) throw new ApiError("http", response.status);
+        return await response.blob();
+      } catch (error) {
+        if (error instanceof ApiError) throw error;
+        throw new ApiError(controller.signal.aborted ? "timeout" : "network");
+      } finally {
+        clearTimeout(timeout);
       }
     },
   };

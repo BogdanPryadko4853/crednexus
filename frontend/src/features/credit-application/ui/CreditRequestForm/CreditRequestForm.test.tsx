@@ -17,9 +17,9 @@ async function renderFilledForm(user: ReturnType<typeof userEvent.setup>) {
     screen.getByRole("textbox", { name: "Сумма кредита, ₽" }),
     "1 500 000",
   );
-  await user.selectOptions(
-    screen.getByRole("combobox", { name: "Цель финансирования" }),
-    "working-capital",
+  await user.type(
+    screen.getByRole("textbox", { name: "Цель финансирования" }),
+    "Пополнение оборотных средств",
   );
 }
 
@@ -36,7 +36,7 @@ describe("Credit request form", () => {
       screen.getByRole("textbox", { name: "Сумма кредита, ₽" }),
     ).toHaveValue("");
     expect(
-      screen.getByRole("combobox", { name: "Цель финансирования" }),
+      screen.getByRole("textbox", { name: "Цель финансирования" }),
     ).toHaveValue("");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });

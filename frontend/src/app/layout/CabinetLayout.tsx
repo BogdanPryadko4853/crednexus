@@ -1,3 +1,4 @@
+import { canReview } from "../../features/manual-review/api/manualReviewApi";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router";
 import { Alert, Button } from "../../components";
@@ -55,6 +56,7 @@ export function CabinetLayout() {
           <NavLink to={routes.creditApplication}>
             {t("navigation.newApplication")}
           </NavLink>
+          {state.status === "authenticated" && canReview(state.user.roles) && <NavLink to={routes.review}>{t("review.title")}</NavLink>}
           <NavLink to={routes.profile}>{t("navigation.profile")}</NavLink>
         </nav>
         <main id="main" className="cabinet-content">
