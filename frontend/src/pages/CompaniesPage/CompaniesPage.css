@@ -1,2 +1,13 @@
 .companies-form { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.companies-details { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 0 1.25rem; }
+.companies-details dt { color: var(--color-text-secondary); font-size: 0.8125rem; }
+.companies-details dd { margin: 0.25rem 0 0; font-weight: 600; }
+.companies-list { display: grid; gap: 0.75rem; }
+.companies-list__item { padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.75rem; background: var(--color-background); }
+.companies-list__item summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; cursor: pointer; font-weight: 600; list-style: none; }
+.companies-list__item summary::-webkit-details-marker { display: none; }
+.companies-list__details { padding-top: 1rem; margin-top: 1rem; border-top: 1px solid var(--color-border); }
+.companies-list__details .companies-details { margin-bottom: 0; }
+.companies-list__chevron { transform: rotate(90deg); transition: transform 160ms ease; }
+.companies-list__item[open] .companies-list__chevron { transform: rotate(-90deg); }
 @media (max-width: 700px) { .companies-form { grid-template-columns: 1fr; } }

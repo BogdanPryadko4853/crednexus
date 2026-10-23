@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, DataTable, Heading, PageState, TextField } from "../../components";
+import { Alert, Card, Heading, Icon, PageState, Text } from "../../components";
 import { useAuth } from "../../auth";
 import { useLocale } from "../../i18n";
-import { createCompany } from "../../features/credit-application/api/creditApplicationApi";
+import { loadCompany } from "../../features/credit-application/api/creditApplicationApi";
 import type { CompanyOption } from "../../features/credit-application/api/creditApplicationApi";
 import "./CompaniesPage.css";
 
@@ -11,45 +11,45 @@ export function CompaniesPage() {
   const { t } = useLocale();
   const [companies, setCompanies] = useState<CompanyOption[] | null>(null);
   const [error, setError] = useState(false);
-  const [form, setForm] = useState({ name: "", inn: "", ogrnOrOgrnip: "", legalForm: "", status: "ACTIVE" });
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const errors = {
-    name: form.name.trim() ? "" : t("companies.validation.name"),
-    inn: form.inn && !/^\d{10}(\d{2})?$/.test(form.inn)
-      ? t("companies.validation.inn")
-      : "",
-    ogrn: form.ogrnOrOgrnip && !/^\d{13}(\d{2})?$/.test(form.ogrnOrOgrnip)
-      ? t("companies.validation.ogrn")
-      : "",
-    legalForm: form.legalForm.trim() ? "" : t("companies.validation.legalForm"),
-  };
+  const [selectedCompany, setSelectedCompany] = useState<CompanyOption | null>(null);
   useEffect(() => { if (!api) return; void api.request<CompanyOption[]>("/companies").then(setCompanies).catch(() => setError(true)); }, [api]);
-  async function submit() {
-    if (!api || saving || Object.values(errors).some(Boolean)) return;
-    setSaving(true); setSaved(false); setError(false);
-    try { const created = await createCompany(api, form); setCompanies((items) => [...(items ?? []), created]); setForm({ name: "", inn: "", ogrnOrOgrnip: "", legalForm: "", status: "ACTIVE" }); setSaved(true); } catch { setError(true); } finally { setSaving(false); }
+  async function showCompany(companyId: string) {
+    if (!api) return;
+    if (selectedCompany?.id === companyId) {
+      setSelectedCompany(null);
+      return;
+    }
+    setError(false);
+    try {
+      setSelectedCompany(await loadCompany(api, companyId));
+    } catch {
+      setError(true);
+    }
   }
   if (!companies && !error) return <PageState kind="loading" title={t("companies.loading")} />;
   return <section className="cabinet-page companies-page">
     <div className="cabinet-page__heading"><Heading level={1}>{t("companies.title")}</Heading><p>{t("companies.description")}</p></div>
     {error && <Alert tone="negative" title={t("companies.error")} />}
-    {saved && <Alert tone="positive" title={t("companies.saved")} />}
-    <Card title={t("companies.createTitle")} subtitle={t("companies.requiredHint")}>
-      <div className="companies-form">
-        <TextField label={t("companies.name")} value={form.name} error={form.name && errors.name ? errors.name : undefined} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <TextField label={t("companies.inn")} value={form.inn} error={errors.inn || undefined} onChange={(e) => setForm({ ...form, inn: e.target.value })} required inputMode="numeric" />
-        <TextField label={t("companies.ogrn")} value={form.ogrnOrOgrnip} error={errors.ogrn || undefined} onChange={(e) => setForm({ ...form, ogrnOrOgrnip: e.target.value })} required inputMode="numeric" />
-        <TextField label={t("companies.legalForm")} value={form.legalForm} error={form.legalForm && errors.legalForm ? errors.legalForm : undefined} onChange={(e) => setForm({ ...form, legalForm: e.target.value })} required />
-        <Button loading={saving} disabled={Object.values(errors).some(Boolean) || !form.inn || !form.ogrnOrOgrnip} onClick={() => void submit()}>{t("companies.createAction")}</Button>
-      </div>
-    </Card>
     <Card title={t("companies.listTitle")}>
-      <DataTable caption={t("companies.listTitle")} rows={companies ?? []} rowKey={(row) => row.id} emptyMessage={t("companies.empty")} columns={[
-        { key: "name", heading: t("companies.name"), render: (row) => row.name },
-        { key: "inn", heading: t("companies.inn"), render: (row) => row.inn },
-        { key: "status", heading: t("companies.status"), render: (row) => row.status ?? "—" },
-      ]} />
+      {(companies ?? []).length === 0 ? <Text muted>{t("companies.empty")}</Text> : <div className="companies-list">
+        {(companies ?? []).map((company) => {
+          const expanded = selectedCompany?.id === company.id;
+          return <details className="companies-list__item" key={company.id} open={expanded}>
+            <summary onClick={(event) => { event.preventDefault(); void showCompany(company.id); }}>
+              <span>{company.name}</span>
+              <Icon name="chevron" className="companies-list__chevron" />
+            </summary>
+            {expanded && <div className="companies-list__details" id={`company-${company.id}`}>
+              <dl className="companies-details">
+                <div><dt>{t("companies.inn")}</dt><dd>{selectedCompany.inn}</dd></div>
+                <div><dt>{t("companies.ogrn")}</dt><dd>{selectedCompany.ogrnOrOgrnip ?? "—"}</dd></div>
+                <div><dt>{t("companies.legalForm")}</dt><dd>{selectedCompany.legalForm ?? "—"}</dd></div>
+                <div><dt>{t("companies.role")}</dt><dd>{selectedCompany.currentUserRole ?? "—"}</dd></div>
+              </dl>
+            </div>}
+          </details>;
+        })}
+      </div>}
     </Card>
   </section>;
 }

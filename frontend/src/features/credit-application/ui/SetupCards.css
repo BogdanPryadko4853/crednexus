@@ -1,0 +1,21 @@
+.setup-disclosure summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.setup-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.setup-disclosure__chevron {
+  transform: rotate(90deg);
+  transition: transform 160ms ease;
+}
+
+.setup-disclosure[open] .setup-disclosure__chevron {
+  transform: rotate(-90deg);
+}

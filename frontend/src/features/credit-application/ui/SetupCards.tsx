@@ -4,6 +4,7 @@ import {
   Alert,
   Button,
   Card,
+  Icon,
   Text,
   TextField,
 } from "../../../components";
@@ -11,6 +12,7 @@ import { useAuth } from "../../../auth";
 import { useLocale } from "../../../i18n";
 import { workflowText } from "./workflowText";
 import { canReview } from "../../manual-review/api/manualReviewApi";
+import "./SetupCards.css";
 
 export function SetupCards() {
   const { api, state } = useAuth();
@@ -64,8 +66,11 @@ export function SetupCards() {
       {saved && <Text role="status">{text.created}</Text>}
       {state.status === "authenticated" && canReview(state.user.roles) && (
         <Card title={text.products}>
-          <details>
-            <summary>{text.productCreate}</summary>
+          <details className="setup-disclosure">
+            <summary>
+              <span>{text.productCreate}</span>
+              <Icon name="chevron" className="setup-disclosure__chevron" />
+            </summary>
             <form onSubmit={(event) => void create(event)}>
               {limitsError && (
                 <Text role="alert">

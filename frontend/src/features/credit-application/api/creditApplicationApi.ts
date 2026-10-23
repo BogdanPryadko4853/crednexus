@@ -8,6 +8,7 @@ export type CompanyOption = {
   ogrnOrOgrnip?: string;
   legalForm?: string;
   status?: string;
+  currentUserRole?: string;
 };
 
 export type CreditProductOption = {
@@ -276,6 +277,10 @@ export function createCreditProduct(api: ApiClient, body: { name: string; minAmo
 
 export function updateCreditProduct(api: ApiClient, productId: string, body: Partial<{ name: string; minAmount: number; maxAmount: number; minTermMonths: number; maxTermMonths: number; baseRate: number; active: boolean }>) {
   return api.request<CreditProductAdmin>(`/credit-products/${productId}`, { method: "PATCH", body });
+}
+
+export function loadCreditProduct(api: ApiClient, productId: string) {
+  return api.request<CreditProductAdmin>(`/credit-products/${productId}`);
 }
 
 export function createLoanApplication(
