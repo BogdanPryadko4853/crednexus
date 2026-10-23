@@ -1,6 +1,7 @@
 server {
     listen ${FRONTEND_CONTAINER_PORT};
     server_name _;
+    client_max_body_size 11m;
     root /usr/share/nginx/html;
     index index.html;
     resolver ${FRONTEND_DNS_RESOLVER} valid=10s;

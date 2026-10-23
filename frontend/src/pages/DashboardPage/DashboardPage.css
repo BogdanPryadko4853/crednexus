@@ -1,6 +1,8 @@
 .dashboard-applications { display: grid; gap: 0.75rem; }
 .dashboard-application { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.75rem; }
 .dashboard-application { color: inherit; text-decoration: none; }
+.dashboard-application > div { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .dashboard-application { flex-direction: column; align-items: flex-start; } }
 .dashboard-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
 .dashboard-stats strong { font-size: 1.75rem; }
 @media (max-width: 700px) { .dashboard-stats { grid-template-columns: 1fr; } }

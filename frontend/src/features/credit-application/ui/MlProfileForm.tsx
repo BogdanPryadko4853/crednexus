@@ -6,6 +6,7 @@ import {
   SelectField,
   Text,
   TextField,
+  Icon,
 } from "../../../components";
 import { ApiError } from "../../../api/httpClient";
 import { useAuth } from "../../../auth";
@@ -15,6 +16,7 @@ import {
   monthlyMeasures,
   snapshotMeasures,
   validMlProfile,
+  monthAt,
 } from "../model/mlProfile";
 import type { MlProfile, MonthlyObservation } from "../model/mlProfile";
 import { workflowText } from "./workflowText";
@@ -27,7 +29,7 @@ type Props = {
 };
 export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
   const { api } = useAuth();
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const text = workflowText[locale];
   const lastMonth = new Date();
   lastMonth.setUTCDate(1);
@@ -47,10 +49,15 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [missing, setMissing] = useState(false);
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setLoadError(false);
+    setMissing(false);
     onReady(false);
     void api
       .request<MlProfile>(
@@ -68,7 +75,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
           Object.fromEntries(
             snapshotMeasures.map((key) => [
               key,
-              String(profile.financial_snapshot[key]),
+              profile.financial_snapshot[key] == null ? "" : String(profile.financial_snapshot[key]),
             ]),
           ),
         );
@@ -76,8 +83,9 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
         onReady(validMlProfile(profile));
       })
       .catch((reason) => {
-        if (active && !(reason instanceof ApiError && reason.status === 404))
-          setError(true);
+        if (!active) return;
+        if (reason instanceof ApiError && reason.status === 404) setMissing(true);
+        else setLoadError(true);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -85,10 +93,11 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
     return () => {
       active = false;
     };
-  }, [api, applicationId, onReady]);
+  }, [api, applicationId, onReady, revision]);
 
   function edited() {
     setSaved(false);
+    setError(false);
     onReady(false);
   }
   const profile: MlProfile = {
@@ -120,7 +129,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
   };
   for (const key of snapshotMeasures) {
     const value = Number(snapshot[key]);
-    if (!Number.isFinite(value) || value < 0 || (key.endsWith("share") && value > 1)) {
+    if (!snapshot[key]?.trim() || !Number.isFinite(value) || value < 0 || value > (key.endsWith("share") ? 1 : 1e15)) {
       fieldErrors[key] = key.endsWith("share") ? text.shareError : text.amountError;
     }
   }
@@ -143,20 +152,27 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
       );
       setSaved(true);
       onReady(true);
-    } catch {
+    } catch (reason) {
+      if (reason instanceof ApiError && reason.status === 404) setLoadError(true);
       setError(true);
     } finally {
       setSaving(false);
     }
   }
 
+  if (loading) return <Card title={text.mlTitle}><Text muted>{t("common.loading")}</Text></Card>;
+  if (loadError) return <Card title={text.mlTitle}><Alert tone="negative" title={t("application.apiErrorTitle")}>{t("workflow.apiUnavailable")}</Alert><Button variant="secondary" onClick={() => setRevision((value) => value + 1)}>{t("application.retry")}</Button></Card>;
+  if (readOnly && missing) return <Card title={text.mlTitle}><Alert tone="attention" title={t("workflow.noProfile")}>{t("workflow.apiUnavailable")}</Alert><Button variant="secondary" onClick={() => setRevision((value) => value + 1)}>{t("application.retry")}</Button></Card>;
+
   return (
     <Card title={text.mlTitle} subtitle={text.mlHint}>
       {error && <Alert tone="negative" title={text.error} />}
+      {missing && !saved && <Text muted>{t("workflow.noProfile")}</Text>}
       <fieldset
         disabled={readOnly || loading || saving}
         className="ml-profile__fieldset"
       >
+        <h4>{t("workflow.profile.business")}</h4>
         <div className="application-financial-grid">
           <TextField
             label={text.month}
@@ -168,11 +184,6 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
               edited();
               const value = event.target.value;
               setMonth(value);
-              setHistory(
-                value
-                  ? emptyMonthlyHistory(value, Math.max(3, history.length))
-                  : [],
-              );
             }}
           />
           <SelectField
@@ -254,10 +265,17 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
               ),
             )}
           </SelectField>
-          {snapshotMeasures.map((key) => (
+        </div>
+        {([
+          { title: "workflow.profile.concentration", keys: ["largest_customer_share", "largest_channel_share"] },
+          { title: "workflow.profile.debts", keys: ["accounts_receivable", "accounts_payable", "overdue_payables", "debt_outstanding", "loan_arrears", "existing_monthly_debt_service"] },
+          { title: "workflow.profile.inventory", keys: ["inventory"] },
+        ] as const).map((group) => <section className="ml-profile__group" key={group.title}><h4>{t(group.title)}</h4><div className="application-financial-grid">
+          {group.keys.map((key) => (
             <TextField
               key={key}
               label={text[key]}
+              hint={key.endsWith("share") ? t("workflow.profile.shareHint") : key === "accounts_receivable" ? t("workflow.profile.receivableHint") : key === "accounts_payable" ? t("workflow.profile.payableHint") : undefined}
               type="number"
               min={0}
               max={key.endsWith("share") ? 1 : 1e15}
@@ -274,29 +292,18 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
               }}
             />
           ))}
-        </div>
-        <div className="ml-profile__table-wrap">
-          <table className="ml-profile__table">
-            <caption>{text.mlTitle}</caption>
-            <thead>
-              <tr>
-                <th scope="col">{text.month}</th>
-                {monthlyMeasures.map((key) => (
-                  <th scope="col" key={key}>
-                    {text[key]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((row, index) => (
-                <tr key={row.month}>
-                  <th scope="row">{row.month.slice(0, 7)}</th>
+        </div></section>)}
+        <section className="ml-profile__group">
+          <h4>{t("workflow.profile.history")}</h4>
+          <Text muted>{t("workflow.profile.historyHint")}</Text>
+          {history.map((row, index) => <details className="ml-profile__month" key={row.month} open={history.length <= 3}>
+            <summary><span>{row.month.slice(0, 7)}</span><Icon name="chevron" /></summary>
+            {(row.month > `${month}-01` || (month && Number(age) >= 3 && row.month < monthAt(month, 1 - Number(age))) || monthlyMeasures.some((key) => row[key] !== null && (!Number.isFinite(row[key]) || row[key]! < 0 || row[key]! > 1e15))) && <Text role="alert">{t("workflow.profile.historyError")}</Text>}
+            <div className="application-financial-grid">
                   {monthlyMeasures.map((key) => (
-                    <td key={key}>
-                      <input
-                        aria-label={`${text[key]} ${row.month.slice(0, 7)}`}
-                        className="ui-control"
+                      <TextField key={key}
+                        label={`${text[key]} ${row.month.slice(0, 7)}`}
+                        error={row[key] !== null && (!Number.isFinite(row[key]) || row[key]! < 0 || row[key]! > 1e15) ? text.amountError : undefined}
                         type="number"
                         min={0}
                         step="0.01"
@@ -316,13 +323,10 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
                           );
                         }}
                       />
-                    </td>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </details>)}
+        </section>
         {!readOnly && (
           <div className="application-offer-actions">
             <Button
@@ -330,15 +334,10 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
               disabled={!month || history.length >= 120}
               onClick={() => {
                 edited();
-                setHistory(
-                  emptyMonthlyHistory(
-                    month,
-                    history.length ? history.length + 1 : 3,
-                  ).map(
-                    (row) =>
-                      history.find((old) => old.month === row.month) ?? row,
-                  ),
-                );
+                setHistory((current) => {
+                  const wanted = emptyMonthlyHistory(month, Math.min(120, Math.max(3, current.length + 1)));
+                  return [...current, ...wanted.filter((row) => !current.some((old) => old.month === row.month))].sort((a, b) => a.month.localeCompare(b.month)).slice(-120);
+                });
               }}
             >
               {text.addMonth}

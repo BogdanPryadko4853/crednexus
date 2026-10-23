@@ -7,6 +7,7 @@ import {
   Modal,
   SelectField,
   TextField,
+  Text,
 } from "../../../../components";
 import { useLocale } from "../../../../i18n";
 import {
@@ -59,6 +60,7 @@ export function CreditRequestForm({
 
   function change(field: keyof CreditRequest, value: string) {
     setValues((previous) => ({ ...previous, [field]: value }));
+    setErrors((current) => { const next = { ...current }; delete next[field]; return next; });
     setConfirmed(false);
   }
 
@@ -207,6 +209,10 @@ export function CreditRequestForm({
             ))}
           </SelectField>
         )}
+        {selectedProduct && <Text muted>{t("application.productConditions", {
+          minAmount: selectedProduct.minAmount ?? "—", maxAmount: selectedProduct.maxAmount ?? "—",
+          minTerm: selectedProduct.minTermMonths, maxTerm: selectedProduct.maxTermMonths ?? "—", rate: selectedProduct.baseRate ?? "—",
+        })}</Text>}
         {onConfirm ? (
           <SelectField
             name="purpose"
@@ -246,6 +252,7 @@ export function CreditRequestForm({
             value={customPurpose}
             onChange={(event) => {
               setCustomPurpose(event.target.value);
+              setErrors((current) => { const next = { ...current }; delete next.purpose; return next; });
               setConfirmed(false);
             }}
             required
@@ -262,19 +269,19 @@ export function CreditRequestForm({
       </form>
       <Modal
         open={confirmation !== null}
-        onClose={() => setConfirmation(null)}
+              onClose={() => { if (!submitting) setConfirmation(null); }}
         title={t("application.confirm.title")}
         description={t("application.confirm.description")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setConfirmation(null)}>
+            <Button variant="secondary" disabled={submitting} onClick={() => setConfirmation(null)}>
               {t("application.actions.back")}
             </Button>
             <Button
               loading={submitting}
               disabled={!onConfirm || (availableCompanies !== undefined && availableCompanies.length === 0) || hasCreditProducts === false}
               onClick={() => {
-                if (!confirmation) return;
+                if (!confirmation || submitting || !onConfirm) return;
                 setSubmitting(true);
                 setSubmitError(false);
                 if (!onConfirm) return;
@@ -291,6 +298,9 @@ export function CreditRequestForm({
       >
         {confirmation && (
           <dl className="credit-summary">
+            {selectedProduct && <div><dt>{t("application.fields.product")}</dt><dd>{selectedProduct.name}</dd></div>}
+            {confirmation.termMonths && <div><dt>{t("application.summary.term")}</dt><dd>{confirmation.termMonths} {t("dashboard.months")}</dd></div>}
+            <div><dt>{t("application.summary.purpose")}</dt><dd>{confirmation.purpose === "working_capital" ? t("application.purposes.workingCapital") : confirmation.purpose === "equipment" ? t("application.purposes.equipment") : confirmation.purpose === "refinance" ? t("application.purposes.refinance") : confirmation.purpose}</dd></div>
             <div>
               <dt>{t("application.summary.company")}</dt>
               <dd>{confirmation.company}</dd>

@@ -9,7 +9,7 @@ export type MessageValues = Record<string, string | number>;
 
 export function createTranslator(locale: Locale) {
   return (key: MessageKey, values: MessageValues = {}): string =>
-    catalogs[locale][key].replace(/\{(\w+)\}/g, (_, name: string) => {
+    (catalogs[locale][key] ?? (locale === "ru" ? "Статус уточняется" : "Status unavailable")).replace(/\{(\w+)\}/g, (_, name: string) => {
       if (values[name] === undefined) {
         throw new Error(`Missing interpolation value: ${name} for ${key}`);
       }

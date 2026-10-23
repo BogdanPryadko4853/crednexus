@@ -1,6 +1,7 @@
 import { canReview } from "../../features/manual-review/api/manualReviewApi";
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useLocation } from "react-router";
+import { useEffect } from "react";
 import { Alert, Button } from "../../components";
 import { useAuth } from "../../auth";
 import { useLocale } from "../../i18n";
@@ -12,6 +13,9 @@ export function CabinetLayout() {
   const { t } = useLocale();
   const [leaving, setLeaving] = useState(false);
   const [logoutFailed, setLogoutFailed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
+  useEffect(() => setMenuOpen(false), [location.pathname]);
   async function leave() {
     if (leaving) return;
     setLeaving(true);
@@ -51,7 +55,8 @@ export function CabinetLayout() {
         </div>
       </header>
       <div className="cabinet-layout">
-        <nav className="cabinet-navigation" aria-label={t("navigation.label")}>
+        <Button className="cabinet-menu-toggle" variant="secondary" aria-expanded={menuOpen} aria-controls="cabinet-navigation" onClick={() => setMenuOpen((value) => !value)}>{t("workflow.menu")}</Button>
+        <nav id="cabinet-navigation" className={`cabinet-navigation ${menuOpen ? "is-open" : ""}`} aria-label={t("navigation.label")}>
           <NavLink to={routes.dashboard}>{t("navigation.dashboard")}</NavLink>
           <NavLink to={routes.companies}>{t("navigation.companies")}</NavLink>
           <NavLink to={routes.creditApplication}>

@@ -1,0 +1,20 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { expect, it, vi } from "vitest";
+import { LocaleProvider } from "../../../i18n";
+import { MlProfileForm } from "./MlProfileForm";
+import { emptyMonthlyHistory, snapshotMeasures } from "../model/mlProfile";
+const { request, api } = vi.hoisted(() => { const request = vi.fn(); return { request, api: { request } }; });
+vi.mock("../../../auth", () => ({ useAuth: () => ({ api }) }));
+it("preserves entered monthly values when the reporting month changes", async () => {
+  const profile = { as_of_month: "2025-09-01", company: { sector: "retail", business_age_months: 24 }, history: emptyMonthlyHistory("2025-09", 3).map((row) => ({ ...row, sales: 100, cash_inflow: 100, operating_cash_outflow: 0, cash_balance: 100, operating_expense: 0 })), financial_snapshot: { month: "2025-09-01", legal_form: "OOO", business_state: "active", ...Object.fromEntries(snapshotMeasures.map((key) => [key, 0])) } };
+  request.mockResolvedValue(profile);
+  render(<LocaleProvider><MlProfileForm applicationId="app" readOnly={false} onReady={vi.fn()} /></LocaleProvider>);
+  const sales = await screen.findByRole("spinbutton", { name: "Выручка, ₽ 2025-07" });
+  await userEvent.clear(sales); await userEvent.type(sales, "250");
+  fireEvent.change(screen.getByLabelText(/Последний закрытый месяц/), { target: { value: "2025-10" } });
+  expect(screen.getByRole("spinbutton", { name: "Выручка, ₽ 2025-07" })).toHaveValue(250);
+  const share = screen.getByRole("spinbutton", { name: "Доля крупнейшего клиента (0–1)" });
+  await userEvent.clear(share);
+  expect(share).toHaveAttribute("aria-invalid", "true");
+});

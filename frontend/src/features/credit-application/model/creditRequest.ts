@@ -1,5 +1,6 @@
 import type { MessageKey } from "../../../i18n";
 import { config } from "../../../config";
+import { validMoney } from "./inputValidation";
 
 // Input format constraints, not product eligibility limits. Product limits belong to the API.
 export const CREDIT_INPUT_LIMITS = config.creditInputLimits;
@@ -42,8 +43,9 @@ export function validateCreditRequest(
   if (!values.company.trim()) errors.company = "application.validation.company";
   if (!innPattern.test(values.inn)) errors.inn = "application.validation.inn";
   const amount = values.amount.replace(/\s/g, "");
-  if (!amountPattern.test(amount) || !/[1-9]/.test(amount))
+  if (!amountPattern.test(amount) || !validMoney(amount, false))
     errors.amount = "application.validation.amount";
   if (!values.purpose.trim()) errors.purpose = "application.validation.purpose";
+  if (values.purpose.trim().length > 255) errors.purpose = "workflow.textError";
   return errors;
 }

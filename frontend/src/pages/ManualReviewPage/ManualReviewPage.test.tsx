@@ -18,7 +18,7 @@ const details = { application, company: { name: "Компания", inn: "770708
 beforeEach(() => {
   mock.roles = ["BANK_EMPLOYEE"];
   mock.request.mockReset();
-  mock.request.mockImplementation(async (path: string) => path.endsWith("/details") ? details : [application]);
+  mock.request.mockImplementation(async (path: string) => path.endsWith("/details") ? details : path === "/loan-applications/app" ? { ...application, productId: "product", status: "MANUAL_REVIEW" } : path === "/credit-products/product" ? { id: "product", minAmount: 100000, maxAmount: 1000000, minTermMonths: 6, maxTermMonths: 60 } : [application]);
 });
 function open(path = "/manual-review") {
   return render(<LocaleProvider><MemoryRouter initialEntries={[path]}><Routes><Route element={<ReviewAccess />}><Route path="/manual-review" element={<ManualReviewPage />} /><Route path="/manual-review/:applicationId" element={<ManualReviewDetailsPage />} /></Route></Routes></MemoryRouter></LocaleProvider>);

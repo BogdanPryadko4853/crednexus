@@ -1,6 +1,6 @@
 export const workflowText = {
   ru: {
-    mlTitle: "Финансовый профиль для скоринга",
+    mlTitle: "Подробные финансовые сведения",
     mlHint:
       "Укажите последний закрытый месяц и фактические месячные показатели. Пустая ячейка означает, что наблюдение неизвестно; 0 — подтверждённый ноль. Требуется минимум 3 месяца, рекомендуем 13.",
     month: "Последний закрытый месяц",
@@ -67,7 +67,7 @@ export const workflowText = {
     existing_monthly_debt_service: "Текущие ежемесячные платежи по долгам, ₽",
   },
   en: {
-    mlTitle: "Financial scoring profile",
+    mlTitle: "Detailed financial information",
     mlHint:
       "Enter the last closed month and actual monthly observations. Empty means unknown; 0 means a confirmed zero. At least 3 months are required; 13 recommended.",
     month: "Last closed month",

@@ -1,0 +1,24 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { expect, it, vi } from "vitest";
+import { LocaleProvider } from "../../i18n";
+import { CreditProductsPage } from "./CreditProductsPage";
+const { request, api } = vi.hoisted(() => { const request = vi.fn(); return { request, api: { request } }; });
+vi.mock("../../auth", () => ({ useAuth: () => ({ api }) }));
+it("blocks fractional terms and clears saved state when the editor changes", async () => {
+  const product = { id: "p", name: "Кредит", minAmount: 100000, maxAmount: 500000, minTermMonths: 6, maxTermMonths: 36, baseRate: 18.5, active: true };
+  request.mockImplementation(async (path: string, options?: { method: string; body: object }) => options?.method === "PATCH" ? { ...product, ...options.body } : path === "/credit-products" ? [product] : product);
+  const user = userEvent.setup(); render(<LocaleProvider><CreditProductsPage /></LocaleProvider>);
+  await user.click(await screen.findByRole("button", { name: "Изменить" }));
+  const terms = await screen.findAllByRole("textbox", { name: "Минимальный срок, мес." });
+  const field = terms[1]!;
+  await user.clear(field); await user.type(field, "6.5");
+  expect(screen.getByRole("button", { name: "Сохранить изменения" })).toBeDisabled();
+  expect(request.mock.calls.some(([, options]) => options?.method === "PATCH")).toBe(false);
+  await user.clear(field); await user.type(field, "7");
+  await user.click(screen.getByRole("button", { name: "Сохранить изменения" }));
+  await waitFor(() => expect(request).toHaveBeenCalledWith("/credit-products/p", expect.objectContaining({ method: "PATCH", body: expect.objectContaining({ minTermMonths: 7 }) })));
+  expect(await screen.findByText("Изменения сохранены")).toBeInTheDocument();
+  await user.type(field, "1");
+  expect(screen.queryByText("Изменения сохранены")).not.toBeInTheDocument();
+});

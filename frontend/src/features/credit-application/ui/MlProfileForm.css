@@ -4,6 +4,14 @@
   margin: 0;
   min-width: 0;
 }
+.ml-profile__group { margin-top: 1.5rem; display: grid; gap: 1rem; }
+.ml-profile__fieldset h4 { margin: 0 0 1rem; font-size: 1rem; }
+.ml-profile__month { border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: 1rem; }
+.ml-profile__month summary { cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: space-between; list-style: none; }
+.ml-profile__month summary::-webkit-details-marker { display: none; }
+.ml-profile__month summary .ui-icon { transform: rotate(90deg); }
+.ml-profile__month[open] summary .ui-icon { transform: rotate(-90deg); }
+.ml-profile__month[open] summary { margin-bottom: 1rem; }
 .ml-profile__fieldset .application-financial-grid {
   align-items: start;
 }

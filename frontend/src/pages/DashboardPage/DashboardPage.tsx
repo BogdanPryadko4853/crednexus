@@ -14,7 +14,7 @@ import "../../features/credit-application/ui/MlProfileForm.css";
 
 export function DashboardPage() {
   const { state, api } = useAuth();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [applications, setApplications] = useState<
     LoanApplicationResponse[] | null
   >(null);
@@ -99,9 +99,9 @@ export function DashboardPage() {
                 key={application.id}
               >
                 <div>
-                  <strong>{application.purpose}</strong>
+                  <strong>{application.purpose === "working_capital" ? t("application.purposes.workingCapital") : application.purpose === "equipment" ? t("application.purposes.equipment") : application.purpose === "refinance" ? t("application.purposes.refinance") : application.purpose}</strong>
                   <Text size="sm" muted>
-                    {application.requestedAmount.toLocaleString("ru-RU")} ₽ ·{" "}
+                    {application.requestedAmount.toLocaleString(locale)} ₽ ·{" "}
                     {application.termMonths} {t("dashboard.months")}
                   </Text>
                 </div>

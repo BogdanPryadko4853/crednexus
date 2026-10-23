@@ -1,71 +1,24 @@
+import { ApplicationFinancials } from "./ApplicationFinancials";
+import { ApplicationReview } from "./ApplicationReview";
+import { ApplicationOutcome } from "./ApplicationOutcome";
+import { ApplicationDocuments } from "./ApplicationDocuments";
+import { apiErrorKey } from "../../api/errorMessage";
+import { ApplicationNavigation, applicationSections } from "./ApplicationNavigation";
 import { useEffect, useRef, useState } from "react";
-import { MlProfileForm } from "../../features/credit-application/ui/MlProfileForm";
-import { workflowText } from "../../features/credit-application/ui/workflowText";
-import { loadApplicationHistory } from "../../features/credit-application/api/creditApplicationApi";
-import type { ApplicationHistory } from "../../features/credit-application/api/creditApplicationApi";
-import { Link, useParams } from "react-router";
-import {
-  Alert,
-  Button,
-  Card,
-  Heading,
-  PageState,
-  StatusBadge,
-  Text,
-  TextField,
-  SelectField,
-} from "../../components";
+import type { Dispatch, SetStateAction } from "react";
+import { Link, useParams, useSearchParams } from "react-router";
+import { Alert, Button, Card, Heading, Modal, PageState, StatusBadge, Text, TextField } from "../../components";
 import { useAuth } from "../../auth";
 import { useLocale } from "../../i18n";
 import type { MessageKey } from "../../i18n";
-import { ApiError } from "../../api/httpClient";
 import { routes } from "../../config/routes";
-import {
-  acceptOffer,
-  answerInformationRequest,
-  declineOffer,
-  downloadDocument,
-  loadVerifications,
-  loadDecision,
-  loadDocuments,
-  loadFinancialSnapshot,
-  loadFulfillment,
-  loadInformationRequests,
-  loadLoanApplication,
-  saveFinancialSnapshot,
-  submitLoanApplication,
-  updateLoanApplication,
-  uploadDocument,
-} from "../../features/credit-application/api/creditApplicationApi";
-import type {
-  VerificationResult,
-  CreditDecision,
-  DocumentResponse,
-  Fulfillment,
-  InformationRequest,
-  LoanApplicationResponse,
-} from "../../features/credit-application/api/creditApplicationApi";
-import "./ApplicationDetailsPage.css";
+import { MlProfileForm } from "../../features/credit-application/ui/MlProfileForm";
+import { acceptOffer, answerInformationRequest, declineOffer, downloadDocument, saveFinancialSnapshot, submitLoanApplication, updateLoanApplication, uploadDocument, loadCreditProduct } from "../../features/credit-application/api/creditApplicationApi";
+import type { DocumentResponse, InformationRequest, LoanApplicationResponse, CreditProductAdmin } from "../../features/credit-application/api/creditApplicationApi";
+import { validMoney, validTerm, moneyValue } from "../../features/credit-application/model/inputValidation";
+import { useApplicationData } from "./useApplicationData";
 import { getApplicationStage } from "./applicationProgress";
-
-const stages = [
-  "DRAFT",
-  "SUBMITTED",
-  "VERIFYING",
-  "SCORING",
-  "OFFERED",
-  "AGREEMENT_PENDING",
-  "DISBURSED",
-] as const;
-
-const applicationSections = [
-  { id: "application-summary", key: "summary" },
-  { id: "application-financial", key: "financial" },
-  { id: "application-documents", key: "documents" },
-  { id: "application-review", key: "review" },
-  { id: "application-decision", key: "decision" },
-  { id: "application-fulfillment", key: "fulfillment" },
-] as const;
+import "./ApplicationDetailsPage.css";
 
 function tone(status: string) {
   if (["REJECTED", "DECLINED", "EXPIRED"].includes(status))
@@ -83,186 +36,61 @@ export function ApplicationDetailsPage() {
 function ApplicationDetails({ applicationId }: { applicationId: string | undefined }) {
   const { api } = useAuth();
   const { t, locale } = useLocale();
-  const text = workflowText[locale];
   const [mlReady, setMlReady] = useState(false);
-  const [selectedSection, setSelectedSection] = useState("application-summary");
-  const [history, setHistory] = useState<ApplicationHistory[]>([]);
-
-  const [application, setApplication] =
-    useState<LoanApplicationResponse | null>(null);
-  const [error, setError] = useState(false);
+  const [search, setSearch] = useSearchParams();
+  const steps: Record<string, string> = { parameters: "application-summary", financial: "application-financial", documents: "application-documents", review: "application-review", decision: "application-decision", outcome: "application-fulfillment" };
+  const selectedSection = steps[search.get("step") ?? "parameters"] ?? "application-summary";
+  function setSelectedSection(section: string) {
+    const next = new URLSearchParams(search);
+    next.set("step", Object.keys(steps).find((key) => steps[key] === section) ?? "parameters");
+    next.delete("created");
+    setSearch(next, { replace: true });
+  }
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
-  const [informationRequests, setInformationRequests] = useState<
-    InformationRequest[]
-  >([]);
-  const [documents, setDocuments] = useState<DocumentResponse[]>([]);
-  const [decision, setDecision] = useState<CreditDecision | null>(null);
-  const [fulfillment, setFulfillment] = useState<Fulfillment | null>(null);
-  const [answer, setAnswer] = useState<Record<string, string>>({});
-  const [financial, setFinancial] = useState({
-    annualRevenue: "",
-    annualExpenses: "",
-    existingDebt: "",
-    monthlyPayments: "",
-    employeeCount: "",
-    period: "",
-  });
-  const [financialSaved, setFinancialSaved] = useState(false);
-  const [draft, setDraft] = useState({
-    requestedAmount: "",
-    termMonths: "",
-    purpose: "",
-  });
-  const [draftSaved, setDraftSaved] = useState(false);
-  const [draftSaving, setDraftSaving] = useState(false);
-  const uploadType = "SUPPORTING_DOCUMENT";
-  const [fileError, setFileError] = useState(false);
-  const [now, setNow] = useState(Date.now());
-  const [actionError, setActionError] = useState(false);
-  const [revision, setRevision] = useState(0);
-  const [verifications, setVerifications] = useState<VerificationResult[]>([]);
-  const [resourceErrors, setResourceErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [draftSaving, setDraftSaving] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [financialSaved, setFinancialSaved] = useState(false);
+  const [financial, setFinancial] = useState({ annualRevenue: "", annualExpenses: "", existingDebt: "", monthlyPayments: "", employeeCount: "", period: "" });
+  const [draft, setDraft] = useState({ requestedAmount: "", termMonths: "", purpose: "" });
+  const [answer, setAnswer] = useState<Record<string, string>>({});
+  const [actionError, setActionError] = useState<MessageKey | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [requestDocumentId, setRequestDocumentId] = useState("");
+  const [offerConfirmation, setOfferConfirmation] = useState<"accept" | "decline" | null>(null);
+  const [product, setProduct] = useState<CreditProductAdmin | null>(null);
   const draftDirtyRef = useRef(false);
   const financialDirtyRef = useRef(false);
-  const loadedApplicationIdRef = useRef<string | undefined>(undefined);
-  const reload = () => setRevision((value) => value + 1);
-
+  const uploadType = "SUPPORTING_DOCUMENT";
+  const { data, setResource, errors, loaded, refreshing, reload: refresh } = useApplicationData(applicationId, selectedSection, busy || submitting || draftSaving);
+  const { application, requests: informationRequests, documents, decision, fulfillment, verifications, history, financial: snapshot } = data;
+  const reload = () => refresh();
+  const error = errors.application !== undefined;
+  const resourceErrors = Object.keys(errors).filter((key) => key !== "application");
+  const setApplication: Dispatch<SetStateAction<LoanApplicationResponse | null>> = (value) => setResource("application", value);
+  const setDocuments: Dispatch<SetStateAction<DocumentResponse[]>> = (value) => setResource("documents", value);
+  const setInformationRequests: Dispatch<SetStateAction<InformationRequest[]>> = (value) => setResource("requests", value);
   useEffect(() => {
-    if (!api || !applicationId) return;
+    if (!snapshot || financialDirtyRef.current) return;
+    setFinancial({ annualRevenue: String(snapshot.annualRevenue), annualExpenses: String(snapshot.annualExpenses), existingDebt: String(snapshot.existingDebt), monthlyPayments: String(snapshot.monthlyPayments), employeeCount: String(snapshot.employeeCount), period: snapshot.period });
+    setFinancialSaved(true);
+  }, [snapshot]);
+  useEffect(() => {
+    if (!application || draftDirtyRef.current) return;
+    setDraft({ requestedAmount: String(application.requestedAmount), termMonths: String(application.termMonths), purpose: application.purpose });
+  }, [application]);
+  useEffect(() => {
+    if (!application?.productId) return;
     let active = true;
-    setError(false);
-    if (loadedApplicationIdRef.current !== applicationId) {
-      loadedApplicationIdRef.current = applicationId;
-      setResourceErrors([]);
-      setLoaded(false);
-      draftDirtyRef.current = false;
-      financialDirtyRef.current = false;
-    }
-    async function resource<T>(
-      name: string,
-      promise: Promise<T>,
-      apply: (value: T) => void,
-      optional = false,
-    ) {
-      try {
-        const value = await promise;
-        if (active) {
-          apply(value);
-          setResourceErrors((items) => items.filter((item) => item !== name));
-        }
-      } catch (error) {
-        if (
-          active &&
-          !(optional && error instanceof ApiError && error.status === 404)
-        ) {
-          setResourceErrors((items) => items.includes(name) ? items : [...items, name]);
-        } else if (active) {
-          setResourceErrors((items) => items.filter((item) => item !== name));
-        }
-      }
-    }
-    void loadLoanApplication(api, applicationId)
-      .then((item) => {
-        if (active) setApplication(item);
-      })
-      .catch(() => {
-        if (active) setError(true);
-      });
-    void Promise.all([
-      resource(
-        "requests",
-        loadInformationRequests(api, applicationId),
-        setInformationRequests,
-      ),
-      resource("documents", loadDocuments(api, applicationId), setDocuments),
-      resource("decision", loadDecision(api, applicationId), setDecision, true),
-      resource(
-        "fulfillment",
-        loadFulfillment(api, applicationId),
-        setFulfillment,
-        true,
-      ),
-      resource(
-        "verifications",
-        loadVerifications(api, applicationId),
-        setVerifications,
-      ),
-      resource(
-        "financial",
-        loadFinancialSnapshot(api, applicationId),
-        (snapshot) => {
-          if (!financialDirtyRef.current) {
-            setFinancial({
-              annualRevenue: String(snapshot.annualRevenue),
-              annualExpenses: String(snapshot.annualExpenses),
-              existingDebt: String(snapshot.existingDebt),
-              monthlyPayments: String(snapshot.monthlyPayments),
-              employeeCount: String(snapshot.employeeCount),
-              period: snapshot.period,
-            });
-            setFinancialSaved(true);
-          }
-        },
-        true,
-      ),
-      resource(
-        "history",
-        loadApplicationHistory(api, applicationId),
-        setHistory,
-        true,
-      ),
-    ]).finally(() => {
-      if (active) setLoaded(true);
-    });
-    return () => {
-      active = false;
-    };
-  }, [api, applicationId, revision]);
-
-  useEffect(() => {
-    if (
-      !loaded ||
-      !application ||
-      ![
-        "SUBMITTED",
-        "VERIFYING",
-        "SCORING",
-        "OFFERED",
-        "ACCEPTED",
-        "AGREEMENT_PENDING",
-        "MANUAL_REVIEW",
-        "NEEDS_INFO",
-      ].includes(application.status)
-    )
-      return;
-    const timer = window.setInterval(() => {
-      if (!busy && !submitting && !draftSaving && !window.document.hidden) {
-        // Keep user-entered answers intact while refreshing the server state.
-        setRevision((value) => value + 1);
-      }
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [application?.status, loaded, busy, submitting, draftSaving]);
-
+    void loadCreditProduct(api, application.productId).then((value) => { if (active) setProduct(value); }).catch(() => { if (active) setProduct(null); });
+    return () => { active = false; };
+  }, [api, application?.productId]);
   useEffect(() => {
     if (application?.status !== "OFFERED") return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, [application?.status]);
-
-  useEffect(() => {
-    if (application && !draftDirtyRef.current) {
-      setDraft({
-        requestedAmount: String(application.requestedAmount),
-        termMonths: String(application.termMonths),
-        purpose: application.purpose,
-      });
-    }
-  }, [application]);
 
   if (error || !applicationId)
     return (
@@ -282,13 +110,13 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       .filter((section) => {
         if (section.key === "summary") return application.status !== "DRAFT" || draftSaved;
         if (section.key === "financial")
-          return !resourceErrors.includes("financial") && (currentStage >= 2 || (financialSaved && mlReady));
+          return !resourceErrors.includes("financial") && financialSaved && mlReady;
         if (section.key === "documents")
-          return !resourceErrors.includes("documents") && (documents.length > 0 || currentStage >= 3);
+          return !resourceErrors.includes("documents") && documents.length > 0 && !informationRequests.some((item) => item.status === "OPEN" && item.requiresDocument);
         if (section.key === "review")
           return !resourceErrors.includes("verifications") && currentStage > 3;
         if (section.key === "decision")
-          return !resourceErrors.includes("decision") && currentStage > 4;
+          return !resourceErrors.includes("decision") && decision != null;
         return !resourceErrors.includes("fulfillment") && (application.status === "DISBURSED" || fulfillment?.disbursedAt != null);
       })
       .map((section) => section.id),
@@ -296,6 +124,15 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
   const isTerminal = ["REJECTED", "DECLINED", "EXPIRED", "DISBURSED"].includes(
     application.status,
   );
+  const draftErrors = {
+    requestedAmount: !validMoney(draft.requestedAmount, false) ? t("workflow.moneyError") : product && (Number(draft.requestedAmount) < (product.minAmount ?? 0) || Number(draft.requestedAmount) > (product.maxAmount ?? Infinity)) ? t("application.validation.productAmount") : undefined,
+    termMonths: !validTerm(draft.termMonths) ? t("workflow.termError") : product && (Number(draft.termMonths) < product.minTermMonths || Number(draft.termMonths) > (product.maxTermMonths ?? Infinity)) ? t("application.validation.productTerm") : undefined,
+    purpose: !draft.purpose.trim() || draft.purpose.trim().length > 255 ? t("workflow.textError") : undefined,
+  };
+  const financialErrors = Object.fromEntries(Object.entries(financial).map(([key,value]) => [key,
+    key === "period" ? (!value.trim() || value.length > 255 ? t("workflow.textError") : undefined)
+    : key === "employeeCount" ? (!/^\d+$/.test(value) || Number(value) > 2147483647 ? t("workflow.termError") : undefined)
+    : !validMoney(value) ? t("workflow.moneyError") : undefined]));
   const id = applicationId;
   const draftDirty =
     draft.requestedAmount !== String(application.requestedAmount) ||
@@ -304,12 +141,12 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
   const offerExpired =
     !!decision?.offer?.expiresAt && Date.parse(decision.offer.expiresAt) <= now;
   async function submit() {
-    if (!api || busy) return;
+    if (!api || busy || submitting) return;
     setSubmitting(true);
     setSubmitError(false);
     try {
       setApplication(await submitLoanApplication(api, id));
-      reload();
+      refresh(["application", "requests", "verifications", "history"]);
     } catch {
       setSubmitError(true);
     } finally {
@@ -319,33 +156,34 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
   async function saveFinancial() {
     if (!api || busy) return;
     setBusy(true);
-    setActionError(false);
+    setActionError(null);
     try {
-      await saveFinancialSnapshot(api, id, {
-        annualRevenue: Number(financial.annualRevenue),
-        annualExpenses: Number(financial.annualExpenses),
-        existingDebt: Number(financial.existingDebt),
-        monthlyPayments: Number(financial.monthlyPayments),
+      const savedSnapshot = await saveFinancialSnapshot(api, id, {
+        annualRevenue: moneyValue(financial.annualRevenue),
+        annualExpenses: moneyValue(financial.annualExpenses),
+        existingDebt: moneyValue(financial.existingDebt),
+        monthlyPayments: moneyValue(financial.monthlyPayments),
         employeeCount: Number(financial.employeeCount),
         period: financial.period,
       });
+      setResource("financial", savedSnapshot);
       financialDirtyRef.current = false;
       setFinancialSaved(true);
-    } catch {
+    } catch (reason) {
       setFinancialSaved(false);
-      setActionError(true);
+      setActionError(apiErrorKey(reason));
     } finally {
       setBusy(false);
     }
   }
   async function saveDraft() {
-    if (!api || busy) return;
+    if (!api || busy || draftSaving) return;
     setDraftSaving(true);
     setDraftSaved(false);
-    setActionError(false);
+    setActionError(null);
     try {
       const updated = await updateLoanApplication(api, id, {
-        requestedAmount: Number(draft.requestedAmount),
+        requestedAmount: moneyValue(draft.requestedAmount),
         termMonths: Number(draft.termMonths),
         purpose: draft.purpose.trim(),
       });
@@ -353,8 +191,8 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       draftDirtyRef.current = false;
       setDraftSaved(true);
       setSelectedSection("application-financial");
-    } catch {
-      setActionError(true);
+    } catch (reason) {
+      setActionError(apiErrorKey(reason));
     } finally {
       setDraftSaving(false);
     }
@@ -363,7 +201,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
     const value = answer[request.id]?.trim();
     if (!api || !value || busy) return;
     setBusy(true);
-    setActionError(false);
+    setActionError(null);
     try {
       const updated = await answerInformationRequest(
         api,
@@ -374,17 +212,17 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       setInformationRequests((items) =>
         items.map((item) => (item.id === updated.id ? updated : item)),
       );
-      reload();
-    } catch {
-      setActionError(true);
+      refresh(["application", "requests", "history"]);
+    } catch (reason) {
+      setActionError(apiErrorKey(reason));
     } finally {
       setBusy(false);
     }
   }
   async function offerAction(action: "accept" | "decline") {
-    if (!api || busy) return;
+    if (!api || busy || offerExpired || application?.status !== "OFFERED") return;
     setBusy(true);
-    setActionError(false);
+    setActionError(null);
     try {
       const result =
         action === "accept"
@@ -393,9 +231,10 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       setApplication((item) =>
         item ? { ...item, status: result.applicationStatus } : item,
       );
-      reload();
-    } catch {
-      setActionError(true);
+      setOfferConfirmation(null);
+      refresh(["application", "decision", "fulfillment", "history"]);
+    } catch (reason) {
+      setActionError(apiErrorKey(reason));
     } finally {
       setBusy(false);
     }
@@ -403,7 +242,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
   async function upload(file: File) {
     if (!api || busy) return;
     setBusy(true);
-    setActionError(false);
+    setActionError(null);
     try {
       const uploaded = await uploadDocument(
         api,
@@ -414,9 +253,9 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       );
       setDocuments((items) => [uploaded, ...items]);
       setRequestDocumentId("");
-      reload();
-    } catch {
-      setActionError(true);
+      refresh(["application", "requests", "documents", "history"]);
+    } catch (reason) {
+      setActionError(apiErrorKey(reason));
     } finally {
       setBusy(false);
     }
@@ -424,7 +263,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
   async function download(document: DocumentResponse) {
     if (!api || busy) return;
     setBusy(true);
-    setActionError(false);
+    setActionError(null);
     try {
       const blob = await downloadDocument(api, document.id);
       const url = URL.createObjectURL(blob);
@@ -433,8 +272,8 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       anchor.download = document.fileName;
       anchor.click();
       URL.revokeObjectURL(url);
-    } catch {
-      setActionError(true);
+    } catch (reason) {
+      setActionError(apiErrorKey(reason));
     } finally {
       setBusy(false);
     }
@@ -450,7 +289,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
           <Text muted>{t("application.detailsEyebrow")}</Text>
           <Heading level={1}>{t("application.detailsTitle")}</Heading>
         </div>
-        <Button variant="secondary" onClick={reload}>
+        <Button variant="secondary" disabled={refreshing} onClick={reload}>
           {t("application.refresh")}
         </Button>
         <StatusBadge tone={tone(application.status)}>
@@ -458,13 +297,12 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
         </StatusBadge>
       </div>
       {!loaded && <Text muted>{t("application.detailsLoading")}</Text>}
-      {resourceErrors.length > 0 && (
+      {resourceErrors.filter((key) => key !== "fulfillment" || selectedSection === "application-fulfillment").length > 0 && (
         <Alert tone="negative" title={t("application.apiErrorTitle")}>
-          {resourceErrors.map((name) => (
+          {resourceErrors.filter((key) => key !== "fulfillment" || selectedSection === "application-fulfillment").map((name) => (
             <Text key={name}>
-              {name === "history"
-                ? text.history
-                : t(`application.resource.${name}` as MessageKey)}
+              {t(`application.resource.${name}` as MessageKey)}
+              {errors[name as keyof typeof errors] === 404 && <span> · {t("workflow.apiUnavailable")}</span>}
             </Text>
           ))}
           <Button variant="secondary" onClick={reload}>
@@ -479,40 +317,16 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       )}
       {actionError && (
         <Alert tone="negative" title={t("application.actionErrorTitle")}>
-          {t("application.actionErrorDescription")}
+          {t(actionError ?? "application.actionErrorDescription")}
         </Alert>
       )}
-      <nav className="application-section-nav" aria-label={t("application.workflowTitle")}>
-        <div className="application-section-nav__heading">
-          <div>
-            <Text muted>{t("application.workflowTitle")}</Text>
-            <p>{t("application.workflowDescription")}</p>
-          </div>
-          <span className="application-section-nav__hint">{t("application.workflowHint")}</span>
-        </div>
-        <ol role="tablist" aria-label={t("application.workflowTitle")}>
-          {applicationSections.map((section, index) => (
-            <li key={section.id}>
-              <button type="button" role="tab" id={`${section.id}-tab`}
-                className={completedSections.has(section.id) ? "is-complete" : undefined}
-                aria-selected={selectedSection === section.id} aria-controls={`${section.id}-panel`}
-                tabIndex={selectedSection === section.id ? 0 : -1}
-                onKeyDown={(event) => {
-                  const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-                  const target = event.key === "Home" ? applicationSections[0] : event.key === "End" ? applicationSections[applicationSections.length - 1] : offset ? applicationSections[(index + offset + applicationSections.length) % applicationSections.length] : null;
-                  if (!target) return;
-                  event.preventDefault();
-                  setSelectedSection(target.id);
-                  window.document.getElementById(`${target.id}-tab`)?.focus();
-                }}
-                onClick={() => setSelectedSection(section.id)}>
-                <span aria-hidden="true">{completedSections.has(section.id) ? "✓" : index + 1}</span>
-                {t(`application.workflow.${section.key}` as MessageKey)}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      {search.get("created") === "1" && <Alert tone="positive" title={t("workflow.draftCreated")} />}
+      <Card title={t("workflow.next")}><Text>{t(("workflow.status." + application.status) as MessageKey)}</Text>
+        {["DRAFT", "NEEDS_INFO", "OFFERED", "ACCEPTED", "AGREEMENT_PENDING"].includes(application.status) && <Button variant="secondary" onClick={() => setSelectedSection(application.status === "DRAFT" ? (!financialSaved || !mlReady ? "application-financial" : "application-review") : application.status === "NEEDS_INFO" ? "application-documents" : application.status === "OFFERED" ? "application-decision" : "application-fulfillment")}>
+          {t(application.status === "DRAFT" ? (!financialSaved || !mlReady ? "application.workflow.financial" : "application.workflow.review") : application.status === "NEEDS_INFO" ? "application.workflow.documents" : application.status === "OFFERED" ? "application.workflow.decision" : "application.workflow.fulfillment")}
+        </Button>}
+      </Card>
+      <ApplicationNavigation selectedSection={selectedSection} setSelectedSection={setSelectedSection} completedSections={completedSections} />
       <div role="tabpanel" id="application-summary-panel" aria-labelledby="application-summary-tab" hidden={selectedSection !== "application-summary"} className="application-section-panel">
       <Card id="application-summary" title={t("application.detailsSummaryTitle")}>
         <dl className="application-details__summary">
@@ -528,7 +342,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
           </div>
           <div>
             <dt>{t("application.summary.purpose")}</dt>
-            <dd>{application.purpose}</dd>
+            <dd>{application.purpose === "working_capital" ? t("application.purposes.workingCapital") : application.purpose === "equipment" ? t("application.purposes.equipment") : application.purpose === "refinance" ? t("application.purposes.refinance") : application.purpose}</dd>
           </div>
         </dl>
       </Card>
@@ -536,12 +350,15 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
         <Card title={t("application.editTitle")}>
           <div className="application-financial-grid">
             <TextField
+              disabled={draftSaving}
+              error={draftErrors.requestedAmount}
               name="draftAmount"
               label={t("application.summary.amount")}
               inputMode="decimal"
               value={draft.requestedAmount}
               onChange={(event) => {
                 draftDirtyRef.current = true;
+                setDraftSaved(false);
                 setDraft((current) => ({
                   ...current,
                   requestedAmount: event.target.value,
@@ -549,12 +366,15 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
               }}
             />
             <TextField
+              disabled={draftSaving}
+              error={draftErrors.termMonths}
               name="draftTerm"
               label={t("application.summary.term")}
               inputMode="numeric"
               value={draft.termMonths}
               onChange={(event) => {
                 draftDirtyRef.current = true;
+                setDraftSaved(false);
                 setDraft((current) => ({
                   ...current,
                   termMonths: event.target.value,
@@ -562,11 +382,14 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
               }}
             />
             <TextField
+              disabled={draftSaving}
+              maxLength={255} error={draftErrors.purpose}
               name="draftPurpose"
               label={t("application.summary.purpose")}
               value={draft.purpose}
               onChange={(event) => {
                 draftDirtyRef.current = true;
+                setDraftSaved(false);
                 setDraft((current) => ({
                   ...current,
                   purpose: event.target.value,
@@ -575,14 +398,7 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
             />
           </div>
           <Button
-            disabled={
-              !Number.isFinite(Number(draft.requestedAmount)) ||
-              Number(draft.requestedAmount) <= 0 ||
-              !Number.isInteger(Number(draft.termMonths)) ||
-              Number(draft.termMonths) < 1 ||
-              !draft.purpose.trim() ||
-              draft.purpose.trim().length > 255
-            }
+            disabled={Object.values(draftErrors).some(Boolean)}
             loading={draftSaving}
             onClick={() => void saveDraft()}
           >
@@ -593,132 +409,9 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
         </Card>
       )}
       </div>
-      <div role="tabpanel" id="application-review-panel" aria-labelledby="application-review-tab" hidden={selectedSection !== "application-review"} className="application-section-panel">
-      <Card title={t("application.progressTitle")}>
-        <ol className="application-progress">
-          {stages.map((stage, index) => (
-            <li
-              className={
-                index === currentStage
-                  ? "is-current"
-                  : index < currentStage
-                    ? "is-complete"
-                    : ""
-              }
-              aria-current={index === currentStage ? "step" : undefined}
-              key={stage}
-            >
-              <span>{index + 1}</span>
-              {t(
-                `dashboard.status.${index === currentStage ? application.status : stage}` as MessageKey,
-              )}
-            </li>
-          ))}
-        </ol>
-        {application.status === "DRAFT" && (
-          <>
-            <Text muted>{text.ready}</Text>
-            <ul>
-              <li>
-                {financialSaved ? "✓" : "○"} {t("application.financialTitle")}
-              </li>
-              <li>
-                {mlReady ? "✓" : "○"} {text.mlTitle}
-              </li>
-              <li>
-                {!draftDirty ? "✓" : "○"} {t("application.detailsSummaryTitle")}
-              </li>
-            </ul>
-            <Button
-              disabled={
-                !financialSaved || !mlReady || draftDirty || busy || draftSaving
-              }
-              loading={submitting}
-              onClick={() => void submit()}
-            >
-              {t("application.submitAction")}
-            </Button>
-          </>
-        )}
-        {isTerminal && <Text muted>{t("application.progressTerminal")}</Text>}
-      </Card>
-      </div>
+      <ApplicationReview selectedSection={selectedSection} application={application} snapshot={snapshot} currentStage={currentStage} financialSaved={financialSaved} mlReady={mlReady} draftDirty={draftDirty} busy={busy} draftSaving={draftSaving} submitting={submitting} submit={submit} isTerminal={isTerminal} verifications={verifications} history={history} loaded={loaded} resourceErrors={resourceErrors} />
       <div role="tabpanel" id="application-financial-panel" aria-labelledby="application-financial-tab" hidden={selectedSection !== "application-financial"} className="application-section-panel">
-      <Card
-        id="application-financial"
-        title={t("application.financialTitle")}
-        subtitle={t("application.financialDescription")}
-      >
-        <div className="application-financial-grid">
-          {(
-            [
-              "annualRevenue",
-              "annualExpenses",
-              "existingDebt",
-              "monthlyPayments",
-              "employeeCount",
-            ] as const
-          ).map((field) => (
-            <TextField
-              key={field}
-              readOnly={application.status !== "DRAFT"}
-              name={field}
-              label={t(`application.financial.${field}` as MessageKey)}
-              inputMode="decimal"
-              value={financial[field]}
-              onChange={(event) => {
-                setFinancialSaved(false);
-                financialDirtyRef.current = true;
-                setFinancial((current) => ({
-                  ...current,
-                  [field]: event.target.value,
-                }));
-              }}
-            />
-          ))}
-          <TextField
-            name="period"
-            readOnly={application.status !== "DRAFT"}
-            label={t("application.financial.period")}
-            value={financial.period}
-            onChange={(event) => {
-              setFinancialSaved(false);
-              financialDirtyRef.current = true;
-              setFinancial((current) => ({
-                ...current,
-                period: event.target.value,
-              }));
-            }}
-          />
-        </div>
-        {application.status === "DRAFT" && (
-          <Button
-            loading={busy}
-            disabled={
-              !financial.period.trim() ||
-              [
-                financial.annualRevenue,
-                financial.annualExpenses,
-                financial.existingDebt,
-                financial.monthlyPayments,
-              ].some(
-                (value) =>
-                  !value.trim() ||
-                  !Number.isFinite(Number(value)) ||
-                  Number(value) < 0,
-              ) ||
-              !financial.employeeCount.trim() ||
-              !Number.isInteger(Number(financial.employeeCount)) ||
-              Number(financial.employeeCount) < 0
-            }
-            onClick={() => void saveFinancial()}
-          >
-            {financialSaved
-              ? t("application.financialSaved")
-              : t("application.financialSave")}
-          </Button>
-        )}
-      </Card>
+      <ApplicationFinancials values={financial} errors={financialErrors} readOnly={application.status !== "DRAFT"} busy={busy} saved={financialSaved} onSave={saveFinancial} onChange={(field,value) => {financialDirtyRef.current=true;setFinancialSaved(false);setFinancial((current)=>({...current,[field]:value}));}} />
       <MlProfileForm
         applicationId={applicationId}
         readOnly={application.status !== "DRAFT"}
@@ -726,247 +419,15 @@ function ApplicationDetails({ applicationId }: { applicationId: string | undefin
       />
       </div>
       <div role="tabpanel" id="application-documents-panel" aria-labelledby="application-documents-tab" hidden={selectedSection !== "application-documents"} className="application-section-panel">
-      {informationRequests.length > 0 && (
-        <Card id="application-documents" title={t("application.requestsTitle")}>
-          <div className="application-requests">
-            {informationRequests.map((request) => (
-              <div className="application-request" key={request.id}>
-                <strong>{request.question}</strong>
-                {request.answer && <Text>{request.answer}</Text>}
-                {request.status === "OPEN" &&
-                  (request.requiresDocument ? (
-                    <>
-                      <Text muted>{text.documentRequired}</Text>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setRequestDocumentId(request.id);
-                          window.document
-                            .getElementById("document-upload")
-                            ?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "center",
-                            });
-                        }}
-                      >
-                        {t("application.documentsTitle")}
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <TextField
-                        name={`answer-${request.id}`}
-                        label={t("application.answerLabel")}
-                        value={answer[request.id] ?? ""}
-                        onChange={(event) =>
-                          setAnswer((current) => ({
-                            ...current,
-                            [request.id]: event.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="sm"
-                        loading={busy}
-                        disabled={!answer[request.id]?.trim()}
-                        onClick={() => void answerRequest(request)}
-                      >
-                        {t("application.answerAction")}
-                      </Button>
-                    </>
-                  ))}
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-      <Card title={t("application.documentsTitle")}>
-        <SelectField
-          name="informationRequestDocument"
-          label={t("application.documentRequest")}
-          value={requestDocumentId}
-          onChange={(event) => setRequestDocumentId(event.target.value)}
-        >
-          <option value="">{t("application.documentGeneral")}</option>
-          {informationRequests
-            .filter((item) => item.status === "OPEN" && item.requiresDocument)
-            .map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.question}
-              </option>
-            ))}
-        </SelectField>
-        <Text muted>{text.fileHint}</Text>
-        {fileError && <Alert tone="negative" title={text.fileError} />}
-        <div className="application-document-upload" id="document-upload">
-          <input
-            aria-label={t("application.documentsTitle")}
-            disabled={busy}
-            type="file"
-            accept="application/pdf,image/png,image/jpeg"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = "";
-              if (!file) return;
-              if (
-                !["application/pdf", "image/png", "image/jpeg"].includes(
-                  file.type,
-                ) ||
-                file.size <= 0 ||
-                file.size > 10 * 1024 * 1024
-              ) {
-                setFileError(true);
-                return;
-              }
-              setFileError(false);
-              void upload(file);
-            }}
-          />
-        </div>
-        {loaded &&
-          !resourceErrors.includes("documents") &&
-          documents.length === 0 && (
-            <Text muted>{t("application.documentsEmpty")}</Text>
-          )}
-        {documents.length > 0 && (
-          <ul className="application-document-list">
-            {documents.map((document) => (
-              <li key={document.id}>
-                <button
-                  className="application-document-link"
-                  type="button"
-                  onClick={() => void download(document)}
-                >
-                  {document.fileName}
-                </button>
-                <StatusBadge tone="neutral">
-                  {t(
-                    `application.documentStatus.${document.status}` as MessageKey,
-                  )}
-                </StatusBadge>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      <ApplicationDocuments informationRequests={informationRequests} documents={documents} answer={answer} setAnswer={setAnswer} busy={busy} requestDocumentId={requestDocumentId} setRequestDocumentId={setRequestDocumentId} loaded={loaded} resourceErrors={resourceErrors} answerRequest={answerRequest} download={download} upload={upload} />
       </div>
-      <div hidden={selectedSection !== "application-review"} className="application-section-panel">
-      <Card title={t("application.verificationsTitle")}>
-        {loaded &&
-          !resourceErrors.includes("verifications") &&
-          verifications.length === 0 && (
-            <Text muted>{t("application.verificationsEmpty")}</Text>
-          )}
-        {verifications.map((item) => (
-          <div className="application-request" key={item.id}>
-            <strong>
-              {t(`application.verificationType.${item.type}` as MessageKey)}
-            </strong>
-            <StatusBadge
-              tone={
-                item.status === "SUCCESS"
-                  ? "positive"
-                  : item.status === "PENDING"
-                    ? "info"
-                    : "negative"
-              }
-            >
-              {t(`application.verificationStatus.${item.status}` as MessageKey)}
-            </StatusBadge>
-          </div>
-        ))}
-      </Card>
-      </div>
-      <div role="tabpanel" id="application-decision-panel" aria-labelledby="application-decision-tab" hidden={selectedSection !== "application-decision"} className="application-section-panel">
-      {!decision && <Card><Text muted>{t("application.workflow.decisionPending")}</Text></Card>}
-      {decision && (
-        <Card id="application-decision" title={t("application.decisionTitle")}>
-          <Text>
-            {t(
-              `application.decisionType.${decision.decisionType}` as MessageKey,
-            )}
-          </Text>
-          <Text>{decision.reason}</Text>
-        </Card>
-      )}
-      {decision?.offer && (
-        <Card title={t("application.offerTitle")}>
-          <Text>
-            {decision.offer.amount.toLocaleString(locale)} ₽ ·{" "}
-            {decision.offer.termMonths} {t("dashboard.months")} ·{" "}
-            {decision.offer.interestRate}%
-          </Text>
-          {decision.offer.expiresAt && (
-            <Text muted>
-              {text.expires}:{" "}
-              {new Date(decision.offer.expiresAt).toLocaleString(locale)}
-            </Text>
-          )}
-          {application.status === "OFFERED" && (
-            <>
-              {offerExpired && <Text>{text.expired}</Text>}
-              <div className="application-offer-actions">
-                <Button
-                  disabled={offerExpired}
-                  loading={busy}
-                  onClick={() => void offerAction("accept")}
-                >
-                  {t("application.offerAccept")}
-                </Button>
-                <Button
-                  disabled={offerExpired}
-                  loading={busy}
-                  variant="secondary"
-                  onClick={() => void offerAction("decline")}
-                >
-                  {t("application.offerDecline")}
-                </Button>
-              </div>
-            </>
-          )}
-        </Card>
-      )}
-      </div>
-      <div role="tabpanel" id="application-fulfillment-panel" aria-labelledby="application-fulfillment-tab" hidden={selectedSection !== "application-fulfillment"} className="application-section-panel">
-      {!fulfillment && <Card><Text muted>{t("application.fulfillmentPending")}</Text></Card>}
-      {fulfillment && (
-        <Card id="application-fulfillment" title={t("application.fulfillmentTitle")}>
-          <Text muted>{text.simulation}</Text>
-          <Text>
-            {fulfillment.contractNumber ?? t("application.fulfillmentPending")}
-          </Text>
-          {fulfillment.signedAt && (
-            <Text>{new Date(fulfillment.signedAt).toLocaleString(locale)}</Text>
-          )}
-          {fulfillment.disbursementAmount != null && (
-            <Text>
-              {fulfillment.disbursementAmount.toLocaleString(locale)} ₽
-            </Text>
-          )}
-          {fulfillment.disbursedAt && (
-            <Text>
-              {new Date(fulfillment.disbursedAt).toLocaleString(locale)}
-            </Text>
-          )}
-        </Card>
-      )}
-      </div>
-      <div hidden={selectedSection !== "application-review"} className="application-section-panel">
-      <Card title={text.history}>
-        {history.length === 0 && <Text muted>{text.emptyHistory}</Text>}
-        <ol className="application-requests">
-          {history.map((item) => (
-            <li className="application-request" key={item.id}>
-              <Text>
-                {new Date(item.occurredAt).toLocaleString(locale)} ·{" "}
-                {t(`dashboard.status.${item.toStatus}` as MessageKey)}
-              </Text>
-              {item.reason && <Text>{item.reason}</Text>}
-            </li>
-          ))}
-        </ol>
-      </Card>
-      </div>
+      <ApplicationOutcome selectedSection={selectedSection} decision={decision} fulfillment={fulfillment} application={application} offerExpired={offerExpired} busy={busy} setOfferConfirmation={setOfferConfirmation} />
+      <Modal open={offerConfirmation !== null} onClose={() => { if (!busy) setOfferConfirmation(null); }} title={t("workflow.offerConfirm")}
+        footer={<><Button variant="secondary" disabled={busy} onClick={() => setOfferConfirmation(null)}>{t("application.actions.back")}</Button><Button loading={busy} disabled={offerExpired || application.status !== "OFFERED"} onClick={() => { if (offerConfirmation) void offerAction(offerConfirmation); }}>{t("application.actions.confirm")}</Button></>}>
+        <Text>{t(offerConfirmation === "accept" ? "workflow.offerAcceptHint" : "workflow.offerDeclineHint")}</Text>
+        {decision?.offer && <Text>{decision.offer.amount.toLocaleString(locale)} ₽ · {decision.offer.termMonths} {t("dashboard.months")} · {decision.offer.interestRate}%</Text>}
+        {actionError && <Alert tone="negative" title={t("application.actionErrorTitle")} />}
+      </Modal>
     </section>
   );
 }

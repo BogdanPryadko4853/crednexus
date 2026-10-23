@@ -4,6 +4,7 @@
 .cabinet-user {
   @apply flex min-w-0 items-center gap-4;
 }
+.cabinet-menu-toggle { display: none; }
 .cabinet-user__name {
   overflow-wrap: anywhere;
   font-size: var(--text-sm);
@@ -52,14 +53,17 @@
   @apply grid gap-3;
 }
 @media (max-width: 900px) {
+  .cabinet-menu-toggle { display: flex; }
   .cabinet-layout {
     grid-template-columns: 1fr;
     padding: var(--space-6);
   }
   .cabinet-navigation {
+    display: none;
     flex-direction: row;
     flex-wrap: wrap;
   }
+  .cabinet-navigation.is-open { display: flex; }
 }
 @media (max-width: 600px) {
   .cabinet-layout {

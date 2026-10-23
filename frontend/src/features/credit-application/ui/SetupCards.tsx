@@ -13,6 +13,7 @@ import { useLocale } from "../../../i18n";
 import { workflowText } from "./workflowText";
 import { canReview } from "../../manual-review/api/manualReviewApi";
 import "./SetupCards.css";
+import { validMoney, validTerm } from "../model/inputValidation";
 
 export function SetupCards() {
   const { api, state } = useAuth();
@@ -39,6 +40,11 @@ export function SetupCards() {
     ])
       body[key] = Number(data.get(key));
     if (
+      !validMoney(String(data.get("minAmount") ?? ""), false) ||
+      !validMoney(String(data.get("maxAmount") ?? ""), false) ||
+      !validMoney(String(data.get("baseRate") ?? "")) ||
+      !validTerm(String(data.get("minTermMonths") ?? "")) ||
+      !validTerm(String(data.get("maxTermMonths") ?? "")) ||
       Number(body.minAmount) > Number(body.maxAmount) ||
       Number(body.minTermMonths) > Number(body.maxTermMonths)
     ) {

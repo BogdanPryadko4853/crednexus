@@ -53,7 +53,7 @@ export function CreditApplicationPage() {
       termMonths: Number(values.termMonths),
       purpose: values.purpose,
     });
-    navigate(`/applications/${created.id}`);
+    navigate(`/applications/${created.id}?step=financial&created=1`);
   }
   return (
     <section className="credit-page">

@@ -42,3 +42,5 @@ env/
 
 # Windows download metadata
 *:Zone.Identifier
+`n# Backup files`n*.bak`n*.backup`n*.tmp`nback/`n*.tar
+`n# Backend directory`nbackend/

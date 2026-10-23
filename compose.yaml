@@ -47,7 +47,7 @@ services:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:9000/minio/health/ready"]
+      test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl --fail --silent http://localhost:9000/minio/health/ready; else wget -q -O /dev/null http://localhost:9000/minio/health/ready; fi"]
       interval: 5s
       timeout: 3s
       retries: 12

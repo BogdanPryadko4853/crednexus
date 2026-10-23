@@ -1,3 +1,7 @@
 # Preserve protobuf model bytes across platforms and display them as binary.
 *.onnx binary
 *.png binary
+
+# Ensure gradlew has LF line endings on all platforms to avoid issues in Linux containers
+gradlew text eol=lf
+gradlew.bat text eol=crlf

@@ -8,7 +8,7 @@ export type ReviewDetails = {
   company: { name: string; inn: string; ogrnOrOgrnip?: string; legalForm?: string; status?: string };
   financialSnapshot: FinancialSnapshot | null;
   verifications: VerificationResult[];
-  scoring: { score: number; riskLevel: string; modelVersion: string; calculatedAt: string } | null;
+  scoring: { score: number; riskLevel: string; modelVersion: string; calculatedAt: string; factors?: Record<string, unknown> } | null;
   documents: DocumentResponse[];
   informationRequests: InformationRequest[];
   statusHistory: ReviewHistory[];

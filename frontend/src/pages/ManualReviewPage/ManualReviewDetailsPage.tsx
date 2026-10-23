@@ -22,6 +22,8 @@ import {
   loadFulfillment,
   retryFulfillment,
   runVerifications,
+  loadLoanApplication,
+  loadCreditProduct,
 } from "../../features/credit-application/api/creditApplicationApi";
 import type { Fulfillment } from "../../features/credit-application/api/creditApplicationApi";
 import {
@@ -34,9 +36,15 @@ import type {
   ReviewDetails,
 } from "../../features/manual-review/api/manualReviewApi";
 import "./ManualReviewPage.css";
+import { validMoney, validTerm, moneyValue } from "../../features/credit-application/model/inputValidation";
+import type { CreditProductAdmin } from "../../features/credit-application/api/creditApplicationApi";
+import { ReviewEvidence } from "./ReviewEvidence";
 
 export function ManualReviewDetailsPage() {
   const { applicationId } = useParams();
+  return <ReviewDetailsContent key={applicationId} applicationId={applicationId} />;
+}
+function ReviewDetailsContent({ applicationId }: { applicationId: string | undefined }) {
   const { api } = useAuth();
   const { t, locale } = useLocale();
   const [details, setDetails] = useState<ReviewDetails | null>(null);
@@ -48,6 +56,10 @@ export function ManualReviewDetailsPage() {
   const [completed, setCompleted] = useState(false);
   const [fulfillment, setFulfillment] = useState<Fulfillment | null>(null);
   const [operationMessage, setOperationMessage] = useState<string | null>(null);
+  const [product, setProduct] = useState<CreditProductAdmin | null>(null);
+  const [serverStatus, setServerStatus] = useState<string | null>(null);
+  const [fulfillmentError, setFulfillmentError] = useState(false);
+  const [apiUnavailable, setApiUnavailable] = useState(false);
   const [action, setAction] = useState<ManualDecision["action"]>("APPROVE");
   const [reason, setReason] = useState("");
   const [question, setQuestion] = useState("");
@@ -64,30 +76,40 @@ export function ManualReviewDetailsPage() {
     if (!api || !applicationId) return;
     let active = true;
     setError(false);
-    setDetails(null);
+    setApiUnavailable(false);
+    setFulfillmentError(false);
+    void loadLoanApplication(api, applicationId).then(async (application) => {
+      if (!active) return;
+      if (typeof application.status === "string") setServerStatus(application.status);
+      if (application.productId) {
+        const value = await loadCreditProduct(api, application.productId);
+        if (active) setProduct(value);
+      }
+    }).catch(() => { if (active) setProduct(null); });
     void Promise.all([
       loadReviewDetails(api, applicationId),
-      loadFulfillment(api, applicationId).catch(() => null),
+      loadFulfillment(api, applicationId).catch((reason) => {
+        if (active && !(reason instanceof ApiError && reason.status === 404)) setFulfillmentError(true);
+        return null;
+      }),
     ])
       .then(([value, status]) => {
         if (!active) return;
         setDetails(value);
         setFulfillment(status);
       })
-      .catch(() => {
-        if (active) setError(true);
+      .catch((reason) => {
+        if (active) { setError(true); setApiUnavailable(reason instanceof ApiError && reason.status === 404); }
       });
     return () => {
       active = false;
     };
   }, [api, applicationId, revision]);
-  const latestStatus = details?.statusHistory.at(-1)?.toStatus;
+  const latestStatus = serverStatus ?? details?.statusHistory.at(-1)?.toStatus;
   const editable = !completed && latestStatus === "MANUAL_REVIEW";
-  const termsValid =
-    Object.values(terms).every(
-      (value) =>
-        value.trim() && Number.isFinite(Number(value)) && Number(value) > 0,
-    ) && Number.isInteger(Number(terms.termMonths));
+  const termsValid = validMoney(terms.amount, false) && validTerm(terms.termMonths) && validMoney(terms.interestRate, false)
+    && product != null && Number(terms.amount) >= (product.minAmount ?? 0) && Number(terms.amount) <= (product.maxAmount ?? Infinity)
+    && Number(terms.termMonths) >= product.minTermMonths && Number(terms.termMonths) <= (product.maxTermMonths ?? Infinity);
   async function confirm() {
     if (!api || !applicationId || !confirmation || busy) return;
     setBusy(true);
@@ -102,9 +124,9 @@ export function ManualReviewDetailsPage() {
           reason: reason.trim(),
           ...(action === "COUNTER_OFFER"
             ? {
-                amount: Number(terms.amount),
+                amount: moneyValue(terms.amount),
                 termMonths: Number(terms.termMonths),
-                interestRate: Number(terms.interestRate),
+                interestRate: moneyValue(terms.interestRate),
               }
             : {}),
         });
@@ -173,6 +195,7 @@ export function ManualReviewDetailsPage() {
       <PageState
         kind="error"
         title={t("application.detailsErrorTitle")}
+        description={apiUnavailable ? t("workflow.apiUnavailable") : t("application.detailsErrorDescription")}
         action={<Button onClick={reload}>{t("application.retry")}</Button>}
       />
     );
@@ -193,6 +216,7 @@ export function ManualReviewDetailsPage() {
       {actionError && (
         <Alert tone="negative" title={t("application.actionErrorTitle")} />
       )}
+      {fulfillmentError && <Alert tone="attention" title={t("application.resource.fulfillment")} />}
       <Card title={t("application.detailsSummaryTitle")}>
         <Text>
           {t("application.summary.inn")}: {details.company.inn}
@@ -219,151 +243,14 @@ export function ManualReviewDetailsPage() {
           </StatusBadge>
         )}
       </Card>
-      <Card title={t("application.financialTitle")}>
-        {details.financialSnapshot ? (
-          <dl className="manual-review__fields">
-            {(
-              [
-                "annualRevenue",
-                "annualExpenses",
-                "existingDebt",
-                "monthlyPayments",
-                "employeeCount",
-                "period",
-              ] as const
-            ).map((key) => (
-              <div key={key}>
-                <dt>{t(`application.financial.${key}` as MessageKey)}</dt>
-                <dd>
-                  {details.financialSnapshot![key].toLocaleString(locale)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        ) : (
-          <Text muted>{t("review.noData")}</Text>
-        )}
-      </Card>
-      <Card title={t("application.verificationsTitle")}>
-        {details.verifications.length === 0 && (
-          <Text muted>{t("application.verificationsEmpty")}</Text>
-        )}
-        <ul className="manual-review__list">
-          {details.verifications.map((item) => (
-            <li className="manual-review__item" key={item.id}>
-              <Text>
-                {t(`application.verificationType.${item.type}` as MessageKey)}
-              </Text>
-              <StatusBadge
-                tone={item.status === "SUCCESS" ? "positive" : "info"}
-              >
-                {t(
-                  `application.verificationStatus.${item.status}` as MessageKey,
-                )}
-              </StatusBadge>
-            </li>
-          ))}
-        </ul>
-        {latestStatus && ["SUBMITTED", "VERIFYING"].includes(latestStatus) && (
-          <Button
-            variant="secondary"
-            loading={busy}
-            onClick={() => void rerunChecks()}
-          >
-            {t("review.rerunVerifications")}
-          </Button>
-        )}
-      </Card>
-      <Card title={t("review.scoring")}>
-        {details.scoring ? (
-          <>
-            <Text>
-              {t("review.score")}: {details.scoring.score}
-            </Text>
-            <Text>
-              {t("review.risk")}:{" "}
-              {t(`review.risk.${details.scoring.riskLevel}` as MessageKey)}
-            </Text>
-          </>
-        ) : (
-          <Text muted>{t("review.noData")}</Text>
-        )}
-      </Card>
-      <Card title={t("application.documentsTitle")}>
-        {details.documents.length === 0 && (
-          <Text muted>{t("application.documentsEmpty")}</Text>
-        )}
-        <ul className="manual-review__list">
-          {details.documents.map((item) => (
-            <li key={item.id}>
-              <Button
-                variant="ghost"
-                disabled={busy}
-                onClick={() => void download(item.id, item.fileName)}
-              >
-                {item.fileName}
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <Card title={t("application.requestsTitle")}>
-        {details.informationRequests.length === 0 && (
-          <Text muted>{t("review.noData")}</Text>
-        )}
-        <ul className="manual-review__list">
-          {details.informationRequests.map((item) => (
-            <li className="manual-review__item" key={item.id}>
-              <strong>{item.question}</strong>
-              <Text>{item.answer ?? t("review.waitingAnswer")}</Text>
-            </li>
-          ))}
-        </ul>
-      </Card>
-      <Card title={t("review.history")}>
-        <ol className="manual-review__list">
-          {details.statusHistory.map((item) => (
-            <li className="manual-review__item" key={item.id}>
-              <Text>
-                {new Date(item.occurredAt).toLocaleString(locale)} ·{" "}
-                {t(`dashboard.status.${item.toStatus}` as MessageKey)}
-              </Text>
-              {item.reason && <Text>{item.reason}</Text>}
-              {item.actorName && <Text muted>{item.actorName}</Text>}
-            </li>
-          ))}
-        </ol>
-        {details.statusHistory.length === 0 && (
-          <Text muted>{t("review.noData")}</Text>
-        )}
-      </Card>
-      <Card title={t("review.decisions")}>
-        {details.decisions.length === 0 && (
-          <Text muted>{t("review.noData")}</Text>
-        )}
-        {details.decisions.map((item) => (
-          <div className="manual-review__item" key={item.id}>
-            <strong>
-              {t(`application.decisionType.${item.decisionType}` as MessageKey)}
-            </strong>
-            <Text>{item.reason}</Text>
-            {item.offer && (
-              <Text>
-                {item.offer.amount.toLocaleString(locale)} ·{" "}
-                {item.offer.termMonths} {t("dashboard.months")} ·{" "}
-                {item.offer.interestRate}%
-              </Text>
-            )}
-          </div>
-        ))}
-      </Card>
+      <ReviewEvidence details={details} latestStatus={latestStatus} busy={busy} download={download} rerunChecks={rerunChecks} />
       {fulfillment && (
         <Card title={t("application.fulfillmentTitle")}>
           <Text>
-            {fulfillment.agreementStatus ?? t("application.fulfillmentPending")}
+            {t(`workflow.fulfillment.${fulfillment.agreementStatus ?? "unknown"}` as MessageKey)}
           </Text>
           {fulfillment.disbursementStatus && (
-            <Text>{fulfillment.disbursementStatus}</Text>
+            <Text>{t(`workflow.fulfillment.${fulfillment.disbursementStatus}` as MessageKey)}</Text>
           )}
           {["ACCEPTED", "AGREEMENT_PENDING"].includes(
             fulfillment.applicationStatus,
@@ -419,6 +306,7 @@ export function ManualReviewDetailsPage() {
             />
             {action === "COUNTER_OFFER" && (
               <div className="manual-review__fields">
+                {!product && <Text role="alert">{t("workflow.productLimitsUnavailable")}</Text>}
                 {(["amount", "termMonths", "interestRate"] as const).map(
                   (key) => (
                     <TextField
@@ -427,6 +315,8 @@ export function ManualReviewDetailsPage() {
                       label={t(`review.terms.${key}` as MessageKey)}
                       inputMode="decimal"
                       value={terms[key]}
+                      error={terms[key] && (key === "termMonths" ? !validTerm(terms[key]) : !validMoney(terms[key], false)) ? t(key === "termMonths" ? "workflow.termError" : "workflow.moneyError") : undefined}
+                      disabled={busy}
                       onChange={(event) =>
                         setTerms((current) => ({
                           ...current,

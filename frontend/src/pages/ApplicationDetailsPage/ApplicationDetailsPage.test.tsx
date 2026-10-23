@@ -25,15 +25,15 @@ beforeEach(() => {
     if (path === "/loan-applications/app") return application;
     if (path.endsWith("/verifications"))
       return [{ id: "check", type: "TAX_SERVICE", status: "SUCCESS" }];
-    if (path.endsWith("/documents") || path.endsWith("/information-requests"))
+    if (path.endsWith("/documents") || path.endsWith("/information-requests") || path.endsWith("/history"))
       return [];
     throw new ApiError("http", 404);
   });
 });
-function open() {
+function open(path = "/applications/app") {
   return render(
     <LocaleProvider>
-      <MemoryRouter initialEntries={["/applications/app"]}>
+      <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route
             path="/applications/:applicationId"
@@ -90,6 +90,7 @@ it("keeps a resource error visible while background refresh is pending", async (
     return original(path);
   });
   open();
+  await userEvent.click(await screen.findByRole("tab", { name: /Оформление/ }));
   const message = await screen.findByText("Не удалось загрузить сведения о выдаче");
   await waitFor(() => expect(screen.queryByText("Загружаем заявку")).not.toBeInTheDocument());
   let finish!: (value: unknown) => void;
@@ -98,7 +99,7 @@ it("keeps a resource error visible while background refresh is pending", async (
   await userEvent.click(screen.getByRole("button", { name: "Обновить" }));
   expect(message).toBeInTheDocument();
   expect(screen.queryByText("Загружаем заявку")).not.toBeInTheDocument();
-  await act(async () => finish({}));
+  await act(async () => finish({ applicationStatus: "MANUAL_REVIEW" }));
   await waitFor(() => expect(message).not.toBeInTheDocument());
 });
 
@@ -132,10 +133,7 @@ it("saves draft values with PATCH and validates empty amounts", async () => {
       },
     }),
   );
-  expect(screen.getByRole("tab", { name: /Финансы/ })).toHaveAttribute(
-    "aria-selected",
-    "true",
-  );
+  await waitFor(() => expect(screen.getByRole("tab", { name: /Финансы/ })).toHaveAttribute("aria-selected", "true"));
 });
 
 it("keeps edited financial values and draft parameters during refresh", async () => {
@@ -216,7 +214,7 @@ it("requires a saved ML profile before submission", async () => {
     await screen.findByRole("button", { name: "Отправить на рассмотрение" }),
   ).toBeDisabled();
   expect(
-    screen.getByText("Финансовый профиль для скоринга", { selector: "h3" }),
+    screen.getByText("Подробные финансовые сведения", { selector: "h3" }),
   ).toBeInTheDocument();
 });
 
@@ -264,4 +262,35 @@ it("does not offer a text answer for a document requirement and uploads the supp
     expect(body.get("type")).toBe("SUPPORTING_DOCUMENT");
     expect(body.get("informationRequestId")).toBe("document-question");
   });
+});
+
+it("restores the requested section from the URL", async () => {
+  open("/applications/app?step=outcome");
+  expect(await screen.findByRole("tab", { name: /Оформление/ })).toHaveAttribute("aria-selected", "true");
+});
+
+it("does not mark finance as complete when the detailed profile is unavailable", async () => {
+  const original = request.getMockImplementation()!;
+  request.mockImplementation(async (path: string) => path.endsWith("/financial-snapshot") ? { annualRevenue: 1000, annualExpenses: 500, existingDebt: 0, monthlyPayments: 0, employeeCount: 1, period: "2025" } : original(path));
+  open();
+  const finance = await screen.findByRole("tab", { name: /Финансы/ });
+  await waitFor(() => expect(request).toHaveBeenCalledWith("/loan-applications/app/ml-scoring-profile"));
+  expect(finance).not.toHaveClass("is-complete");
+});
+
+it.each(["accept", "decline"] as const)("requires explicit confirmation before offer %s", async (action) => {
+  const original = request.getMockImplementation()!;
+  let status = "OFFERED";
+  request.mockImplementation(async (path: string, options?: { method?: string }) => {
+    if (path === "/loan-applications/app") return { ...application, status };
+    if (path.endsWith("/decision")) return { id: "decision", decisionType: "APPROVED", reason: "Проверено", offer: { id: "offer", amount: 750000, termMonths: 12, interestRate: 18.5, status, expiresAt: "2099-01-01T00:00:00Z" } };
+    if (path.endsWith(`/offer/${action}`) && options?.method === "POST") { status = action === "accept" ? "ACCEPTED" : "DECLINED"; return { applicationStatus: status }; }
+    return original(path);
+  });
+  open("/applications/app?step=decision");
+  await userEvent.click(await screen.findByRole("button", { name: action === "accept" ? "Принять предложение" : "Отклонить" }));
+  expect(request.mock.calls.some(([, options]) => options?.method === "POST")).toBe(false);
+  expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Подтвердить" }));
+  await waitFor(() => expect(request).toHaveBeenCalledWith(`/loan-applications/app/offer/${action}`, { method: "POST" }));
 });
