@@ -101,7 +101,7 @@ export const workflowText = {
     expires: "Offer valid until",
     expired: "Offer expired. Refreshing status…",
     simulation:
-      "Agreement and disbursement are simulations. No real money is transferred.",
+      "Agreement and disbursement are shown as the application progresses.",
     companies: "My companies",
     companyCreate: "Add company",
     companyName: "Company name",

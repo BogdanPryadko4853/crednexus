@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MlProfileForm } from "../../features/credit-application/ui/MlProfileForm";
 import { workflowText } from "../../features/credit-application/ui/workflowText";
 import { loadApplicationHistory } from "../../features/credit-application/api/creditApplicationApi";
@@ -77,6 +77,10 @@ function tone(status: string) {
 
 export function ApplicationDetailsPage() {
   const { applicationId } = useParams();
+  return <ApplicationDetails key={applicationId} applicationId={applicationId} />;
+}
+
+function ApplicationDetails({ applicationId }: { applicationId: string | undefined }) {
   const { api } = useAuth();
   const { t, locale } = useLocale();
   const text = workflowText[locale];
@@ -122,12 +126,22 @@ export function ApplicationDetailsPage() {
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [requestDocumentId, setRequestDocumentId] = useState("");
+  const draftDirtyRef = useRef(false);
+  const financialDirtyRef = useRef(false);
+  const loadedApplicationIdRef = useRef<string | undefined>(undefined);
   const reload = () => setRevision((value) => value + 1);
 
   useEffect(() => {
     if (!api || !applicationId) return;
     let active = true;
     setError(false);
+    if (loadedApplicationIdRef.current !== applicationId) {
+      loadedApplicationIdRef.current = applicationId;
+      setResourceErrors([]);
+      setLoaded(false);
+      draftDirtyRef.current = false;
+      financialDirtyRef.current = false;
+    }
     async function resource<T>(
       name: string,
       promise: Promise<T>,
@@ -181,15 +195,17 @@ export function ApplicationDetailsPage() {
         "financial",
         loadFinancialSnapshot(api, applicationId),
         (snapshot) => {
-          setFinancial({
-            annualRevenue: String(snapshot.annualRevenue),
-            annualExpenses: String(snapshot.annualExpenses),
-            existingDebt: String(snapshot.existingDebt),
-            monthlyPayments: String(snapshot.monthlyPayments),
-            employeeCount: String(snapshot.employeeCount),
-            period: snapshot.period,
-          });
-          setFinancialSaved(true);
+          if (!financialDirtyRef.current) {
+            setFinancial({
+              annualRevenue: String(snapshot.annualRevenue),
+              annualExpenses: String(snapshot.annualExpenses),
+              existingDebt: String(snapshot.existingDebt),
+              monthlyPayments: String(snapshot.monthlyPayments),
+              employeeCount: String(snapshot.employeeCount),
+              period: snapshot.period,
+            });
+            setFinancialSaved(true);
+          }
         },
         true,
       ),
@@ -239,7 +255,7 @@ export function ApplicationDetailsPage() {
   }, [application?.status]);
 
   useEffect(() => {
-    if (application) {
+    if (application && !draftDirtyRef.current) {
       setDraft({
         requestedAmount: String(application.requestedAmount),
         termMonths: String(application.termMonths),
@@ -266,11 +282,14 @@ export function ApplicationDetailsPage() {
       .filter((section) => {
         if (section.key === "summary") return application.status !== "DRAFT" || draftSaved;
         if (section.key === "financial")
-          return currentStage >= 2 || (financialSaved && mlReady);
-        if (section.key === "documents") return documents.length > 0 || currentStage >= 3;
-        if (section.key === "review") return currentStage > 3;
-        if (section.key === "decision") return currentStage > 4;
-        return application.status === "DISBURSED" || fulfillment?.disbursedAt != null;
+          return !resourceErrors.includes("financial") && (currentStage >= 2 || (financialSaved && mlReady));
+        if (section.key === "documents")
+          return !resourceErrors.includes("documents") && (documents.length > 0 || currentStage >= 3);
+        if (section.key === "review")
+          return !resourceErrors.includes("verifications") && currentStage > 3;
+        if (section.key === "decision")
+          return !resourceErrors.includes("decision") && currentStage > 4;
+        return !resourceErrors.includes("fulfillment") && (application.status === "DISBURSED" || fulfillment?.disbursedAt != null);
       })
       .map((section) => section.id),
   );
@@ -310,8 +329,10 @@ export function ApplicationDetailsPage() {
         employeeCount: Number(financial.employeeCount),
         period: financial.period,
       });
+      financialDirtyRef.current = false;
       setFinancialSaved(true);
     } catch {
+      setFinancialSaved(false);
       setActionError(true);
     } finally {
       setBusy(false);
@@ -329,6 +350,7 @@ export function ApplicationDetailsPage() {
         purpose: draft.purpose.trim(),
       });
       setApplication(updated);
+      draftDirtyRef.current = false;
       setDraftSaved(true);
       setSelectedSection("application-financial");
     } catch {
@@ -518,35 +540,38 @@ export function ApplicationDetailsPage() {
               label={t("application.summary.amount")}
               inputMode="decimal"
               value={draft.requestedAmount}
-              onChange={(event) =>
+              onChange={(event) => {
+                draftDirtyRef.current = true;
                 setDraft((current) => ({
                   ...current,
                   requestedAmount: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
             <TextField
               name="draftTerm"
               label={t("application.summary.term")}
               inputMode="numeric"
               value={draft.termMonths}
-              onChange={(event) =>
+              onChange={(event) => {
+                draftDirtyRef.current = true;
                 setDraft((current) => ({
                   ...current,
                   termMonths: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
             <TextField
               name="draftPurpose"
               label={t("application.summary.purpose")}
               value={draft.purpose}
-              onChange={(event) =>
+              onChange={(event) => {
+                draftDirtyRef.current = true;
                 setDraft((current) => ({
                   ...current,
                   purpose: event.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </div>
           <Button
@@ -643,6 +668,7 @@ export function ApplicationDetailsPage() {
               value={financial[field]}
               onChange={(event) => {
                 setFinancialSaved(false);
+                financialDirtyRef.current = true;
                 setFinancial((current) => ({
                   ...current,
                   [field]: event.target.value,
@@ -657,6 +683,7 @@ export function ApplicationDetailsPage() {
             value={financial.period}
             onChange={(event) => {
               setFinancialSaved(false);
+              financialDirtyRef.current = true;
               setFinancial((current) => ({
                 ...current,
                 period: event.target.value,

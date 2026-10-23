@@ -6,7 +6,6 @@ import {
   Icon,
   Modal,
   SelectField,
-  TextareaField,
   TextField,
 } from "../../../../components";
 import { useLocale } from "../../../../i18n";
@@ -255,17 +254,6 @@ export function CreditRequestForm({
             autoComplete="off"
           />
         )}
-        <TextareaField
-          name="comment"
-          label={t("application.fields.comment")}
-          placeholder={t("application.placeholders.comment")}
-          hint={t("application.hints.comment", {
-            maxLength: CREDIT_INPUT_LIMITS.comment,
-          })}
-          maxLength={CREDIT_INPUT_LIMITS.comment}
-          value={values.comment}
-          onChange={(event) => change("comment", event.target.value)}
-        />
         <div className="credit-form__footer">
           <Button type="submit" icon={<Icon name="arrow" />}>
             {t("application.actions.check")}

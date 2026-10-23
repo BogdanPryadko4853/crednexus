@@ -138,6 +138,31 @@ it("saves draft values with PATCH and validates empty amounts", async () => {
   );
 });
 
+it("keeps edited financial values and draft parameters during refresh", async () => {
+  const original = request.getMockImplementation()!;
+  request.mockImplementation(async (path: string) => {
+    if (path === "/loan-applications/app") return { ...application, status: "DRAFT" };
+    if (path.endsWith("/financial-snapshot")) return { annualRevenue: 100, annualExpenses: 50, existingDebt: 0, monthlyPayments: 0, employeeCount: 1, period: "2025" };
+    return original(path);
+  });
+  open();
+  const amount = await screen.findByRole("textbox", { name: "Сумма, ₽" });
+  await waitFor(() => expect(amount).toHaveValue("750000"));
+  await userEvent.clear(amount);
+  await userEvent.type(amount, "900000");
+  await userEvent.click(screen.getByRole("tab", { name: /Финансы/ }));
+  const revenue = screen.getByRole("textbox", { name: /Годовая выручка/ });
+  await waitFor(() => expect(revenue).toHaveValue("100"));
+  await userEvent.clear(revenue);
+  await userEvent.type(revenue, "200");
+  const before = request.mock.calls.length;
+  await userEvent.click(screen.getByRole("button", { name: "Обновить" }));
+  await waitFor(() => expect(request.mock.calls.length).toBeGreaterThan(before));
+  expect(revenue).toHaveValue("200");
+  await userEvent.click(screen.getByRole("tab", { name: /Параметры/ }));
+  expect(screen.getByRole("textbox", { name: "Сумма, ₽" })).toHaveValue("900000");
+});
+
 it("refreshes the application after answering an information request", async () => {
   const original = request.getMockImplementation()!;
   request.mockImplementation(async (path: string) => {

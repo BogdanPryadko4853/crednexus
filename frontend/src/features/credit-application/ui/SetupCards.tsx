@@ -68,7 +68,7 @@ export function SetupCards() {
         <Card title={text.products}>
           <details className="setup-disclosure">
             <summary>
-              <span>{text.productCreate}</span>
+              {text.productCreate}
               <Icon name="chevron" className="setup-disclosure__chevron" />
             </summary>
             <form onSubmit={(event) => void create(event)}>

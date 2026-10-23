@@ -19,14 +19,13 @@ export type CreditRequest = {
   amount: string;
   termMonths?: string;
   purpose: string;
-  comment: string;
 };
 export type CreditRequestErrors = Partial<
   Record<keyof CreditRequest, MessageKey>
 >;
 
 export function createEmptyCreditRequest(): CreditRequest {
-  return { company: "", inn: "", amount: "", purpose: "", comment: "" };
+  return { company: "", inn: "", amount: "", purpose: "" };
 }
 
 const innPattern = new RegExp(

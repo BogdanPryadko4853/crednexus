@@ -46,6 +46,9 @@ export function DashboardPage() {
           {t("dashboard.welcome", { name: state.user.fullName })}
         </Heading>
         <Text muted>{t("dashboard.description")}</Text>
+        <Link className="ui-button ui-button--primary" to={routes.creditApplication}>
+          {t("dashboard.newApplicationAction")}
+        </Link>
       </div>
       <Card title={t("dashboard.accountTitle")} subtitle={state.user.email}>
         <Link className="ui-button ui-button--secondary" to={routes.profile}>
@@ -53,6 +56,13 @@ export function DashboardPage() {
         </Link>
       </Card>
       <SetupCards />
+      {applications && (
+        <div className="dashboard-stats" aria-label={t("dashboard.applicationsTitle")}>
+          <Card title={t("dashboard.statsReview")}><strong>{applications.filter((item) => ["SUBMITTED", "VERIFYING", "SCORING", "MANUAL_REVIEW"].includes(item.status)).length}</strong></Card>
+          <Card title={t("dashboard.statsAction")}><strong>{applications.filter((item) => item.status === "NEEDS_INFO").length}</strong></Card>
+          <Card title={t("dashboard.statsOffers")}><strong>{applications.filter((item) => item.status === "OFFERED").length}</strong></Card>
+        </div>
+      )}
       <Card
         title={t("dashboard.applicationsTitle")}
         subtitle={t("dashboard.applicationsSubtitle")}

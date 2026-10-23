@@ -4,6 +4,15 @@
   margin: 0;
   min-width: 0;
 }
+.ml-profile__fieldset .application-financial-grid {
+  align-items: start;
+}
+.ml-profile__table-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 0.75rem;
+  background: var(--color-background);
+}
 .ml-profile__table-wrap {
   overflow-x: auto;
   margin-bottom: 1rem;
