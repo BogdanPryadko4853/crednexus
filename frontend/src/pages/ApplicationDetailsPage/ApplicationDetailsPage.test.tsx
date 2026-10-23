@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -46,6 +46,7 @@ function open() {
 }
 it("shows verification results and highlights manual review", async () => {
   open();
+  await userEvent.click(await screen.findByRole("tab", { name: /Рассмотрение/ }));
   expect(await screen.findByText("Налоговая служба")).toBeInTheDocument();
   expect(screen.getByText("Пройдена")).toBeInTheDocument();
   expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(
@@ -82,6 +83,25 @@ it("retries the main application load after a network failure", async () => {
   expect(await screen.findByText("Параметры заявки")).toBeInTheDocument();
 });
 
+it("keeps a resource error visible while background refresh is pending", async () => {
+  const original = request.getMockImplementation()!;
+  request.mockImplementation(async (path: string) => {
+    if (path.endsWith("/fulfillment")) throw new ApiError("http", 500);
+    return original(path);
+  });
+  open();
+  const message = await screen.findByText("Не удалось загрузить сведения о выдаче");
+  await waitFor(() => expect(screen.queryByText("Загружаем заявку")).not.toBeInTheDocument());
+  let finish!: (value: unknown) => void;
+  request.mockImplementation((path: string) => path.endsWith("/fulfillment")
+    ? new Promise((resolve) => { finish = resolve; }) : original(path));
+  await userEvent.click(screen.getByRole("button", { name: "Обновить" }));
+  expect(message).toBeInTheDocument();
+  expect(screen.queryByText("Загружаем заявку")).not.toBeInTheDocument();
+  await act(async () => finish({}));
+  await waitFor(() => expect(message).not.toBeInTheDocument());
+});
+
 it("saves draft values with PATCH and validates empty amounts", async () => {
   const original = request.getMockImplementation()!;
   request.mockImplementation(
@@ -112,6 +132,10 @@ it("saves draft values with PATCH and validates empty amounts", async () => {
       },
     }),
   );
+  expect(screen.getByRole("tab", { name: /Финансы/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
 });
 
 it("refreshes the application after answering an information request", async () => {
@@ -129,6 +153,7 @@ it("refreshes the application after answering an information request", async () 
     return original(path);
   });
   open();
+  await userEvent.click(await screen.findByRole("tab", { name: /Документы/ }));
   await userEvent.type(
     await screen.findByRole("textbox", { name: "Ответ" }),
     "12000000",
@@ -161,6 +186,7 @@ it("requires a saved ML profile before submission", async () => {
       : original(path),
   );
   open();
+  await userEvent.click(await screen.findByRole("tab", { name: /Рассмотрение/ }));
   expect(
     await screen.findByRole("button", { name: "Отправить на рассмотрение" }),
   ).toBeDisabled();
@@ -188,6 +214,7 @@ it("does not offer a text answer for a document requirement and uploads the supp
     },
   );
   open();
+  await userEvent.click(await screen.findByRole("tab", { name: /Документы/ }));
   await screen.findByText("Приложите документ регистрации", {
     selector: "strong",
   });

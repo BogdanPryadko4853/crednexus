@@ -58,6 +58,15 @@ const stages = [
   "DISBURSED",
 ] as const;
 
+const applicationSections = [
+  { id: "application-summary", key: "summary" },
+  { id: "application-financial", key: "financial" },
+  { id: "application-documents", key: "documents" },
+  { id: "application-review", key: "review" },
+  { id: "application-decision", key: "decision" },
+  { id: "application-fulfillment", key: "fulfillment" },
+] as const;
+
 function tone(status: string) {
   if (["REJECTED", "DECLINED", "EXPIRED"].includes(status))
     return "negative" as const;
@@ -72,6 +81,7 @@ export function ApplicationDetailsPage() {
   const { t, locale } = useLocale();
   const text = workflowText[locale];
   const [mlReady, setMlReady] = useState(false);
+  const [selectedSection, setSelectedSection] = useState("application-summary");
   const [history, setHistory] = useState<ApplicationHistory[]>([]);
 
   const [application, setApplication] =
@@ -118,8 +128,6 @@ export function ApplicationDetailsPage() {
     if (!api || !applicationId) return;
     let active = true;
     setError(false);
-    setLoaded(false);
-    setResourceErrors([]);
     async function resource<T>(
       name: string,
       promise: Promise<T>,
@@ -128,13 +136,18 @@ export function ApplicationDetailsPage() {
     ) {
       try {
         const value = await promise;
-        if (active) apply(value);
+        if (active) {
+          apply(value);
+          setResourceErrors((items) => items.filter((item) => item !== name));
+        }
       } catch (error) {
         if (
           active &&
           !(optional && error instanceof ApiError && error.status === 404)
         ) {
-          setResourceErrors((items) => [...items, name]);
+          setResourceErrors((items) => items.includes(name) ? items : [...items, name]);
+        } else if (active) {
+          setResourceErrors((items) => items.filter((item) => item !== name));
         }
       }
     }
@@ -248,6 +261,19 @@ export function ApplicationDetailsPage() {
     return <PageState kind="loading" title={t("application.detailsLoading")} />;
 
   const currentStage = getApplicationStage(application.status);
+  const completedSections = new Set(
+    applicationSections
+      .filter((section) => {
+        if (section.key === "summary") return application.status !== "DRAFT" || draftSaved;
+        if (section.key === "financial")
+          return currentStage >= 2 || (financialSaved && mlReady);
+        if (section.key === "documents") return documents.length > 0 || currentStage >= 3;
+        if (section.key === "review") return currentStage > 3;
+        if (section.key === "decision") return currentStage > 4;
+        return application.status === "DISBURSED" || fulfillment?.disbursedAt != null;
+      })
+      .map((section) => section.id),
+  );
   const isTerminal = ["REJECTED", "DECLINED", "EXPIRED", "DISBURSED"].includes(
     application.status,
   );
@@ -304,6 +330,7 @@ export function ApplicationDetailsPage() {
       });
       setApplication(updated);
       setDraftSaved(true);
+      setSelectedSection("application-financial");
     } catch {
       setActionError(true);
     } finally {
@@ -433,7 +460,39 @@ export function ApplicationDetailsPage() {
           {t("application.actionErrorDescription")}
         </Alert>
       )}
-      <Card title={t("application.detailsSummaryTitle")}>
+      <nav className="application-section-nav" aria-label={t("application.workflowTitle")}>
+        <div className="application-section-nav__heading">
+          <div>
+            <Text muted>{t("application.workflowTitle")}</Text>
+            <p>{t("application.workflowDescription")}</p>
+          </div>
+          <span className="application-section-nav__hint">{t("application.workflowHint")}</span>
+        </div>
+        <ol role="tablist" aria-label={t("application.workflowTitle")}>
+          {applicationSections.map((section, index) => (
+            <li key={section.id}>
+              <button type="button" role="tab" id={`${section.id}-tab`}
+                className={completedSections.has(section.id) ? "is-complete" : undefined}
+                aria-selected={selectedSection === section.id} aria-controls={`${section.id}-panel`}
+                tabIndex={selectedSection === section.id ? 0 : -1}
+                onKeyDown={(event) => {
+                  const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+                  const target = event.key === "Home" ? applicationSections[0] : event.key === "End" ? applicationSections[applicationSections.length - 1] : offset ? applicationSections[(index + offset + applicationSections.length) % applicationSections.length] : null;
+                  if (!target) return;
+                  event.preventDefault();
+                  setSelectedSection(target.id);
+                  window.document.getElementById(`${target.id}-tab`)?.focus();
+                }}
+                onClick={() => setSelectedSection(section.id)}>
+                <span aria-hidden="true">{completedSections.has(section.id) ? "✓" : index + 1}</span>
+                {t(`application.workflow.${section.key}` as MessageKey)}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <div role="tabpanel" id="application-summary-panel" aria-labelledby="application-summary-tab" hidden={selectedSection !== "application-summary"} className="application-section-panel">
+      <Card id="application-summary" title={t("application.detailsSummaryTitle")}>
         <dl className="application-details__summary">
           <div>
             <dt>{t("application.summary.amount")}</dt>
@@ -508,6 +567,8 @@ export function ApplicationDetailsPage() {
           </Button>
         </Card>
       )}
+      </div>
+      <div role="tabpanel" id="application-review-panel" aria-labelledby="application-review-tab" hidden={selectedSection !== "application-review"} className="application-section-panel">
       <Card title={t("application.progressTitle")}>
         <ol className="application-progress">
           {stages.map((stage, index) => (
@@ -556,7 +617,10 @@ export function ApplicationDetailsPage() {
         )}
         {isTerminal && <Text muted>{t("application.progressTerminal")}</Text>}
       </Card>
+      </div>
+      <div role="tabpanel" id="application-financial-panel" aria-labelledby="application-financial-tab" hidden={selectedSection !== "application-financial"} className="application-section-panel">
       <Card
+        id="application-financial"
         title={t("application.financialTitle")}
         subtitle={t("application.financialDescription")}
       >
@@ -633,8 +697,10 @@ export function ApplicationDetailsPage() {
         readOnly={application.status !== "DRAFT"}
         onReady={setMlReady}
       />
+      </div>
+      <div role="tabpanel" id="application-documents-panel" aria-labelledby="application-documents-tab" hidden={selectedSection !== "application-documents"} className="application-section-panel">
       {informationRequests.length > 0 && (
-        <Card title={t("application.requestsTitle")}>
+        <Card id="application-documents" title={t("application.requestsTitle")}>
           <div className="application-requests">
             {informationRequests.map((request) => (
               <div className="application-request" key={request.id}>
@@ -756,6 +822,8 @@ export function ApplicationDetailsPage() {
           </ul>
         )}
       </Card>
+      </div>
+      <div hidden={selectedSection !== "application-review"} className="application-section-panel">
       <Card title={t("application.verificationsTitle")}>
         {loaded &&
           !resourceErrors.includes("verifications") &&
@@ -781,8 +849,11 @@ export function ApplicationDetailsPage() {
           </div>
         ))}
       </Card>
+      </div>
+      <div role="tabpanel" id="application-decision-panel" aria-labelledby="application-decision-tab" hidden={selectedSection !== "application-decision"} className="application-section-panel">
+      {!decision && <Card><Text muted>{t("application.workflow.decisionPending")}</Text></Card>}
       {decision && (
-        <Card title={t("application.decisionTitle")}>
+        <Card id="application-decision" title={t("application.decisionTitle")}>
           <Text>
             {t(
               `application.decisionType.${decision.decisionType}` as MessageKey,
@@ -828,8 +899,11 @@ export function ApplicationDetailsPage() {
           )}
         </Card>
       )}
+      </div>
+      <div role="tabpanel" id="application-fulfillment-panel" aria-labelledby="application-fulfillment-tab" hidden={selectedSection !== "application-fulfillment"} className="application-section-panel">
+      {!fulfillment && <Card><Text muted>{t("application.fulfillmentPending")}</Text></Card>}
       {fulfillment && (
-        <Card title={t("application.fulfillmentTitle")}>
+        <Card id="application-fulfillment" title={t("application.fulfillmentTitle")}>
           <Text muted>{text.simulation}</Text>
           <Text>
             {fulfillment.contractNumber ?? t("application.fulfillmentPending")}
@@ -849,6 +923,8 @@ export function ApplicationDetailsPage() {
           )}
         </Card>
       )}
+      </div>
+      <div hidden={selectedSection !== "application-review"} className="application-section-panel">
       <Card title={text.history}>
         {history.length === 0 && <Text muted>{text.emptyHistory}</Text>}
         <ol className="application-requests">
@@ -863,6 +939,7 @@ export function ApplicationDetailsPage() {
           ))}
         </ol>
       </Card>
+      </div>
     </section>
   );
 }

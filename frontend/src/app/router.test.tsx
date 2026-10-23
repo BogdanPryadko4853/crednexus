@@ -71,7 +71,7 @@ describe("Application routing", () => {
       screen.getByRole("heading", { level: 1, name: "Профиль" }),
     ).toBeInTheDocument();
     expect(screen.getByText(currentUser.email)).toBeInTheDocument();
-    expect(screen.getByText("Клиент")).toBeInTheDocument();
+    expect(screen.queryByText("Клиент")).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
   it("keeps errors localized and exposes a retry action", async () => {

@@ -43,6 +43,7 @@ export function CreditRequestForm({
   const [values, setValues] = useState(createEmptyCreditRequest);
   const [errors, setErrors] = useState<CreditRequestErrors>({});
   const [confirmation, setConfirmation] = useState<CreditRequest | null>(null);
+  const [customPurpose, setCustomPurpose] = useState("");
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
@@ -55,10 +56,16 @@ export function CreditRequestForm({
   };
   const fieldError = (field: keyof CreditRequest) =>
     errors[field] ? t(errors[field], messageValues) : undefined;
+  const purposeError = fieldError("purpose");
 
   function change(field: keyof CreditRequest, value: string) {
     setValues((previous) => ({ ...previous, [field]: value }));
     setConfirmed(false);
+  }
+
+  function selectPurpose(value: string) {
+    change("purpose", value);
+    if (value !== "other") setCustomPurpose("");
   }
 
   function selectProduct(productId: string) {
@@ -86,6 +93,9 @@ export function CreditRequestForm({
       if (!Number.isFinite(amount) || amount < Number(selectedProduct.minAmount ?? 0) || (selectedProduct.maxAmount !== undefined && amount > selectedProduct.maxAmount)) nextErrors.amount = "application.validation.productAmount";
       if (!Number.isInteger(term) || term < selectedProduct.minTermMonths || (selectedProduct.maxTermMonths !== undefined && term > selectedProduct.maxTermMonths)) nextErrors.termMonths = "application.validation.productTerm";
     }
+    if (values.purpose === "other" && !customPurpose.trim()) {
+      nextErrors.purpose = "application.validation.customPurpose";
+    }
     setErrors(nextErrors);
     setConfirmed(false);
     const firstError = Object.keys(nextErrors)[0];
@@ -94,7 +104,10 @@ export function CreditRequestForm({
       if (field instanceof HTMLElement) field.focus();
       return;
     }
-    setConfirmation({ ...values });
+    setConfirmation({
+      ...values,
+      purpose: values.purpose === "other" ? customPurpose.trim() : values.purpose,
+    });
   }
 
   return (
@@ -201,7 +214,8 @@ export function CreditRequestForm({
             label={t("application.fields.purpose")}
             required
             value={values.purpose}
-            onChange={(event) => change("purpose", event.target.value)}
+            onChange={(event) => selectPurpose(event.target.value)}
+            error={values.purpose === "other" ? undefined : purposeError}
           >
             <option value="">{t("application.purposes.placeholder")}</option>
             <option value="working_capital">
@@ -213,6 +227,7 @@ export function CreditRequestForm({
             <option value="refinance">
               {t("application.purposes.refinance")}
             </option>
+            <option value="other">{t("application.purposes.other")}</option>
           </SelectField>
         ) : (
           <TextField
@@ -221,6 +236,21 @@ export function CreditRequestForm({
             value={values.purpose}
             onChange={(event) => change("purpose", event.target.value)}
             required
+            error={purposeError}
+            autoComplete="off"
+          />
+        )}
+        {onConfirm && values.purpose === "other" && (
+          <TextField
+            name="customPurpose"
+            label={t("application.fields.customPurpose")}
+            value={customPurpose}
+            onChange={(event) => {
+              setCustomPurpose(event.target.value);
+              setConfirmed(false);
+            }}
+            required
+            maxLength={255}
             error={fieldError("purpose")}
             autoComplete="off"
           />

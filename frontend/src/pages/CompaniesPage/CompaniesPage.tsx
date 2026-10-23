@@ -14,9 +14,19 @@ export function CompaniesPage() {
   const [form, setForm] = useState({ name: "", inn: "", ogrnOrOgrnip: "", legalForm: "", status: "ACTIVE" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const errors = {
+    name: form.name.trim() ? "" : t("companies.validation.name"),
+    inn: form.inn && !/^\d{10}(\d{2})?$/.test(form.inn)
+      ? t("companies.validation.inn")
+      : "",
+    ogrn: form.ogrnOrOgrnip && !/^\d{13}(\d{2})?$/.test(form.ogrnOrOgrnip)
+      ? t("companies.validation.ogrn")
+      : "",
+    legalForm: form.legalForm.trim() ? "" : t("companies.validation.legalForm"),
+  };
   useEffect(() => { if (!api) return; void api.request<CompanyOption[]>("/companies").then(setCompanies).catch(() => setError(true)); }, [api]);
   async function submit() {
-    if (!api || saving) return;
+    if (!api || saving || Object.values(errors).some(Boolean)) return;
     setSaving(true); setSaved(false); setError(false);
     try { const created = await createCompany(api, form); setCompanies((items) => [...(items ?? []), created]); setForm({ name: "", inn: "", ogrnOrOgrnip: "", legalForm: "", status: "ACTIVE" }); setSaved(true); } catch { setError(true); } finally { setSaving(false); }
   }
@@ -27,11 +37,11 @@ export function CompaniesPage() {
     {saved && <Alert tone="positive" title={t("companies.saved")} />}
     <Card title={t("companies.createTitle")} subtitle={t("companies.requiredHint")}>
       <div className="companies-form">
-        <TextField label={t("companies.name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <TextField label={t("companies.inn")} value={form.inn} onChange={(e) => setForm({ ...form, inn: e.target.value })} required inputMode="numeric" />
-        <TextField label={t("companies.ogrn")} value={form.ogrnOrOgrnip} onChange={(e) => setForm({ ...form, ogrnOrOgrnip: e.target.value })} required inputMode="numeric" />
-        <TextField label={t("companies.legalForm")} value={form.legalForm} onChange={(e) => setForm({ ...form, legalForm: e.target.value })} required />
-        <Button loading={saving} disabled={!form.name.trim() || !form.inn.trim() || !form.ogrnOrOgrnip.trim() || !form.legalForm.trim()} onClick={() => void submit()}>{t("companies.createAction")}</Button>
+        <TextField label={t("companies.name")} value={form.name} error={form.name && errors.name ? errors.name : undefined} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+        <TextField label={t("companies.inn")} value={form.inn} error={errors.inn || undefined} onChange={(e) => setForm({ ...form, inn: e.target.value })} required inputMode="numeric" />
+        <TextField label={t("companies.ogrn")} value={form.ogrnOrOgrnip} error={errors.ogrn || undefined} onChange={(e) => setForm({ ...form, ogrnOrOgrnip: e.target.value })} required inputMode="numeric" />
+        <TextField label={t("companies.legalForm")} value={form.legalForm} error={form.legalForm && errors.legalForm ? errors.legalForm : undefined} onChange={(e) => setForm({ ...form, legalForm: e.target.value })} required />
+        <Button loading={saving} disabled={Object.values(errors).some(Boolean) || !form.inn || !form.ogrnOrOgrnip} onClick={() => void submit()}>{t("companies.createAction")}</Button>
       </div>
     </Card>
     <Card title={t("companies.listTitle")}>

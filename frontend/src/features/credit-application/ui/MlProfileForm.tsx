@@ -107,7 +107,31 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
       business_state: businessState,
     },
   };
-  const valid = !!month && validMlProfile(profile);
+  const fieldErrors: Record<string, string | undefined> = {
+    month:
+      !month || !/^\d{4}-\d{2}$/.test(month) || `${month}-01` >= new Date().toISOString().slice(0, 7) + "-01"
+        ? text.monthError
+        : undefined,
+    sector: !sector.trim() ? text.requiredError : undefined,
+    age:
+      !Number.isInteger(Number(age)) || Number(age) < 3 || Number(age) > 1200
+        ? text.ageError
+        : undefined,
+  };
+  for (const key of snapshotMeasures) {
+    const value = Number(snapshot[key]);
+    if (!Number.isFinite(value) || value < 0 || (key.endsWith("share") && value > 1)) {
+      fieldErrors[key] = key.endsWith("share") ? text.shareError : text.amountError;
+    }
+  }
+  if (
+    Number.isFinite(Number(snapshot.overdue_payables)) &&
+    Number.isFinite(Number(snapshot.accounts_payable)) &&
+    Number(snapshot.overdue_payables) > Number(snapshot.accounts_payable)
+  ) {
+    fieldErrors.overdue_payables = text.overdueError;
+  }
+  const valid = Object.values(fieldErrors).every((value) => !value) && validMlProfile(profile);
   async function save() {
     if (!valid || saving) return;
     setSaving(true);
@@ -138,6 +162,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
             label={text.month}
             type="month"
             required
+            error={fieldErrors.month}
             value={month}
             onChange={(event) => {
               edited();
@@ -153,6 +178,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
           <SelectField
             label={text.sector}
             required
+            error={fieldErrors.sector}
             value={sector}
             onChange={(event) => {
               edited();
@@ -194,6 +220,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
             min={3}
             max={1200}
             required
+            error={fieldErrors.age}
             value={age}
             onChange={(event) => {
               edited();
@@ -236,6 +263,7 @@ export function MlProfileForm({ applicationId, readOnly, onReady }: Props) {
               max={key.endsWith("share") ? 1 : 1e15}
               step={key.endsWith("share") ? "0.01" : "0.01"}
               required
+              error={fieldErrors[key]}
               value={snapshot[key] ?? ""}
               onChange={(event) => {
                 edited();

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { CreditRequestForm } from "./CreditRequestForm";
 
 async function renderFilledForm(user: ReturnType<typeof userEvent.setup>) {
@@ -114,5 +114,34 @@ describe("Credit request form", () => {
       "Проверка заполнения формы завершена",
     );
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("asks for a custom purpose when Other is selected", async () => {
+    const user = userEvent.setup();
+    const onConfirm = vi.fn(async () => undefined);
+    render(<CreditRequestForm onConfirm={onConfirm} />);
+    const company = screen.getByRole("textbox", { name: "Название компании" });
+    const inn = screen.getByRole("textbox", { name: "ИНН компании" });
+    const amount = screen.getByRole("textbox", { name: "Сумма кредита, ₽" });
+    await user.type(company, "ООО «Маяк»");
+    await user.type(inn, "0000000000");
+    await user.type(amount, "1500000");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Цель финансирования" }),
+      "other",
+    );
+    expect(screen.getByRole("textbox", { name: "Своя цель финансирования" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Проверить данные" }));
+    expect(screen.getByText("Укажите свою цель финансирования")).toBeInTheDocument();
+    await user.type(
+      screen.getByRole("textbox", { name: "Своя цель финансирования" }),
+      "Развитие нового направления",
+    );
+    await user.click(screen.getByRole("button", { name: "Проверить данные" }));
+    await user.click(screen.getByRole("button", { name: "Подтвердить" }));
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ purpose: "Развитие нового направления" }),
+      undefined,
+    ));
   });
 });

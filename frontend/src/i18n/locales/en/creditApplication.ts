@@ -1,7 +1,6 @@
 import type { creditApplication as ru } from "../ru/creditApplication.ts";
 
 export const creditApplication = {
-  "application.purposes.refinance": "Refinancing",
   "application.eyebrow": "Business lending",
   "application.title": "Financing application",
   "application.intro": "Enter your company details and loan requirements.",
@@ -29,12 +28,16 @@ export const creditApplication = {
   "application.purposes.placeholder": "Select a purpose",
   "application.purposes.workingCapital": "Working capital",
   "application.purposes.equipment": "Equipment purchase",
+  "application.purposes.refinance": "Refinancing",
+  "application.purposes.other": "Other",
+  "application.fields.customPurpose": "Custom financing purpose",
   "application.validation.company": "Enter the company name",
   "application.validation.inn":
     "Enter a {legalDigits}- or {soleDigits}-digit tax ID",
   "application.validation.amount":
     "Enter an amount greater than zero with at most {fractionDigits} decimal places",
   "application.validation.purpose": "Select a financing purpose",
+  "application.validation.customPurpose": "Enter your financing purpose",
   "application.validation.companySelection": "Select a company from the list",
   "application.validation.productAmount": "The amount does not match the selected product",
   "application.validation.productTerm": "The term does not match the selected product",
@@ -64,6 +67,14 @@ export const creditApplication = {
   "application.progressTitle": "Review progress",
   "application.workflowTitle": "Application journey",
   "application.workflowDescription": "Saved information and current processing stage.",
+  "application.workflowHint": "Choose a section",
+  "application.workflow.summary": "Parameters",
+  "application.workflow.financial": "Finance",
+  "application.workflow.documents": "Documents",
+  "application.workflow.review": "Review",
+  "application.workflow.decisionPending": "The bank has not made a decision yet.",
+  "application.workflow.decision": "Decision",
+  "application.workflow.fulfillment": "Fulfilment",
   "application.step.company": "Company and loan",
   "application.step.financial": "Financial indicators",
   "application.step.review": "Data review",

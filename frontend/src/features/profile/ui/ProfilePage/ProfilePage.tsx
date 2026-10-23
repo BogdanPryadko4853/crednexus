@@ -15,6 +15,9 @@ export function ProfilePage() {
   const { t } = useLocale();
   if (state.status !== "authenticated") return null;
   const { user } = state;
+  const visibleRoles = user.roles.filter(
+    (role) => role === "ADMIN" || role === "BANK_EMPLOYEE",
+  );
   return (
     <section className="cabinet-page">
       <div className="cabinet-page__heading">
@@ -31,16 +34,16 @@ export function ProfilePage() {
             <dt>{t("profile.email")}</dt>
             <dd>{user.email}</dd>
           </div>
-          <div>
-            <dt>{t("profile.roles")}</dt>
-            <dd>
-              {user.roles.length > 0
-                ? user.roles
-                    .map((role) => (roleKeys[role] ? t(roleKeys[role]) : role))
-                    .join(", ")
-                : t("profile.noRoles")}
-            </dd>
-          </div>
+          {visibleRoles.length > 0 && (
+            <div>
+              <dt>{t("profile.roles")}</dt>
+              <dd>
+                {visibleRoles
+                  .map((role) => (roleKeys[role] ? t(roleKeys[role]) : role))
+                  .join(", ")}
+              </dd>
+            </div>
+          )}
         </dl>
       </Card>
     </section>
