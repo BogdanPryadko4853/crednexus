@@ -1,0 +1,36 @@
+app.155.212.216.26.sslip.io {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        Strict-Transport-Security "max-age=31536000"
+        -Server
+    }
+    reverse_proxy 127.0.0.1:18080
+    log {
+        output file /var/log/caddy/crednexus-app.json {
+            roll_size 10MiB
+            roll_keep 3
+            roll_keep_for 168h
+        }
+    }
+}
+
+auth.155.212.216.26.sslip.io {
+    header {
+        X-Content-Type-Options nosniff
+        Strict-Transport-Security "max-age=31536000"
+        -Server
+    }
+    # Keycloak administration is reachable only using an SSH tunnel.
+    @admin path /admin /admin/* /realms/master /realms/master/* /metrics /health /health/*
+    respond @admin 404
+    reverse_proxy 127.0.0.1:18081
+    log {
+        output file /var/log/caddy/crednexus-auth.json {
+            roll_size 10MiB
+            roll_keep 3
+            roll_keep_for 168h
+        }
+    }
+}

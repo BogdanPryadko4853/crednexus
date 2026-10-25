@@ -1,0 +1,7 @@
+[Unit]
+Description=CredNexus disk monitoring and scoped cache cleanup
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/crednexus-maintenance

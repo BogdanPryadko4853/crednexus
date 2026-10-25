@@ -1,0 +1,12 @@
+[Unit]
+Description=Encrypted consistent CredNexus backup
+Requires=docker.service
+After=docker.service
+ConditionPathExists=/opt/crednexus/current/compose.prod.yaml
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/crednexus-backup
+TimeoutStartSec=30min
+Nice=10
+IOSchedulingClass=idle

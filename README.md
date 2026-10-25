@@ -1,105 +1,241 @@
 # CredNexus
 
-CredNexus — демонстрационный цифровой кредитный конвейер для малого и микробизнеса, созданный для Альфа-Хака. Репозиторий содержит Spring Boot backend; frontend и ML-сервис подключаются отдельно.
+**Цифровой кредитный кабинет малого и микробизнеса.**
 
-## Реализовано
+CredNexus объединяет предпринимателя и сотрудника банка в одном кредитном процессе: от финансовой анкеты и проверки компании до ML-скоринга, предложения условий и демонстрационной выдачи. Проект разработан для хакатона Альфа-Банка.
 
-- OAuth2 Resource Server с Keycloak: глобальные роли `CLIENT`, `BANK_EMPLOYEE`, `ADMIN` берутся из JWT.
-- Компании, представители, продукты, заявки и финансовые показатели.
-- Надёжный кредитный workflow: PostgreSQL-очередь с lease, `FOR UPDATE SKIP LOCKED`, retry и восстановлением после рестарта.
-- Детерминированные локальные mock-проверки ФНС и БКИ.
-- Цикл уточнений: `NEEDS_INFO` создаёт конкретный запрос, клиент отвечает текстом или прикладывает требуемый документ, затем проверка запускается повторно.
-- Rule-based скоринг — основной рабочий вариант до подключения ML. Интерфейс `ScoringProvider` оставлен для будущей интеграции ML API.
-- Автоматическое решение, ручное рассмотрение, контрпредложения и истечение оффера.
-- Демонстрационные договор и выдача: `ACCEPTED → AGREEMENT_PENDING → DISBURSED`.
-- Документы в MinIO: только PDF/PNG/JPEG по сигнатурам содержимого, ограничение размера и проверка прав.
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`.
+[Приложение](https://app.155.212.216.26.sslip.io) · [Развёртывание и эксплуатация](docs/DEPLOYMENT_BEGET.md) · [Архитектурные материалы](docs/)
+
+> Демонстрационный MVP, не банковская информационная система. ФНС и БКИ — локальные mock-интеграции; договор и выдача средств — симуляции. Компании и заявки демонстрационного кабинета вымышлены. ML-сервис выполняет настоящий CPU-инференс моделей проекта, но его оценки не предназначены для реальных кредитных решений.
+
+## Возможности
+
+- **Кабинет предпринимателя:** несколько компаний и представителей, каталог продуктов, черновики, финансовая анкета и месячный профиль для ML.
+- **Автоматический конвейер:** проверки ФНС/БКИ → скоринг → решение. После отправки заявки frontend не запускает этапы вручную.
+- **Дополнительные сведения:** вопросы и запросы документов, ответы клиента и повторная верификация с сохранением истории.
+- **Рабочее место банка:** расширенная карточка, ручное одобрение, отказ и контрпредложение.
+- **Офферы:** принятие, отклонение и автоматическое истечение, согласованные статусы и защита от повторных операций.
+- **Документы:** MinIO, контроль прав, размера и фактического формата PDF/PNG/JPEG.
+- **Восстановление:** история заявки, healthchecks, ограниченные retry, durable-очередь и продолжение после рестарта.
+
+Успешный путь:
+
+```text
+DRAFT → SUBMITTED → VERIFYING → SCORING → OFFERED
+                                           ↓
+                                        ACCEPTED → AGREEMENT_PENDING → DISBURSED
+```
+
+Альтернативные ветви: `NEEDS_INFO`, `MANUAL_REVIEW`, `REJECTED`, `DECLINED`, `EXPIRED`. Технический сбой интеграции не считается отрицательным бизнес-решением.
+
+## Технологии
+
+| Область | Стек |
+|---|---|
+| Backend | Java 25, Spring Boot 4.1.1, Spring Web MVC, Spring Security / OAuth2 Resource Server, Spring Data JPA / Hibernate, Bean Validation |
+| Сборка и API | Gradle Kotlin DSL, Flyway, OpenAPI / Swagger UI |
+| Frontend | React 19, TypeScript, Vite, React Router, Tailwind CSS, Keycloak JS |
+| ML | Python 3.13, FastAPI, ONNX Runtime, CPU inference |
+| Данные | PostgreSQL 17, JSONB, MinIO S3-compatible storage |
+| Идентификация | Keycloak 26, OpenID Connect Authorization Code + PKCE S256 |
+| Инфраструктура | Docker Engine, Docker Compose, Caddy, Ubuntu, Beget VPS |
+| Проверки и доставка | JUnit, Testcontainers, Vitest, Python unittest, GitHub Actions, GHCR |
+
+Точные версии закреплены в build-файлах, lock-файлах и Dockerfiles компонентов.
 
 ## Архитектура
 
-Backend — модульный монолит: `auth`, `company`, `product`, `application`, `verification`, `scoring`, `decision`, `manualreview`, `contract`, `workflow`.
+Backend — **модульный монолит**: компании, заявки, верификация, скоринг, решения, документы, договор и workflow имеют собственные пакеты. Frontend и ML развёртываются отдельными контейнерами.
 
-Схема и диаграммы находятся в [`docs`](docs). Данные и интеграции ФНС/БКИ/выдачи — только синтетические; настоящие банковские переводы, электронная подпись и внешние реестры не используются.
-
-## Запуск
-
-Требования: Docker Compose и Java 25+ для локального запуска backend без контейнера.
-
-```bash
-docker compose up --build
+```text
+crednexus/
+├── backend/                 # Java backend, Flyway, unit/integration tests
+├── frontend/                # React-кабинеты предпринимателя и сотрудника
+├── ml-service/              # FastAPI, модели и проверки ML
+├── infrastructure/          # Keycloak, PostgreSQL init, MinIO, Caddy, deploy/backup
+├── docs/                    # Диаграммы и эксплуатационная документация
+├── .github/workflows/       # CI и production deployment
+├── compose.yaml             # Локально: весь основной продукт
+├── compose.prod.yaml        # Production: готовые образы из GHCR
+└── .env.prod.example        # Production-переменные без секретов
 ```
 
-MinIO и клиент `mc` собираются из [закреплённых официальных исходников](https://github.com/minio/minio/tree/RELEASE.2024-12-18T13-15-44Z) одним Dockerfile
-`infrastructure/minio/Dockerfile`: запуск и интеграционные тесты не зависят от
-наличия старых образов `minio/minio` и `minio/mc` в Docker Hub. Первая сборка
-скачивает Go-модули и занимает больше времени; следующие используют Docker-кеш.
-Версия сервера сохранена прежней; это локальное MVP-окружение, не рекомендация для production.
+Браузер обращается к frontend и `/api` одного origin. Nginx передаёт API backend. Keycloak выдаёт JWT; backend проверяет подпись, issuer, роли и принадлежность к компании. Пароли хранит Keycloak, не таблица пользователей приложения.
 
-Если сборка падает с `TLS handshake timeout` при обращении к `registry-1.docker.io`,
-Docker не смог установить защищённое соединение с Docker Hub. Это не ошибка
-Python/Java или приложения. Проверьте VPN/proxy в Docker Desktop и доступ к Docker Hub,
-затем повторите загрузку и сборку. Для уменьшения числа одновременных операций:
+Workflow использует PostgreSQL-очередь: `FOR UPDATE SKIP LOCKED`, lease, retry и идемпотентные обработчики. Переходы и история сохраняются транзакционно. Kafka, Redis и RabbitMQ для текущего MVP не требуются.
+
+### Диаграммы
+
+Исходники находятся в [`docs/`](docs/) и открываются в [diagrams.net](https://app.diagrams.net/) или редакторе `.drawio`. Рекомендуемый порядок:
+
+1. [Общий кредитный процесс](docs/01-credit-workflow-overview.drawio).
+2. [Архитектура системы](docs/02-system-architecture.drawio).
+3. [Доменная ER-модель, Чен](docs/03-domain-model-chen-er.drawio).
+4. [Схема данных, Crow’s Foot](docs/04-database-schema-crow-foot.drawio).
+5. [Подробная sequence-диаграмма](docs/05-credit-workflow-detailed-sequence.drawio).
+
+Диаграммы отражают проектирование; актуальная физическая схема определяется Flyway-миграциями в `backend/src/main/resources/db/migration/`.
+
+## Быстрый локальный запуск
+
+Нужны Git и Docker Engine / Docker Desktop с Docker Compose v2+. Для контейнерного запуска Java, Node.js и Python на хосте не требуются.
 
 ```bash
-docker pull python:3.13.11-slim
-COMPOSE_PARALLEL_LIMIT=1 docker compose up --build -d
+git clone https://github.com/BogdanPryadko4853/crednexus.git
+cd crednexus
+git switch develop
+docker compose up --build -d
+docker compose ps
 ```
 
-Это не отключает TLS и не гарантирует обход сетевой проблемы. Не удаляйте volumes:
-они содержат PostgreSQL и документы. `manifest unknown` / `not found`, в отличие
-от TLS timeout, требуют проверки доступности конкретного образа и тега.
+Первая сборка скачивает зависимости и собирает MinIO из закреплённых официальных исходников, поэтому занимает больше времени. Backend применяет Flyway при старте; Hibernate проверяет схему через `ddl-auto=validate`.
 
-Сервисы:
+| Сервис | Локальный адрес |
+|---|---|
+| Приложение | <http://localhost:5173> |
+| Backend | <http://localhost:8080> |
+| Swagger UI | <http://localhost:8080/swagger-ui/index.html> |
+| Keycloak | <http://localhost:8081> |
+| PostgreSQL | `localhost:5432` |
+| MinIO Console | <http://localhost:9001> |
 
-- Backend — `http://localhost:8080`
-- PostgreSQL — `localhost:5432`
-- Keycloak — `http://localhost:8081`
-- MinIO Console — `http://localhost:9001`
+ML доступен backend внутри Docker-сети. Основной `compose.yaml` запускает **Java backend**. Дополнительные `compose.ml.yaml` и `compose.python.yaml` предназначены для отдельных сценариев ML-разработки, не для запуска основного продукта.
 
-Локальные значения по умолчанию определены в `compose.yaml`. Для переопределения создайте `.env`; реальные секреты в Git не добавляются.
+### Локальные аккаунты
 
-Основные переменные backend:
+| Назначение | Логин | Пароль по умолчанию |
+|---|---|---|
+| Администратор приложения, realm `crednexus` | `admin` | `ChangeMe123!` |
+| Администратор Keycloak, master realm | `admin` | `admin` |
 
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
-- `KEYCLOAK_ISSUER_URI`
-- `STORAGE_S3_ENDPOINT`, `STORAGE_S3_ACCESS_KEY`, `STORAGE_S3_SECRET_KEY`, `STORAGE_S3_BUCKET`
-- `DOCUMENT_MAX_SIZE_BYTES` — по умолчанию 10 MiB; этим же значением ограничен Spring multipart.
-- `SCORING_PROVIDER=rule-based` — рабочий алгоритм по умолчанию.
+Значения предназначены **только для localhost**. Пароль приложения переопределяется через `KEYCLOAK_TEST_ADMIN_PASSWORD`, master realm — через `KEYCLOAK_ADMIN_PASSWORD`.
 
-Keycloak realm и тестовые аккаунты импортируются контейнером Keycloak. Используйте только синтетические учётные данные из его realm-конфигурации; не публикуйте реальные пароли.
+Обычного пользователя локально создайте через Keycloak: realm `crednexus` → Users → пользователь с заполненным email → постоянный пароль → realm-role `CLIENT`. Для сотрудника используется `BANK_EMPLOYEE`, для администратора приложения — `ADMIN`. Регистрация из формы входа выключена. Backend синхронизирует пользователя при первом авторизованном обращении.
 
-## Демонстрационный путь
+Импорт realm выполняется только при первом создании: изменение env или JSON **не меняет пароль существующего аккаунта**. Используйте управление пользователями Keycloak.
 
-1. Войти через Keycloak и передавать access token как `Bearer`.
-2. Создать компанию, участника и активный кредитный продукт (сотрудник банка).
-3. Клиент создаёт черновик, финансовый снимок и отправляет заявку.
-4. Workflow автоматически запускает ФНС и БКИ, затем скоринг и решение.
-5. При `OFFERED` клиент принимает оффер. Очередь симулирует договор и выдачу.
-6. При `NEEDS_INFO` получить `GET /api/loan-applications/{id}/information-requests`, ответить на текстовый запрос либо загрузить документ с `informationRequestId`. После закрытия всех запросов повторная проверка запускается автоматически.
-7. Сотрудник получает расширенную карточку: `GET /api/manual-review/loan-applications/{id}/details` и может принять ручное решение.
+### Конфигурация и отдельный запуск
 
-Правила mock-проверок воспроизводимы: последняя цифра ИНН управляет ФНС, предпоследняя — БКИ. `6` означает бизнес-отказ, `7` — запрос уточнения, `8–9` — временную техническую ошибку. Ошибка интеграции не равна отказу: после ограниченных retry заявка передаётся на ручное рассмотрение.
+Compose читает необязательный корневой `.env`; локальные defaults находятся в [`compose.yaml`](compose.yaml). Не используйте их в production.
 
-## Политика скоринга и решений
+| Переменные | Назначение |
+|---|---|
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | База приложения |
+| `KEYCLOAK_DB_NAME`, `KEYCLOAK_DB_USERNAME`, `KEYCLOAK_DB_PASSWORD` | Отдельная база Keycloak |
+| `KEYCLOAK_ISSUER_URI`, `VITE_KEYCLOAK_URL` | Согласованные публичные адреса авторизации |
+| `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_BUCKET` | Объектное хранилище |
+| `DOCUMENT_MAX_SIZE_BYTES` | Лимит документа; default 10 MiB |
+| `SCORING_PROVIDER` | `ml` в Compose; `rule-based` — явно выбираемый режим |
+| `CREDNEXUS_ML_BASE_URL` | Внутренний HTTP-адрес ML |
+| `CREDNEXUS_DEVICE`, `CREDNEXUS_MODEL_THREADS` | Устройство и потоки inference |
 
-`RuleBasedScoringProvider` оценивает выручку, расходы, прибыльность, долговую нагрузку, платежи, параметры заявки и сведения БКИ. Нулевая выручка обрабатывается безопасно без деления на ноль. Решение дополнительно проверяет успешность обязательных проверок, активность продукта и его лимиты. ФНС `FAILED` никогда не получает автоматическое одобрение.
-
-## Тесты
+Для backend вне контейнера установите Java 25 и настройте `SPRING_DATASOURCE_*`, Keycloak и S3-переменные из `backend/src/main/resources/application.yml`.
 
 ```bash
 cd backend
-./gradlew clean build
+./gradlew bootRun
 ```
 
-Тесты используют реальную PostgreSQL для Flyway/workflow и реальный MinIO для
-загрузки/скачивания документов через Testcontainers. Нужен запущенный Docker daemon
-и доступ к реестру образов и Go-модулям. MinIO собирается тем же Dockerfile, что и
-в Compose; кешированного стороннего образа не требуется. GitHub Actions запускает
-`clean build` и сохраняет HTML/XML-отчёты тестов, в том числе при падении.
+Логи и остановка без удаления данных:
 
-## Ограничения MVP
+```bash
+docker compose logs -f --tail=100 backend ml
+docker compose stop
+docker compose up -d
+```
 
-- ML-сервис пока не подключён; используется объяснимый rule-based алгоритм.
-- ФНС, БКИ, договор и выдача — локальные симуляции.
-- Загрузка документа проверяет сигнатуру формата, но не выполняет антивирусную проверку или OCR.
-- При сбое договора/выдачи сотрудник может безопасно заново поставить этап в очередь через `POST /api/loan-applications/{id}/fulfillment/retry`.
+**Не используйте `docker compose down -v` для обновления:** PostgreSQL и документы находятся в named volumes.
+
+## Production и доступ
+
+Развёртывание: **Beget VPS**, Ubuntu 26.04.1 LTS, amd64, 5 vCPU, 11 GB RAM по тарифу, 30 GB NVMe. Caddy выдаёт и автоматически продлевает HTTPS-сертификаты.
+
+| Назначение | Адрес / аккаунт |
+|---|---|
+| Приложение | <https://app.155.212.216.26.sslip.io> |
+| Авторизация | <https://auth.155.212.216.26.sslip.io> |
+| Предприниматель с демонстрационными компаниями | `alexey.volkov`, `CLIENT` |
+| Технический smoke-аккаунт клиента | `demo-client`, `CLIENT` |
+| Сотрудник банка | `demo-employee`, `BANK_EMPLOYEE` |
+| Администратор приложения | `demo-admin`, `ADMIN` |
+
+Откройте приложение, нажмите «Войти» и используйте нужный аккаунт. **Рабочие production-пароли не публикуются в Git:** владелец передаёт их отдельно. Оператор хранит стандартные аккаунты в защищённом `/etc/crednexus/production.env`: `KEYCLOAK_DEMO_CLIENT_PASSWORD`, `KEYCLOAK_DEMO_EMPLOYEE_PASSWORD`, `KEYCLOAK_DEMO_ADMIN_PASSWORD`. Пароль `alexey.volkov` хранится отдельно в `/etc/crednexus/showcase-password`. Администратор приложения не равен администратору master realm.
+
+Публичны только SSH/HTTP/HTTPS. Backend, PostgreSQL, ML и MinIO не публикуют порты наружу; frontend и Keycloak доступны Caddy через loopback. Админка Keycloak публично закрыта. Production использует `SCORING_PROVIDER=ml` с CPU inference, без неявного fallback.
+
+`sslip.io` — бесплатный внешний DNS, не собственный домен. Для долгосрочной эксплуатации рекомендуется собственный домен.
+
+## CI/CD
+
+Production-ветка — **`develop`**. Pipeline: [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+```text
+push develop
+  → Project CI: backend + PostgreSQL/MinIO tests, frontend tests/build
+  → Service CI: ML, API/DB tests, модели, зависимости и workflows
+  → Docker build → GHCR: backend / frontend / ml / minio
+  → SSH deploy → backup → compose up --wait → публичные HTTPS healthchecks
+```
+
+- При ошибке обязательных проверок публикация и деплой не выполняются.
+- Образы помечаются **полным commit SHA**; production не зависит от плавающего `latest`.
+- Environment `production` разрешает только `develop`; отдельный SSH-ключ хранится в GitHub Secrets.
+- CI входит как `deploy`, не root. Restricted gateway разрешает только release-wrapper с проверкой SHA и run ID.
+- Actions concurrency, серверный `flock` и проверка head защищают от параллельных и устаревших релизов.
+- Перед обновлением создаётся backup; `current` меняется после успешных healthchecks.
+- Flyway применяет миграции; автоматический downgrade БД при ошибке **не выполняется**.
+
+Environment Secrets: `DEPLOY_HOST`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`. Для GHCR используется краткоживущий `GITHUB_TOKEN`, не постоянный PAT. Настройка, логи и ограничения отката: [руководство эксплуатации](docs/DEPLOYMENT_BEGET.md).
+
+## Тестирование
+
+Backend integration tests используют настоящие PostgreSQL и MinIO через Testcontainers; нужен Docker daemon.
+
+```bash
+# Backend: компиляция, тесты, Flyway, JPA validate
+cd backend
+./gradlew clean build
+
+# Frontend: Node.js 24, npm 11
+cd ../frontend
+npm ci
+npm test
+npm run build
+```
+
+ML-проверки и закреплённые зависимости: [`ml-service/README.md`](ml-service/README.md) и Service CI. Контракты API и модели проверяются до публикации образов. Отчёты доступны в artifacts Actions.
+
+[`infrastructure/deploy/smoke.mjs`](infrastructure/deploy/smoke.mjs) дополнительно проверяет публичный OIDC/PKCE-вход, роли, API-путь до выдачи, версию ML, ручное решение и MinIO upload/download. Скрипт создаёт отдельные тестовые записи и запускается оператором с защищённым credentials-файлом.
+
+## Демонстрационный сценарий
+
+1. Войти как `alexey.volkov`, выбрать компанию и активный продукт. В кабинете подготовлены две компании и заявки с выданным кредитом, предложением и черновиком.
+2. Создать черновик: сумма, срок, цель; заполнить финансовую анкету и месячный ML-профиль.
+3. Отправить заявку. Проверки, скоринг и решение автоматические; наблюдать статусы и историю.
+4. При `NEEDS_INFO` ответить на вопрос или приложить требуемый документ. Рассмотрение продолжится после необходимых уточнений.
+5. При `OFFERED` принять либо отклонить условия. После принятия дождаться симуляции договора и выдачи.
+6. Для ручного сценария войти как `demo-employee`, открыть карточку и принять решение либо сформировать контрпредложение.
+
+Повторяемая подготовка пользовательского кабинета: [`seed-showcase.mjs`](infrastructure/deploy/seed-showcase.mjs). Компании и заявки создаются через API, не прямой записью статусов в PostgreSQL. Существующие данные не удаляются.
+
+### Скоринг и mock-интеграции
+
+В ML-режиме backend передаёт профиль и условия в `/v1/score`, сохраняет версию модели и факторы. Балл: `round((1 - default_next12m) * 100)`. Решение дополнительно учитывает обязательные проверки и лимиты продукта, не только категорию риска.
+
+`RuleBasedScoringProvider` остаётся рабочим явно выбираемым режимом: выручка, расходы, прибыльность, долг, платежи, условия кредита и БКИ. При сбое ML он **не подставляется автоматически**: применяются ограниченные retry и ручное рассмотрение.
+
+Mock ФНС и БКИ независимы: последняя и предпоследняя цифры ИНН соответственно задают сценарий. `6` — отрицательный бизнес-результат, `7` — недостаточно сведений, `8–9` — техническая ошибка. Это тестовое правило, не обращение к реальным реестрам.
+
+## Эксплуатация и границы MVP
+
+- **Данные:** постоянные PostgreSQL/MinIO volumes не удаляются при обновлении.
+- **Backup:** ежедневный зашифрованный restic backup БД, документов и конфигурации с согласованной паузой записи. Проверка восстановления — в отдельной PostgreSQL.
+- **Offsite:** первоначальная копия вынесена с VPS; автоматическое внешнее хранилище ещё требует настройки. Локальный backup не защищает от потери VPS.
+- **Диск:** ротация логов, ограниченная очистка cache и старых образов проекта; deploy запрещён при менее 4 GiB свободного места.
+- **Доступность:** один VPS без HA; backup и обновления могут кратковременно прерывать обслуживание.
+- **Документы:** контроль формата/размера/прав; антивирус и OCR не реализованы.
+- **Сбои:** технические ошибки отделены от отказов; retry ограничены. Для договора/выдачи есть безопасный ручной перезапуск фонового этапа.
+
+Команды логов, обновления, отката, backup и устранения ошибок: **[`docs/DEPLOYMENT_BEGET.md`](docs/DEPLOYMENT_BEGET.md)**.
+
+При `TLS handshake timeout` к Docker Hub проверьте сеть/VPN/proxy Docker Desktop. Отключать TLS или удалять volumes не нужно. При необходимости повторите сборку с `COMPOSE_PARALLEL_LIMIT=1`.

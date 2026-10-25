@@ -1,0 +1,56 @@
+{
+  "realm": "crednexus",
+  "enabled": true,
+  "displayName": "CredNexus",
+  "sslRequired": "external",
+  "loginTheme": "crednexus",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["ru", "en"],
+  "defaultLocale": "ru",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "rememberMe": true,
+  "bruteForceProtected": true,
+  "failureFactor": 5,
+  "waitIncrementSeconds": 60,
+  "maxFailureWaitSeconds": 900,
+  "roles": {
+    "realm": [
+      {"name": "CLIENT", "description": "Представитель компании"},
+      {"name": "BANK_EMPLOYEE", "description": "Сотрудник банка"},
+      {"name": "ADMIN", "description": "Администратор CredNexus"}
+    ]
+  },
+  "users": [
+    {
+      "username": "demo-admin", "enabled": true,
+      "email": "admin@demo.crednexus.invalid", "emailVerified": true,
+      "firstName": "Демо", "lastName": "Администратор", "realmRoles": ["ADMIN"],
+      "credentials": [{"type": "password", "value": "${KEYCLOAK_DEMO_ADMIN_PASSWORD}", "temporary": false}]
+    },
+    {
+      "username": "demo-employee", "enabled": true,
+      "email": "employee@demo.crednexus.invalid", "emailVerified": true,
+      "firstName": "Демо", "lastName": "Сотрудник", "realmRoles": ["BANK_EMPLOYEE"],
+      "credentials": [{"type": "password", "value": "${KEYCLOAK_DEMO_EMPLOYEE_PASSWORD}", "temporary": false}]
+    },
+    {
+      "username": "demo-client", "enabled": true,
+      "email": "client@demo.crednexus.invalid", "emailVerified": true,
+      "firstName": "Демо", "lastName": "Предприниматель", "realmRoles": ["CLIENT"],
+      "credentials": [{"type": "password", "value": "${KEYCLOAK_DEMO_CLIENT_PASSWORD}", "temporary": false}]
+    }
+  ],
+  "clients": [{
+    "clientId": "crednexus-frontend", "name": "CredNexus Frontend", "enabled": true,
+    "protocol": "openid-connect", "publicClient": true,
+    "standardFlowEnabled": true, "directAccessGrantsEnabled": false,
+    "redirectUris": ["https://app.155.212.216.26.sslip.io/*"],
+    "webOrigins": ["https://app.155.212.216.26.sslip.io"],
+    "attributes": {
+      "pkce.code.challenge.method": "S256",
+      "post.logout.redirect.uris": "https://app.155.212.216.26.sslip.io/*"
+    }
+  }]
+}

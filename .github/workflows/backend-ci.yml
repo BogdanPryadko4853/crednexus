@@ -1,19 +1,29 @@
 name: Project CI
 
 on:
+  workflow_call:
   push:
+    branches-ignore: [develop]
     paths:
       - "backend/**"
       - "frontend/**"
       - "compose.yaml"
+      - "compose.prod.yaml"
       - "infrastructure/minio/**"
+      - "infrastructure/deploy/**"
+      - "infrastructure/caddy/**"
+      - "infrastructure/keycloak/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     paths:
       - "backend/**"
       - "frontend/**"
       - "compose.yaml"
+      - "compose.prod.yaml"
       - "infrastructure/minio/**"
+      - "infrastructure/deploy/**"
+      - "infrastructure/caddy/**"
+      - "infrastructure/keycloak/**"
       - ".github/workflows/backend-ci.yml"
 
 permissions:
@@ -40,6 +50,22 @@ jobs:
 
       - name: Validate Compose configuration
         run: docker compose config --quiet
+
+      - name: Validate production deployment configuration
+        env:
+          POSTGRES_PASSWORD: ci-placeholder
+          KEYCLOAK_DB_PASSWORD: ci-placeholder
+          KEYCLOAK_ADMIN_PASSWORD: ci-placeholder
+          KEYCLOAK_DEMO_ADMIN_PASSWORD: ci-placeholder
+          KEYCLOAK_DEMO_EMPLOYEE_PASSWORD: ci-placeholder
+          KEYCLOAK_DEMO_CLIENT_PASSWORD: ci-placeholder
+          MINIO_ROOT_USER: ci-placeholder
+          MINIO_ROOT_PASSWORD: ci-placeholder
+          IMAGE_NAMESPACE: ghcr.io/bogdanpryadko4853
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          for script in infrastructure/deploy/*.sh; do bash -n "$script"; done
+          docker compose -f compose.prod.yaml config --format json | python3 infrastructure/deploy/validate-compose.py
 
       - name: Build MinIO from official source
         run: docker compose build minio

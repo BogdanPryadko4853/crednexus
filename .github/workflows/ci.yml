@@ -1,7 +1,9 @@
 name: Service CI
 
 on:
+  workflow_call:
   push:
+    branches-ignore: [develop]
   pull_request:
   workflow_dispatch:
   schedule:
@@ -229,8 +231,8 @@ jobs:
       - name: Stop test stacks
         if: always()
         run: |
-          docker compose -f compose.ml.yaml -p "${COMPOSE_PROJECT_NAME}-ml" down --volumes --remove-orphans
-          docker compose -f compose.python.yaml down --volumes --remove-orphans
+          docker compose -f compose.ml.yaml -p "${COMPOSE_PROJECT_NAME}-ml" down --remove-orphans
+          docker compose -f compose.python.yaml down --remove-orphans
 
   ci:
     name: CI
