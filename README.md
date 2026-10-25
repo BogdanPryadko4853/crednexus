@@ -239,24 +239,6 @@ git push origin develop
 Для запрета прямого push и обязательного зелёного CI перед merge нужны отдельные
 GitHub rulesets / branch protection; в этой задаче они не включались.
 
-### Dependabot и ветки обновления
-
-[Dependabot](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
-— бот GitHub, который проверяет новые версии зависимостей и создаёт отдельные
-ветки `dependabot/...` с pull requests. Это предложения обновить библиотеки,
-Docker base images или GitHub Actions, **не** новые окружения и не отдельные сайты.
-Бот не сливает их автоматически в рамках текущей конфигурации проекта.
-
-После публикации кода в `main` конфигурация [`.github/dependabot.yml`](.github/dependabot.yml)
-предложила обновления pip-пакетов и Python-образа ML, а также Actions.
-Эти обновления не применялись автоматически и не меняли production.
-
-Неактуальные PR и временные ветки удалены; рабочие ветки — `main` и `develop`.
-Плановые version-update PR приостановлены через `open-pull-requests-limit: 0`,
-чтобы бот не создавал их снова по расписанию. Это не отключение security alerts:
-security-update PR управляются отдельно и при включённой GitHub automation могут
-создавать новые ветки. Для возврата плановых обновлений задайте ненулевые лимиты.
-
 ## Тестирование
 
 Backend integration tests используют настоящие PostgreSQL и MinIO через Testcontainers; нужен Docker daemon.
