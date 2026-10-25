@@ -1,4 +1,4 @@
 -r requirements-onnx.txt
 fastapi==0.138.2
 pydantic==2.12.4
-uvicorn==0.49.0
+uvicorn==0.54.0
