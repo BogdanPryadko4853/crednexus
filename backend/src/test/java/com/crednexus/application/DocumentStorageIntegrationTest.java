@@ -3,6 +3,7 @@ package com.crednexus.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.crednexus.application.entity.DocumentType;
+import com.crednexus.application.entity.LoanApplication;
 import com.crednexus.application.repository.LoanApplicationRepository;
 import com.crednexus.application.service.DocumentService;
 import com.crednexus.auth.entity.User;
@@ -14,12 +15,16 @@ import com.crednexus.company.repository.CompanyMemberRepository;
 import com.crednexus.company.repository.CompanyRepository;
 import com.crednexus.product.entity.CreditProduct;
 import com.crednexus.product.repository.CreditProductRepository;
-import com.crednexus.application.entity.LoanApplication;
+import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +38,10 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest
 @Testcontainers
@@ -48,19 +54,43 @@ class DocumentStorageIntegrationTest {
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine");
 
     @Container
-    static final GenericContainer<?> MINIO = new GenericContainer<>(DockerImageName.parse("minio/minio:RELEASE.2024-12-18T13-15-44Z"))
+    static final GenericContainer<?> MINIO = new GenericContainer<>(minioImage())
             .withEnv("MINIO_ROOT_USER", "minioadmin")
             .withEnv("MINIO_ROOT_PASSWORD", "minioadmin123")
             .withCommand("server", "/data")
-            .withExposedPorts(9000);
+            .withExposedPorts(9000)
+            .waitingFor(Wait.forHttp("/minio/health/ready").forPort(9000))
+            .withStartupTimeout(Duration.ofMinutes(2));
 
-    @Autowired private UserRepository users;
-    @Autowired private CompanyRepository companies;
-    @Autowired private CompanyMemberRepository members;
-    @Autowired private CreditProductRepository products;
-    @Autowired private LoanApplicationRepository applications;
-    @Autowired private DocumentService documents;
-    @Autowired private MinioClient minio;
+    @Autowired
+    private UserRepository users;
+
+    @Autowired
+    private CompanyRepository companies;
+
+    @Autowired
+    private CompanyMemberRepository members;
+
+    @Autowired
+    private CreditProductRepository products;
+
+    @Autowired
+    private LoanApplicationRepository applications;
+
+    @Autowired
+    private DocumentService documents;
+
+    @Autowired
+    private MinioClient minio;
+
+    private static Future<String> minioImage() {
+        String prebuiltImage = System.getenv("CREDNEXUS_TEST_MINIO_IMAGE");
+        if (prebuiltImage != null && !prebuiltImage.isBlank()) {
+            return CompletableFuture.completedFuture(prebuiltImage);
+        }
+        return new ImageFromDockerfile("crednexus-minio:test", false)
+                .withFileFromPath("Dockerfile", Path.of("../infrastructure/minio/Dockerfile"));
+    }
 
     @DynamicPropertySource
     static void configure(DynamicPropertyRegistry registry) {
@@ -80,10 +110,8 @@ class DocumentStorageIntegrationTest {
 
     @Test
     void storesAndDownloadsPdfUsingActualMinio() throws Exception {
-        try {
+        if (!minio.bucketExists(BucketExistsArgs.builder().bucket(BUCKET).build())) {
             minio.makeBucket(MakeBucketArgs.builder().bucket(BUCKET).build());
-        } catch (Exception ignored) {
-            // The shared test container can already contain the bucket.
         }
         User user = users.save(new User(UUID.randomUUID().toString(), "document@test.local", "Document User"));
         Company company = companies.save(new Company("7701234500", "1027700132195", "Test", "OOO", "ACTIVE"));

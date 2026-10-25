@@ -44,7 +44,9 @@ services:
       - ./infrastructure/keycloak/themes/crednexus:/opt/keycloak/themes/crednexus:ro
 
   minio:
-    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    image: crednexus-minio:local
+    build:
+      context: ./infrastructure/minio
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD-SHELL", "if command -v curl >/dev/null 2>&1; then curl --fail --silent http://localhost:9000/minio/health/ready; else wget -q -O /dev/null http://localhost:9000/minio/health/ready; fi"]
@@ -62,7 +64,9 @@ services:
       - minio-data:/data
 
   minio-init:
-    image: minio/mc:latest
+    image: crednexus-minio:local
+    build:
+      context: ./infrastructure/minio
     depends_on:
       minio:
         condition: service_healthy

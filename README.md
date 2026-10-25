@@ -29,6 +29,26 @@ Backend — модульный монолит: `auth`, `company`, `product`, `ap
 docker compose up --build
 ```
 
+MinIO и клиент `mc` собираются из [закреплённых официальных исходников](https://github.com/minio/minio/tree/RELEASE.2024-12-18T13-15-44Z) одним Dockerfile
+`infrastructure/minio/Dockerfile`: запуск и интеграционные тесты не зависят от
+наличия старых образов `minio/minio` и `minio/mc` в Docker Hub. Первая сборка
+скачивает Go-модули и занимает больше времени; следующие используют Docker-кеш.
+Версия сервера сохранена прежней; это локальное MVP-окружение, не рекомендация для production.
+
+Если сборка падает с `TLS handshake timeout` при обращении к `registry-1.docker.io`,
+Docker не смог установить защищённое соединение с Docker Hub. Это не ошибка
+Python/Java или приложения. Проверьте VPN/proxy в Docker Desktop и доступ к Docker Hub,
+затем повторите загрузку и сборку. Для уменьшения числа одновременных операций:
+
+```bash
+docker pull python:3.13.11-slim
+COMPOSE_PARALLEL_LIMIT=1 docker compose up --build -d
+```
+
+Это не отключает TLS и не гарантирует обход сетевой проблемы. Не удаляйте volumes:
+они содержат PostgreSQL и документы. `manifest unknown` / `not found`, в отличие
+от TLS timeout, требуют проверки доступности конкретного образа и тега.
+
 Сервисы:
 
 - Backend — `http://localhost:8080`
@@ -71,7 +91,11 @@ cd backend
 ./gradlew clean build
 ```
 
-Тесты используют Testcontainers PostgreSQL для Flyway и сценариев workflow. Для MinIO в production используется Docker Compose; проверка реального MinIO контейнера должна выполняться в окружении с доступным Docker daemon.
+Тесты используют реальную PostgreSQL для Flyway/workflow и реальный MinIO для
+загрузки/скачивания документов через Testcontainers. Нужен запущенный Docker daemon
+и доступ к реестру образов и Go-модулям. MinIO собирается тем же Dockerfile, что и
+в Compose; кешированного стороннего образа не требуется. GitHub Actions запускает
+`clean build` и сохраняет HTML/XML-отчёты тестов, в том числе при падении.
 
 ## Ограничения MVP
 
