@@ -116,7 +116,7 @@ try {
   }
   const existing = await api('/loan-applications');
   const scenarios = [
-    { company: owned[0], product: working, amount: 1200000, term: 18, purpose: 'working-capital', target: 'DISBURSED' },
+    { company: owned[0], product: working, amount: 1200000, term: 18, purpose: 'working_capital', target: 'DISBURSED' },
     { company: owned[1], product: equipment, amount: 850000, term: 24, purpose: 'equipment', target: 'OFFERED' },
     { company: owned[0], product: equipment, amount: 2200000, term: 36, purpose: 'equipment', target: 'DRAFT' },
   ];

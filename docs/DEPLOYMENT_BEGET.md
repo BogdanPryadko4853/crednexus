@@ -58,6 +58,7 @@ Production Compose намеренно не содержит небезопасн
 - `demo-client` — `CLIENT`.
 - `demo-employee` — `BANK_EMPLOYEE`.
 - `demo-admin` — `ADMIN` приложения, не администратор Keycloak master.
+- `alexey.volkov` — отдельный `CLIENT` с демонстрационными компаниями и заявками.
 - `platform-admin` — отдельный bootstrap-администратор Keycloak master.
 
 Пароли находятся в соответствующих `KEYCLOAK_DEMO_*_PASSWORD` и
@@ -180,6 +181,27 @@ CREDNEXUS_CREDENTIALS="$HOME/.ssh/crednexus-production.env" \
 ```
 
 Не записывайте HAR/видео/trace с паролями и JWT в публичные артефакты.
+Для пользовательской демонстрации подготовлен `alexey.volkov` (Алексей Волков),
+компании «Северная обжарка» и «Городская пекарня». Их реквизиты и финансовые
+показатели вымышлены; внешний вид кабинета не содержит технических smoke-названий.
+Пароль находится в `/etc/crednexus/showcase-password` (0600), не в Git.
+Операторская копия — `~/.ssh/crednexus-showcase-password` на Mac.
+
+Повторяемое наполнение через API (не изменяет существующие статусы напрямую):
+
+```bash
+CREDNEXUS_CREDENTIALS="$HOME/.ssh/crednexus-production.env" \
+  CREDNEXUS_SHOWCASE_PASSWORD_FILE="$HOME/.ssh/crednexus-showcase-password" \
+  PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs \
+  node infrastructure/deploy/seed-showcase.mjs
+```
+
+Скрипт переиспользует компании по ИНН и заявки по компании/продукту/сумме/сроку/цели;
+не запускайте его одновременно в нескольких процессах. Если ранее оставленный
+оффер уже истёк либо пользователь изменил сценарий, скрипт сообщает ошибку, а не
+переписывает завершённую историю. Аккаунт создаётся отдельно в Keycloak с ролью
+`CLIENT`; повторный import production realm его не создаёт.
+
 Для демонстрации вручную используйте `demo-client` и `demo-employee` в разных браузерных
 профилях. Для автоматического пути последние две цифры синтетического ИНН — `00`;
 для ручного рассмотрения из-за ошибок ФНС — `08` (после ограниченных retry).
@@ -298,7 +320,21 @@ production volumes ради обновления.** Для обычного об
   ключ restic — отдельно в `~/.ssh/crednexus-restic-password`. Автоматический offsite
   backup требует назначения постоянно доступного внешнего хранилища.
 
-На момент этих проверок запущен **bootstrap**, а не GitHub Actions release.
-Новый workflow ещё не отправлен в GitHub; Environment/Secrets требуют авторизации
-GitHub CLI или ручной настройки владельцем. До успешного CI → GHCR → SSH запуска
-считать автоматический CI/CD проверенным нельзя.
+### Проверка автоматической доставки
+
+Environment `production` и три deployment secrets настроены. Первый полный
+[production run 40200085996](https://github.com/BogdanPryadko4853/crednexus/actions/runs/40200085996)
+успешно доставил commit `2d3b7c35c67736bf9065fbecfedb04693b12bfa9` через
+CI → GHCR → restricted SSH → backup → Compose healthchecks → публичный HTTPS.
+Production перешёл с bootstrap на образы с полным Git SHA.
+
+Первый attempt остановился на существующем Python-тесте
+`test_inference_does_not_block_event_loop`: ожидание старта потока ограничено
+100 мс. Повтор failed jobs прошёл без изменения ML-кода и тестов. Это известный
+источник нестабильности теста на shared runner, а не повод отключать gate:
+при падении доставка не выполняется. Окончательное исправление синхронизации
+этого теста потребует отдельного изменения ML-service, который в этой задаче не менялся.
+
+MinIO build cache общий для backend integration tests и публикации образа:
+`type=gha,scope=production-minio`. Это сохраняет сборку из закреплённых исходников,
+но не требует повторять компиляцию Go при каждом обновлении документации.

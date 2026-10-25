@@ -14,7 +14,7 @@ compose=(docker compose --env-file /etc/crednexus/production.env --env-file "$re
 work=$(mktemp -d /run/crednexus-backup.XXXXXX)
 resume() {
     "${compose[@]}" start --wait --wait-timeout 300 minio backend frontend
-    rm -f "$work/postgres.sql.gz" "$work/production.env" "$work/images.env" "$work/Caddyfile"
+    rm -f "$work/postgres.sql.gz" "$work/production.env" "$work/images.env" "$work/Caddyfile" "$work/showcase-password"
     rmdir "$work"
 }
 trap resume EXIT
@@ -24,6 +24,9 @@ trap resume EXIT
 install -m 0600 /etc/crednexus/production.env "$work/production.env"
 install -m 0600 "$release/images.env" "$work/images.env"
 install -m 0600 /etc/caddy/Caddyfile "$work/Caddyfile"
+if [[ -f /etc/crednexus/showcase-password ]]; then
+    install -m 0600 /etc/crednexus/showcase-password "$work/showcase-password"
+fi
 objects=$(docker volume inspect crednexus-production-minio --format '{{.Mountpoint}}')
 restic snapshots >/dev/null 2>&1 || restic init
 restic backup --tag crednexus "$work" "$objects" "$release/compose.prod.yaml" "$release/infrastructure"

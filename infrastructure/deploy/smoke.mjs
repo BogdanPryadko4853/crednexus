@@ -174,6 +174,9 @@ try {
   assert.equal(rejected.status, 'REJECTED');
   console.log(`Manual review and employee decision OK: ${manual}`);
 
+  // Keep historical applications but do not leave a technical product in the customer catalog.
+  await employee.api(`/credit-products/${product.id}`, 'PATCH', { active: false });
+
   await client.page.getByRole('button', { name: /выйти/i }).click();
   await client.page.waitForURL(url => url.origin === origin && url.pathname === '/login', { timeout: 30000 });
   console.log('Logout completed');

@@ -1,5 +1,7 @@
 # CredNexus
 
+[![Production CI/CD](https://github.com/BogdanPryadko4853/crednexus/actions/workflows/deploy.yml/badge.svg?branch=develop)](https://github.com/BogdanPryadko4853/crednexus/actions/workflows/deploy.yml)
+
 **Цифровой кредитный кабинет малого и микробизнеса.**
 
 CredNexus объединяет предпринимателя и сотрудника банка в одном кредитном процессе: от финансовой анкеты и проверки компании до ML-скоринга, предложения условий и демонстрационной выдачи. Проект разработан для хакатона Альфа-Банка.
